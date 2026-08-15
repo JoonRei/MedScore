@@ -54,6 +54,10 @@ export function AdminLoginForm() {
         return;
       }
 
+      // A successful login starts a fresh inactivity window.
+      // This prevents a timestamp left by an older session from immediately signing out a new session.
+      localStorage.setItem("medscores_admin_last_activity", String(Date.now()));
+
       router.replace("/admin");
       router.refresh();
     } catch (err) {

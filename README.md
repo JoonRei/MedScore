@@ -1,6 +1,14 @@
-# MedScores V1.6
+# MedScores V1.8
 
 College of Medicine academic performance portal built with Next.js and Supabase.
+
+## V1.8 stability and mobile fixes
+- Fresh Admin and Student logins reset the inactivity timestamp correctly, preventing immediate sign-out from an expired previous-session timestamp.
+- Mobile bottom navigation uses all available width: 6 Admin destinations and 4 Student destinations remain visible and tappable.
+- Mobile labels are shortened where needed without changing desktop terminology.
+- Button text stays on one line; action groups stack on narrow screens instead of colliding or splitting labels.
+- Extra bottom spacing accounts for the fixed navigation bar and phone safe-area insets.
+
 
 ## V1.5 — Reports, Results & Access Refinement
 

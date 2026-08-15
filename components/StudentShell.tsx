@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { InactivityLogout } from "@/components/InactivityLogout";
 
 const nav = [
-  { href: "/student", label: "Home", icon: HomeIcon },
-  { href: "/student/subjects", label: "Subjects", icon: BookIcon },
-  { href: "/student/results", label: "Results", icon: ChartIcon },
-  { href: "/student/settings", label: "Settings", icon: SettingsIcon },
+  { href: "/student", label: "Home", mobileLabel: "Home", icon: HomeIcon },
+  { href: "/student/subjects", label: "Subjects", mobileLabel: "Subjects", icon: BookIcon },
+  { href: "/student/results", label: "Results", mobileLabel: "Results", icon: ChartIcon },
+  { href: "/student/settings", label: "Settings", mobileLabel: "Settings", icon: SettingsIcon },
 ];
 
 export function StudentShell({ children, codeName }: { children: React.ReactNode; codeName: string }) {
@@ -26,7 +26,13 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
           {nav.map((item) => {
             const active = item.href === "/student" ? pathname === "/student" : pathname.startsWith(item.href);
             const Icon = item.icon;
-            return <Link key={item.href} href={item.href} className={cn("nav-item", active && "active")}><Icon size={19}/><span>{item.label}</span></Link>;
+            return (
+              <Link key={item.href} href={item.href} className={cn("nav-item", active && "active")}>
+                <Icon size={19}/>
+                <span className="nav-label nav-label-desktop">{item.label}</span>
+                <span className="nav-label nav-label-mobile">{item.mobileLabel}</span>
+              </Link>
+            );
           })}
         </nav>
         <div className="sidebar-footer">

@@ -1,4 +1,4 @@
-# MedScores V1.5 Setup
+# MedScores V1.8 Setup
 
 ## 1. Install dependencies
 
@@ -10,7 +10,7 @@ npm install
 
 ## 2. Supabase database
 
-If you already have the previous MedScores version working with the same database, **do not rerun the schema** for this UI/security upgrade.
+If you already have MedScores working with the same database, **do not rerun the schema** for this update.
 
 For a completely new MedScores database only, open Supabase **SQL Editor**, paste:
 
@@ -53,7 +53,7 @@ Legacy key names remain supported by the existing MedScores Supabase configurati
 
 ## 5. Start
 
-After copying your `.env.local` into this V1.5 folder:
+After copying your `.env.local` into this V1.8 folder:
 
 ```powershell
 Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue

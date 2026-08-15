@@ -8,12 +8,12 @@ import { cn } from "@/lib/utils";
 import { InactivityLogout } from "@/components/InactivityLogout";
 
 const nav = [
-  { href: "/admin", label: "Overview", icon: HomeIcon },
-  { href: "/admin/students", label: "Students", icon: UsersIcon },
-  { href: "/admin/subjects", label: "Subjects", icon: BookIcon },
-  { href: "/admin/assessments", label: "Assessments", icon: FileIcon },
-  { href: "/admin/reports", label: "Reports", icon: ChartIcon },
-  { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
+  { href: "/admin", label: "Overview", mobileLabel: "Home", icon: HomeIcon },
+  { href: "/admin/students", label: "Students", mobileLabel: "Students", icon: UsersIcon },
+  { href: "/admin/subjects", label: "Subjects", mobileLabel: "Subjects", icon: BookIcon },
+  { href: "/admin/assessments", label: "Assessments", mobileLabel: "Exams", icon: FileIcon },
+  { href: "/admin/reports", label: "Reports", mobileLabel: "Reports", icon: ChartIcon },
+  { href: "/admin/settings", label: "Settings", mobileLabel: "Settings", icon: SettingsIcon },
 ];
 
 export function AdminShell({ children, email }: { children: React.ReactNode; email: string }) {
@@ -28,7 +28,13 @@ export function AdminShell({ children, email }: { children: React.ReactNode; ema
           {nav.map((item) => {
             const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
             const Icon = item.icon;
-            return <Link key={item.href} href={item.href} className={cn("nav-item", active && "active")}><Icon size={19} /><span>{item.label}</span></Link>;
+            return (
+              <Link key={item.href} href={item.href} className={cn("nav-item", active && "active")}>
+                <Icon size={19} />
+                <span className="nav-label nav-label-desktop">{item.label}</span>
+                <span className="nav-label nav-label-mobile">{item.mobileLabel}</span>
+              </Link>
+            );
           })}
         </nav>
         <div className="sidebar-footer">

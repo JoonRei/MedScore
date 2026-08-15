@@ -1096,3 +1096,125 @@ a { color: inherit; text-decoration: none; }
 .login-card-brand strong { font-size: 16px; line-height: 1.25; }
 .login-card-brand small { color: var(--muted); font-size: 12px; }
 @media (max-width: 900px) { .login-card-brand { display: flex; } }
+
+
+/* V1.8 stability and mobile layout refinements */
+.nav-label-mobile { display: none; }
+.nav-label { min-width: 0; }
+
+/* Button labels stay intact; action groups wrap the button itself instead of splitting its text. */
+.button,
+.button-sm,
+.text-button,
+.action-menu-trigger,
+.mobile-account button,
+.calendar-today-button {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.2;
+}
+.form-actions,
+.top-actions,
+.row-actions,
+.panel-header,
+.page-header-action {
+  min-width: 0;
+}
+.form-actions,
+.top-actions,
+.row-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  /* The desktop nav item has width:100%; reset it on mobile so one item cannot occupy the whole bar. */
+  .sidebar {
+    height: calc(78px + env(safe-area-inset-bottom));
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
+  }
+  .sidebar-nav {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+    overflow: visible;
+  }
+  .student-shell .sidebar-nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .nav-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 58px;
+    padding: 5px 2px;
+    flex: initial;
+    gap: 4px;
+    font-size: 10.5px;
+    line-height: 1.1;
+    text-align: center;
+    overflow: hidden;
+  }
+  .nav-item svg { width: 19px; height: 19px; }
+  .nav-label-desktop { display: none; }
+  .nav-label-mobile {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .main-content {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 640px) {
+  .button { min-height: 44px; padding-inline: 15px; }
+  .button-sm { min-height: 40px; padding-inline: 12px; }
+
+  .page-header-action,
+  .page-header-action .button,
+  .panel-header-stack-mobile .button {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .top-actions,
+  .form-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .top-actions .button,
+  .form-actions .button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Stacked modal actions keep long labels on one line without colliding. */
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .modal-actions .button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mobile-topbar { padding-inline: 14px; }
+  .mobile-account { gap: 7px; }
+  .mobile-account > span { max-width: 92px; }
+  .mobile-account button { padding-inline: 10px; }
+}
+
+@media (max-width: 420px) {
+  .sidebar-nav { gap: 2px; }
+  .nav-item { font-size: 9.5px; padding-inline: 1px; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .student-shell .nav-item { font-size: 10.5px; }
+  .mobile-account > span { display: none; }
+}

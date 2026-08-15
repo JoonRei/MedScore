@@ -31,6 +31,9 @@ export function StudentLoginForm() {
         setError(body.error || "Code name or PIN is incorrect.");
         return;
       }
+      // Start a new inactivity window only after the server has accepted the login.
+      localStorage.setItem("medscores_student_last_activity", String(Date.now()));
+
       router.replace("/student");
       router.refresh();
     } finally {
