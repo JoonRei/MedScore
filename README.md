@@ -1,6 +1,6 @@
 # MedScores V1.6
 
-Private College of Medicine academic performance portal built with Next.js and Supabase.
+College of Medicine academic performance portal built with Next.js and Supabase.
 
 ## V1.5 — Reports, Results & Access Refinement
 
@@ -31,7 +31,7 @@ V1.5 keeps the working Supabase configuration and academic workflows while refin
 - Last activity is shared through browser storage so idle state persists across tabs/reopens in the same browser
 - Student and Admin inactivity state are tracked separately
 - Protected Admin pages verify authentication before privileged data access
-- Protected Student pages verify the private student session before rendering
+- Protected Student pages verify the student session before rendering
 - Request-level route gates redirect unauthenticated users away from protected Admin/Student URLs
 - Protected mutation APIs independently reject requests without a valid session
 
@@ -42,7 +42,7 @@ V1.5 keeps the working Supabase configuration and academic workflows while refin
 - Students, subjects and enrollments
 - Draft / Released / Archived assessments
 - Score entry and validated bulk paste
-- Reports and private student results
+- Reports and student results
 - Working Supabase project URL normalization from the previous fixes
 
 See `SETUP.md` for installation and Supabase configuration.
@@ -53,3 +53,10 @@ See `SETUP.md` for installation and Supabase configuration.
 - Custom dropdowns use text-only triggers and options without decorative dropdown icons.
 - Assessments can be filtered directly by subject for faster access.
 - Existing authentication, inactivity logout, Supabase URL normalization, and protected routes remain unchanged.
+
+
+## Branding
+Replace `public/logo.png` with your own square PNG image. Keep the same filename. The same file is used in the application branding and browser tab icon. The image is displayed directly without a surrounding logo box.
+
+## Admin access
+Set `ADMIN_EMAIL` to the exact email of your one Admin user in local and Vercel environment variables. A valid Supabase Authentication session is not enough by itself; the email must also match this server-side allowlist.

@@ -127,7 +127,7 @@ export function StudentsClient({ students, subjects }: { students: StudentRow[];
 
       <div className="panel data-panel">
         <div className="panel-header panel-header-stack-mobile">
-          <div><h2>Student accounts</h2><p>Manage private access, enrollment and student identity from one place.</p></div>
+          <div><h2>Student accounts</h2><p>Manage access, enrollment and student identity from one place.</p></div>
           <button className="button button-primary" onClick={() => { setError(""); setShowAdd(true); }}>Add student</button>
         </div>
 
@@ -167,7 +167,7 @@ export function StudentsClient({ students, subjects }: { students: StudentRow[];
       {showAdd && (
         <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closeModals()}>
           <form className="modal modal-wide" onSubmit={(event) => submitStudent(event)}>
-            <div className="modal-header"><div><span className="modal-eyebrow">Student access</span><h2>Add student</h2><p>Create a private account and assign current subjects.</p></div><button className="modal-close" type="button" onClick={closeModals} aria-label="Close"><CloseIcon size={20} /></button></div>
+            <div className="modal-header"><div><span className="modal-eyebrow">Student access</span><h2>Add student</h2><p>Create a student account and assign current subjects.</p></div><button className="modal-close" type="button" onClick={closeModals} aria-label="Close"><CloseIcon size={20} /></button></div>
             <div className="modal-body">
               {error && <div className="alert alert-error modal-alert">{error}</div>}
               <StudentFormFields subjects={subjects} />
@@ -193,7 +193,7 @@ export function StudentsClient({ students, subjects }: { students: StudentRow[];
       {resetStudent && (
         <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closeModals()}>
           <form className="modal modal-compact" onSubmit={resetPin}>
-            <div className="modal-header"><div><span className="modal-eyebrow">Security</span><h2>Reset PIN</h2><p>Set a new private PIN for <strong>{resetStudent.code_name}</strong>. Existing sessions will be signed out.</p></div><button className="modal-close" type="button" onClick={closeModals} aria-label="Close"><CloseIcon size={20} /></button></div>
+            <div className="modal-header"><div><span className="modal-eyebrow">Security</span><h2>Reset PIN</h2><p>Set a new PIN for <strong>{resetStudent.code_name}</strong>. Existing sessions will be signed out.</p></div><button className="modal-close" type="button" onClick={closeModals} aria-label="Close"><CloseIcon size={20} /></button></div>
             <div className="modal-body">
               {error && <div className="alert alert-error modal-alert">{error}</div>}
               <div className="field"><label>New PIN</label><input className="input pin-input" name="pin" type="password" inputMode="numeric" pattern="[0-9]{4,6}" maxLength={6} placeholder="4–6 digits" autoFocus autoComplete="new-password" required /><span className="field-hint">The current PIN is never displayed and cannot be recovered.</span></div>

@@ -11,6 +11,7 @@ export const ASSESSMENT_TYPES = [
   "Oral Exam",
   "Case Presentation",
   "OSCE",
+  "Prelim Examination",
   "Midterm Examination",
   "Final Examination",
   "Assignment",

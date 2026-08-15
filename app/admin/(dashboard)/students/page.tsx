@@ -13,7 +13,7 @@ export default async function StudentsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Access management" title="Students" description="Create private student accounts, assign code names and manage access without displaying PINs."/>
+      <PageHeader eyebrow="Access management" title="Students" description="Create student accounts, assign code names and manage access without displaying PINs."/>
       <StudentsClient students={(students || []) as StudentRow[]} subjects={(subjects || []) as any[]} />
     </>
   );

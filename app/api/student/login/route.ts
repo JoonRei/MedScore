@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     response.cookies.set(STUDENT_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
       expires: expiresAt,
     });

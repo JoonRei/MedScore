@@ -1,0 +1,2 @@
+MedScores V1.7
+Branding, responsive UI consistency, examination types, login controls, and access hardening.

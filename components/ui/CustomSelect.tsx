@@ -81,7 +81,7 @@ export function CustomSelect({
       <div className="popover-mobile-handle" />
       {searchable && (
         <div className="select-search">
-          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search options" />
+          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search" />
         </div>
       )}
       <div className="custom-select-options">

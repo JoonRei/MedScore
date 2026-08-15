@@ -22,11 +22,11 @@ export default async function AdminOverviewPage() {
       <PageHeader
         eyebrow="Admin workspace"
         title="Academic performance at a glance"
-        description="Manage private student access, organize subjects, encode assessment scores and release results when they are ready."
+        description="Manage student access, organize subjects, encode assessment scores and release results when they are ready."
         action={<Link className="button button-primary" href="/admin/assessments">New assessment</Link>}
       />
       <div className="grid grid-4">
-        <StatCard label="Active students" value={students.count || 0} note="Private student accounts" />
+        <StatCard label="Active students" value={students.count || 0} note="Student accounts" />
         <StatCard label="Active subjects" value={subjects.count || 0} note="Current academic offerings" />
         <StatCard label="Assessments" value={assessments.count || 0} note="Draft, released and archived" />
         <StatCard label="Scores recorded" value={scores.count || 0} note="Individual assessment results" />

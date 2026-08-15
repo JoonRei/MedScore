@@ -37,7 +37,7 @@ export function AdminShell({ children, email }: { children: React.ReactNode; ema
         </div>
       </aside>
       <div className="mobile-topbar"><Brand href="/admin" compact /><div className="mobile-account"><span>Admin</span><form action="/api/admin/logout" method="post"><button type="submit">Sign out</button></form></div></div>
-      <main className="main-content">{children}</main>
+      <main className="main-content"><div className="page-surface">{children}</div></main>
     </div>
   );
 }

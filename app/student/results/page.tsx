@@ -18,5 +18,5 @@ export default async function Page() {
     return { id: assessment.id, title: assessment.title, type: assessment.assessment_type, date: assessment.assessment_date, total: Number(assessment.total_score), score: Number(item.score), subject: subject?.name || "Subject" };
   });
 
-  return <><PageHeader eyebrow="Academic records" title="Results" description="Your private history of released assessment scores."/><StudentResultsClient rows={rows} /></>;
+  return <><PageHeader eyebrow="Academic records" title="Results" description="Your history of available assessment scores."/><StudentResultsClient rows={rows} /></>;
 }

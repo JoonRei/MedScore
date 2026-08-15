@@ -104,7 +104,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
     </div>
 
     {(open || edit) && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}><form className="modal" onSubmit={(event) => submit(event, edit || undefined)}>
-      <div className="modal-header"><div><span className="modal-eyebrow">Assessment</span><h2>{edit ? "Edit assessment" : "New assessment"}</h2><p>{edit ? "Update assessment details without removing recorded scores." : "New assessments start as Draft and stay private until you release the scores."}</p></div><button type="button" className="modal-close" onClick={close} aria-label="Close"><CloseIcon size={20} /></button></div>
+      <div className="modal-header"><div><span className="modal-eyebrow">Assessment</span><h2>{edit ? "Edit assessment" : "New assessment"}</h2><p>{edit ? "Update assessment details without removing recorded scores." : "New assessments start as Draft and remain unavailable to students until you release the scores."}</p></div><button type="button" className="modal-close" onClick={close} aria-label="Close"><CloseIcon size={20} /></button></div>
       <div className="modal-body">
         {error && <div className="alert alert-error modal-alert">{error}</div>}
         <AssessmentFields key={edit?.id || "new"} assessment={edit || undefined} subjects={subjects} />

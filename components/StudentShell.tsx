@@ -30,12 +30,12 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
           })}
         </nav>
         <div className="sidebar-footer">
-          <div className="admin-chip student-chip"><span className="avatar">{codeName.slice(0, 1)}</span><span><strong>{codeName}</strong><small>Private student account</small></span></div>
+          <div className="admin-chip student-chip"><span className="avatar">{codeName.slice(0, 1)}</span><span><strong>{codeName}</strong><small>Student account</small></span></div>
           <form action="/api/student/logout" method="post"><button className="nav-item nav-button" type="submit"><LogoutIcon size={19}/><span>Sign out</span></button></form>
         </div>
       </aside>
       <div className="mobile-topbar"><Brand href="/student" compact /><div className="mobile-account"><span>{codeName}</span><form action="/api/student/logout" method="post"><button type="submit">Sign out</button></form></div></div>
-      <main className="main-content">{children}</main>
+      <main className="main-content"><div className="page-surface">{children}</div></main>
     </div>
   );
 }

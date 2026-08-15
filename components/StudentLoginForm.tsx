@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { KeyIcon, LockIcon } from "@/components/icons";
+
+const blockClipboard = (event: React.SyntheticEvent<HTMLInputElement>) => event.preventDefault();
 
 export function StudentLoginForm() {
   const router = useRouter();
@@ -43,37 +44,38 @@ export function StudentLoginForm() {
       {error && <div className="alert alert-error">{error}</div>}
       <div className="field">
         <label htmlFor="code-name">Code Name</label>
-        <div className="input-shell">
-          <KeyIcon size={18}/>
-          <input
-            id="code-name"
-            className="input"
-            autoComplete="username"
-            autoCapitalize="none"
-            placeholder="Enter your private code"
-            value={codeName}
-            onChange={(e) => setCodeName(e.target.value)}
-            required
-          />
-        </div>
+        <input
+          id="code-name"
+          className="input"
+          autoComplete="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={codeName}
+          onChange={(e) => setCodeName(e.target.value)}
+          onPaste={blockClipboard}
+          onCopy={blockClipboard}
+          onCut={blockClipboard}
+          onDrop={blockClipboard}
+          required
+        />
       </div>
       <div className="field">
         <label htmlFor="pin">PIN</label>
-        <div className="input-shell">
-          <LockIcon size={18}/>
-          <input
-            id="pin"
-            className="input"
-            type="password"
-            inputMode="numeric"
-            autoComplete="current-password"
-            maxLength={6}
-            placeholder="Enter your PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-            required
-          />
-        </div>
+        <input
+          id="pin"
+          className="input pin-input"
+          type="password"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={6}
+          value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+          onPaste={blockClipboard}
+          onCopy={blockClipboard}
+          onCut={blockClipboard}
+          onDrop={blockClipboard}
+          required
+        />
       </div>
       <button className="button button-primary button-block" type="submit" disabled={loading}>
         {loading ? "Signing in…" : "Sign in"}

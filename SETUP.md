@@ -86,3 +86,10 @@ Both portals automatically sign out after **15 minutes without activity**. A pri
 5. Review the entries.
 6. Release the scores when they are ready.
 7. Students see only released results through Code Name + PIN access.
+
+
+## Logo
+Replace `public/logo.png` with your own square PNG. Keep the filename `logo.png`; no code changes are needed. Commit and push the replacement and Vercel will use it for both the app logo and browser icon.
+
+## Required Admin environment variable
+Add `ADMIN_EMAIL` in `.env.local` and in Vercel Project Settings → Environment Variables. Use the exact email of the single Supabase Authentication user that should have Admin access.

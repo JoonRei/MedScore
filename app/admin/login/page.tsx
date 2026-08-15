@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/components/AdminLoginForm";
+import { BrandLogo } from "@/components/Brand";
 import { getAdminUser } from "@/lib/admin-auth";
 
 export default async function AdminLoginPage() {
@@ -10,20 +11,21 @@ export default async function AdminLoginPage() {
   return (
     <div className="login-page">
       <section className="login-visual">
-        <div className="login-brand"><span className="login-brand-mark">M</span> MedScores</div>
+        <div className="login-brand"><BrandLogo className="login-logo" /><span>MedScores</span></div>
         <div className="login-message">
           <div className="kicker">Administrator</div>
-          <h1>Manage results without exposing student records.</h1>
-          <p>Create subjects and assessments, encode scores, control publication and manage private student access from one workspace.</p>
+          <h1>Manage academic records with controlled access.</h1>
+          <p>Create subjects and assessments, encode scores, control score availability and manage student access from one workspace.</p>
         </div>
         <div className="login-visual-footer">College of Medicine · Administrative Workspace</div>
       </section>
       <section className="login-panel">
         <div className="login-card">
+          <div className="login-card-brand"><BrandLogo /><span><strong>MedScores</strong><small>College of Medicine</small></span></div>
           <h2>Admin sign in</h2>
-          <p>Sign in using the administrator account you created under Supabase Authentication → Users.</p>
+          <p>Use the administrator account configured for this deployment.</p>
           <AdminLoginForm />
-          <div className="login-meta"><span>Secure administrative access</span><Link href="/">Student Portal</Link></div>
+          <div className="login-meta"><span>Administrative access</span><Link href="/">Student Portal</Link></div>
         </div>
       </section>
     </div>
