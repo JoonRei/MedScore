@@ -1,13 +1,11 @@
-# MedScores V2.8 Update
+# MedScores V2.9 — Shared Rank Display
 
-Copy these files over your existing MedScores V2.7 project.
+Small update for the V2.8 Achievement Board.
 
-Changes:
-- one featured student per rank only
-- initials avatar restored for Top 3
-- rank number attached to the initials avatar as a small badge
-- score remains the main content on each metallic podium face
-- tighter, denser leaderboard spacing with reduced unused whitespace
-- #4 and #5 also show one student per rank
-
-No database migration is required.
+- Keeps the existing V2.8 podium and carousel design.
+- Students with identical scores now remain in the same numeric rank.
+- Additional tied code names appear neatly inside the same podium/rank position.
+- Rank 4 and Rank 5 also show all code names sharing that score.
+- No duplicate podiums are created and the score is shown only once per shared rank.
+- Responsive wrapping prevents tied code names from overlapping the podium on phones.
+- No Supabase migration is required.

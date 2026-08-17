@@ -52,6 +52,13 @@ function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: num
           <span className="leaderboard-podium-rank-badge">#{group.rank}</span>
         </div>
         <strong>{featured.codeName}</strong>
+        {group.entries.length > 1 && (
+          <div className="leaderboard-podium-co-rankers" aria-label={`Also ranked number ${group.rank}`}>
+            {group.entries.slice(1).map((entry) => (
+              <span key={`${group.rank}-${entry.codeName}`}>{entry.codeName}</span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="leaderboard-podium-block" aria-label={`Rank ${group.rank}, score ${group.score} out of ${totalScore}`}>
         <span className="leaderboard-podium-block-score"><strong>{group.score}</strong><small>/ {totalScore}</small></span>
@@ -171,7 +178,9 @@ export function Leaderboard() {
                     <div className={`leaderboard-rank-group rank-${group.rank}`} key={`${activeBoard.id}-rank-${group.rank}`}>
                       <span className="leaderboard-rank-group-number">#{group.rank}</span>
                       <div className="leaderboard-rank-group-names">
-                        <strong>{featured.codeName}</strong>
+                        {group.entries.map((entry) => (
+                          <strong key={`${group.rank}-${entry.codeName}`}>{entry.codeName}</strong>
+                        ))}
                       </div>
                       <span className="leaderboard-rank-group-score">{group.score} / {activeBoard.totalScore}</span>
                     </div>

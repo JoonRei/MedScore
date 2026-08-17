@@ -3351,3 +3351,70 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   .rank-2 .leaderboard-podium-block { height: 62px; }
   .rank-3 .leaderboard-podium-block { height: 49px; }
 }
+
+
+/* V2.9 — shared-rank display without changing the V2.8 podium */
+.leaderboard-podium-co-rankers {
+  width: min(100%, 180px);
+  margin-top: -1px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.leaderboard-podium-co-rankers span {
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid rgba(116,16,143,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  color: var(--text-soft);
+  font-size: 9.5px;
+  line-height: 1.15;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  box-shadow: 0 3px 10px rgba(48,31,53,.04);
+}
+.gold .leaderboard-podium-co-rankers span {
+  border-color: rgba(167,108,0,.14);
+  background: rgba(255,248,218,.82);
+  color: #735000;
+}
+.silver .leaderboard-podium-co-rankers span {
+  border-color: rgba(107,116,128,.13);
+  background: rgba(246,248,250,.9);
+  color: #59636f;
+}
+.bronze .leaderboard-podium-co-rankers span {
+  border-color: rgba(141,75,32,.13);
+  background: rgba(249,235,224,.86);
+  color: #743c18;
+}
+.leaderboard-rank-group-names {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 7px;
+}
+.leaderboard-rank-group-names strong {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.leaderboard-rank-group-names strong + strong::before {
+  content: "·";
+  margin-right: 7px;
+  color: var(--muted-2);
+}
+@media (max-width: 760px) {
+  .leaderboard-podium-co-rankers { width: min(100%, 120px); gap: 3px; }
+  .leaderboard-podium-co-rankers span { padding: 2px 5px; font-size: 7.5px; }
+  .leaderboard-rank-group-names { gap: 2px 5px; }
+  .leaderboard-rank-group-names strong + strong::before { margin-right: 5px; }
+}
+@media (max-width: 430px) {
+  .leaderboard-podium-co-rankers { width: min(100%, 92px); }
+  .leaderboard-podium-co-rankers span { padding-inline: 4px; font-size: 7px; }
+}
