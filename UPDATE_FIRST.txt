@@ -1,0 +1,9 @@
+MedScores V2.0
+
+1. Run supabase/v2.0_leaderboard_doctor_absence.sql in Supabase SQL Editor ONCE.
+2. Copy this update over your existing Git project.
+3. Run npm install.
+4. Test with npm run dev.
+5. git add .
+6. git commit -m "Update MedScores to V2.0"
+7. git push

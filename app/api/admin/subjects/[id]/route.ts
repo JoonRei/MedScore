@@ -15,9 +15,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const yearLevel = String(body.yearLevel || "").trim();
       const term = String(body.term || "").trim();
       const academicYear = String(body.academicYear || "").trim();
-      if (!name || !yearLevel || !term || !academicYear) {
-        return NextResponse.json({ error: "Complete all required fields." }, { status: 400 });
-      }
+      if (!name || !yearLevel || !term || !academicYear) return NextResponse.json({ error: "Complete all required fields." }, { status: 400 });
       patch.name = name;
       patch.code = String(body.code || "").trim() || null;
       patch.year_level = yearLevel;
@@ -30,5 +28,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Unable to update subject." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await getAdminUser()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.from("subjects").delete().eq("id", id).select("id").maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ error: "Subject not found." }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete subject." }, { status: 500 });
   }
 }

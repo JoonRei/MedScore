@@ -16,8 +16,7 @@ export async function POST(request: Request) {
     const codeName = normalizeCodeName(String(body.codeName || ""));
     const pin = String(body.pin || "");
     const yearLevel = String(body.yearLevel || "").trim();
-    const section = String(body.section || "").trim() || null;
-    const subjectIds = Array.isArray(body.subjectIds) ? body.subjectIds.filter(Boolean) : [];
+    const subjectIds = Array.isArray(body.subjectIds) ? [...new Set(body.subjectIds.filter(Boolean).map(String))] : [];
 
     if (!firstName || !lastName || !yearLevel || !/^[A-Za-z0-9_-]{4,30}$/.test(codeName) || !/^\d{4,6}$/.test(pin)) {
       return NextResponse.json({ error: "Please complete all required fields correctly." }, { status: 400 });
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
         code_name: codeName,
         pin_hash: pinHash,
         year_level: yearLevel,
-        section,
       })
       .select("id")
       .single();
@@ -45,9 +43,12 @@ export async function POST(request: Request) {
     }
 
     if (subjectIds.length) {
-      const rows = subjectIds.map((subjectId: string) => ({ student_id: student.id, subject_id: subjectId }));
+      const rows = subjectIds.map((subjectId) => ({ student_id: student.id, subject_id: subjectId }));
       const { error: enrollError } = await supabase.from("enrollments").insert(rows);
-      if (enrollError) throw enrollError;
+      if (enrollError) {
+        await supabase.from("students").delete().eq("id", student.id);
+        throw enrollError;
+      }
     }
 
     return NextResponse.json({ ok: true });

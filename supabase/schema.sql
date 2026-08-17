@@ -9,7 +9,6 @@ create table if not exists public.students (
   code_name citext not null unique,
   pin_hash text not null,
   year_level text not null,
-  section text,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -42,6 +41,7 @@ create table if not exists public.assessments (
   assessment_date date not null,
   total_score numeric(10,2) not null check (total_score > 0),
   passing_score numeric(10,2),
+  doctor_name text,
   status text not null default 'draft' check (status in ('draft', 'published', 'archived')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -52,10 +52,12 @@ create table if not exists public.scores (
   id uuid primary key default gen_random_uuid(),
   assessment_id uuid not null references public.assessments(id) on delete cascade,
   student_id uuid not null references public.students(id) on delete cascade,
-  score numeric(10,2) not null check (score >= 0),
+  score numeric(10,2) check (score >= 0),
+  result_status text not null default 'scored' check (result_status in ('scored', 'absent')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique(assessment_id, student_id)
+  unique(assessment_id, student_id),
+  check ((result_status = 'scored' and score is not null) or (result_status = 'absent' and score is null))
 );
 
 create table if not exists public.student_sessions (

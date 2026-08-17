@@ -1,2 +1,1 @@
-MedScores V1.8
-Stability and mobile responsiveness update
+MedScores V2.8

@@ -11,7 +11,7 @@ import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 
 type SubjectOption = { id: string; name: string };
 type AssessmentRow = {
-  id: string; title: string; assessment_type: string; assessment_date: string; total_score: number; passing_score: number | null; status: string;
+  id: string; title: string; assessment_type: string; assessment_date: string; total_score: number; passing_score: number | null; doctor_name?: string | null; status: string;
   subjects?: any; scores?: any[];
 };
 
@@ -27,6 +27,7 @@ function AssessmentFields({ assessment, subjects }: { assessment?: AssessmentRow
     <div className="field full"><label>Assessment title</label><input className="input" name="title" defaultValue={assessment?.title || ""} placeholder="e.g. Long Exam 1" autoComplete="off" required /></div>
     <div className="field"><label>Assessment type</label><CustomSelect name="assessmentType" defaultValue={assessment?.assessment_type || "Quiz"} options={ASSESSMENT_TYPES.map((type) => ({ value: type, label: type }))} placeholder="Choose type" searchable /></div>
     <div className="field"><label>Date</label><CustomDatePicker name="date" defaultValue={assessment?.assessment_date || ""} /></div>
+    <div className="field full"><label>Doctor <span className="optional-label">Optional</span></label><input className="input" name="doctorName" defaultValue={assessment?.doctor_name || ""} autoComplete="off" /></div>
     <div className="field"><label>Total score</label><input className="input numeric-input" type="number" min="0.01" step="0.01" name="totalScore" defaultValue={assessment?.total_score ?? ""} placeholder="0" required /></div>
     <div className="field"><label>Passing score</label><input className="input numeric-input" type="number" min="0" step="0.01" name="passingScore" defaultValue={assessment?.passing_score ?? ""} placeholder="Optional" /></div>
   </div>;
@@ -50,13 +51,13 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
   const filtered = useMemo(() => assessments.filter((assessment) => {
     const subject = Array.isArray(assessment.subjects) ? assessment.subjects[0] : assessment.subjects;
     const q = query.trim().toLowerCase();
-    return (!q || `${assessment.title} ${assessment.assessment_type} ${subject?.name || ""}`.toLowerCase().includes(q)) && (statusFilter === "all" || assessment.status === statusFilter) && (typeFilter === "all" || assessment.assessment_type === typeFilter) && (subjectFilter === "all" || (assessment as any).subject_id === subjectFilter || subject?.id === subjectFilter);
+    return (!q || `${assessment.title} ${assessment.assessment_type} ${subject?.name || ""} ${assessment.doctor_name || ""}`.toLowerCase().includes(q)) && (statusFilter === "all" || assessment.status === statusFilter) && (typeFilter === "all" || assessment.assessment_type === typeFilter) && (subjectFilter === "all" || (assessment as any).subject_id === subjectFilter || subject?.id === subjectFilter);
   }), [assessments, query, statusFilter, typeFilter, subjectFilter]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>, assessment?: AssessmentRow) {
     event.preventDefault(); setBusyForm(true); setError(""); setNotice("");
     const form = new FormData(event.currentTarget);
-    const payload = { subjectId: form.get("subjectId"), title: form.get("title"), assessmentType: form.get("assessmentType"), date: form.get("date"), totalScore: form.get("totalScore"), passingScore: form.get("passingScore") };
+    const payload = { subjectId: form.get("subjectId"), title: form.get("title"), assessmentType: form.get("assessmentType"), date: form.get("date"), totalScore: form.get("totalScore"), passingScore: form.get("passingScore"), doctorName: form.get("doctorName") };
     const response = await fetch(assessment ? `/api/admin/assessments/${assessment.id}` : "/api/admin/assessments", { method: assessment ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({})); setBusyForm(false);
     if (!response.ok) { setError(body.error || `Unable to ${assessment ? "update" : "create"} assessment.`); return; }
@@ -85,7 +86,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
       </div>
       <div className="table-wrap responsive-table-wrap"><table className="responsive-table"><thead><tr><th>Assessment</th><th>Subject</th><th>Date</th><th>Scores</th><th>Status</th><th>Actions</th></tr></thead><tbody>
         {filtered.map((assessment) => { const subject = Array.isArray(assessment.subjects) ? assessment.subjects[0] : assessment.subjects; const count = assessment.scores?.[0]?.count ?? assessment.scores?.length ?? 0; return <tr key={assessment.id}>
-          <td data-label="Assessment"><div className="cell-title"><strong>{assessment.title}</strong><small>{assessment.assessment_type} · {assessment.total_score} pts{assessment.passing_score != null ? ` · Pass ${assessment.passing_score}` : ""}</small></div></td>
+          <td data-label="Assessment"><div className="cell-title"><strong>{assessment.title}</strong><small>{assessment.assessment_type} · {assessment.total_score} pts{assessment.passing_score != null ? ` · Pass ${assessment.passing_score}` : ""}{assessment.doctor_name ? ` · ${assessment.doctor_name}` : ""}</small></div></td>
           <td data-label="Subject">{subject?.name || "—"}</td><td data-label="Date">{formatDate(assessment.assessment_date)}</td><td data-label="Scores"><span className="count-pill">{count}</span></td>
           <td data-label="Status"><span className={`status-dot ${assessment.status === "published" ? "active" : assessment.status === "archived" ? "inactive" : "draft"}`}><i />{assessment.status === "published" ? "Released" : assessment.status.charAt(0).toUpperCase() + assessment.status.slice(1)}</span></td>
           <td data-label="Actions"><ActionMenu items={[

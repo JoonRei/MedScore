@@ -12,6 +12,7 @@ import {
   CheckmarkCircle01Icon,
   ClipboardIcon,
   DashboardSquare01Icon,
+  Delete01Icon,
   Edit02Icon,
   Key01Icon,
   LockPasswordIcon,
@@ -38,6 +39,7 @@ function makeIcon(icon: IconData) {
 }
 
 export const HomeIcon = makeIcon(DashboardSquare01Icon);
+export const DeleteIcon = makeIcon(Delete01Icon);
 export const UsersIcon = makeIcon(UserGroupIcon);
 export const BookIcon = makeIcon(BookOpen01Icon);
 export const FileIcon = makeIcon(ClipboardIcon);

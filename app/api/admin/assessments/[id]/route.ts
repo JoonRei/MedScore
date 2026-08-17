@@ -14,7 +14,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       patch.status = body.status;
     }
 
-    const hasDetails = ["subjectId", "title", "assessmentType", "date", "totalScore", "passingScore"].some((key) => key in body);
+    const hasDetails = ["subjectId", "title", "assessmentType", "date", "totalScore", "passingScore", "doctorName"].some((key) => key in body);
     if (hasDetails) {
       const title = String(body.title || "").trim();
       const total = Number(body.totalScore);
@@ -28,6 +28,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       patch.assessment_date = body.date;
       patch.total_score = total;
       patch.passing_score = pass;
+      patch.doctor_name = String(body.doctorName || "").trim() || null;
     }
 
     if (!Object.keys(patch).length) return NextResponse.json({ ok: true });

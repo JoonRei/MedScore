@@ -1,6 +1,6 @@
 {
   "name": "medscores",
-  "version": "1.8.0",
+  "version": "2.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,7 +16,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "@hugeicons/react": "latest",
-    "@hugeicons/core-free-icons": "latest"
+    "@hugeicons/core-free-icons": "latest",
+    "@fontsource-variable/plus-jakarta-sans": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

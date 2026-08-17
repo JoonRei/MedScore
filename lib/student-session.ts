@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "node:crypto";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,7 +16,7 @@ export function newSessionToken() {
   return crypto.randomBytes(32).toString("base64url");
 }
 
-export async function getStudentSession() {
+const readStudentSession = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get(STUDENT_COOKIE)?.value;
   if (!token) return null;
@@ -26,9 +27,7 @@ export async function getStudentSession() {
 
   const { data, error } = await supabase
     .from("student_sessions")
-    .select(
-      "id, expires_at, students(id, first_name, last_name, code_name, year_level, section, is_active)"
-    )
+    .select("id, expires_at, students(id, first_name, last_name, code_name, year_level, is_active)")
     .eq("token_hash", tokenHash)
     .gt("expires_at", now)
     .maybeSingle();
@@ -38,10 +37,14 @@ export async function getStudentSession() {
   if (!student || !student.is_active) return null;
 
   return { sessionId: data.id, expiresAt: data.expires_at, student };
+});
+
+export async function getStudentSession() {
+  return readStudentSession();
 }
 
 export async function requireStudent() {
   const session = await getStudentSession();
   if (!session) redirect("/");
-  return session!;
+  return session;
 }

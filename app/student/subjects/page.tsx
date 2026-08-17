@@ -10,5 +10,5 @@ export default async function Page() {
     const subject = Array.isArray(item.subjects) ? item.subjects[0] : item.subjects;
     return { id: subject.id, name: subject.name, code: subject.code, term: subject.term, academicYear: subject.academic_year };
   });
-  return <><PageHeader eyebrow="Academic records" title="Subjects" description="Open a subject to review released assessments and results."/><StudentSubjectsClient subjects={subjects} /></>;
+  return <><PageHeader eyebrow="Academic records" title="Subjects" description="Select a subject to review assessments and results."/><StudentSubjectsClient subjects={subjects} /></>;
 }

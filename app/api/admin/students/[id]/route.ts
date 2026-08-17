@@ -15,7 +15,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     if (typeof body.isActive === "boolean") patch.is_active = body.isActive;
 
-    const hasProfile = ["firstName", "lastName", "studentNumber", "codeName", "yearLevel", "section"].some((key) => key in body);
+    const hasProfile = ["firstName", "lastName", "studentNumber", "codeName", "yearLevel"].some((key) => key in body);
     if (hasProfile) {
       const firstName = String(body.firstName || "").trim();
       const lastName = String(body.lastName || "").trim();
@@ -29,7 +29,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       patch.student_number = String(body.studentNumber || "").trim() || null;
       patch.code_name = codeName;
       patch.year_level = yearLevel;
-      patch.section = String(body.section || "").trim() || null;
     }
 
     if (Object.keys(patch).length) {
@@ -41,12 +40,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     if (Array.isArray(body.subjectIds)) {
-      const subjectIds = body.subjectIds.filter(Boolean);
-      const { error: deleteError } = await supabase.from("enrollments").delete().eq("student_id", id);
-      if (deleteError) throw deleteError;
-      if (subjectIds.length) {
-        const rows = subjectIds.map((subjectId: string) => ({ student_id: id, subject_id: subjectId }));
-        const { error } = await supabase.from("enrollments").insert(rows);
+      const subjectIds = [...new Set(body.subjectIds.filter(Boolean).map(String))];
+      const { data: current, error: currentError } = await supabase.from("enrollments").select("subject_id").eq("student_id", id);
+      if (currentError) throw currentError;
+      const currentIds = new Set((current || []).map((row) => row.subject_id));
+      const nextIds = new Set(subjectIds);
+      const toAdd = subjectIds.filter((subjectId) => !currentIds.has(subjectId));
+      const toRemove = [...currentIds].filter((subjectId) => !nextIds.has(subjectId));
+
+      if (toAdd.length) {
+        const { error } = await supabase.from("enrollments").insert(toAdd.map((subjectId) => ({ student_id: id, subject_id: subjectId })));
+        if (error) throw error;
+      }
+      if (toRemove.length) {
+        const { error } = await supabase.from("enrollments").delete().eq("student_id", id).in("subject_id", toRemove);
         if (error) throw error;
       }
     }
@@ -54,5 +61,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Unable to update student." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await getAdminUser();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.from("students").delete().eq("id", id).select("id").maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ error: "Student not found." }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete student." }, { status: 500 });
   }
 }

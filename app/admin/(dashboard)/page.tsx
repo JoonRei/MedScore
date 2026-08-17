@@ -29,7 +29,7 @@ export default async function AdminOverviewPage() {
         <StatCard label="Active students" value={students.count || 0} note="Student accounts" />
         <StatCard label="Active subjects" value={subjects.count || 0} note="Current academic offerings" />
         <StatCard label="Assessments" value={assessments.count || 0} note="Draft, released and archived" />
-        <StatCard label="Scores recorded" value={scores.count || 0} note="Individual assessment results" />
+        <StatCard label="Result entries" value={scores.count || 0} note="Scores and did-not-take entries" />
       </div>
 
       <section className="panel section-gap">

@@ -29,9 +29,9 @@ export function StudentSubjectsClient({ subjects }: { subjects: StudentSubjectRo
       {filtered.map((subject) => <Link className="subject-card" href={`/student/subjects/${subject.id}`} key={subject.id}>
         <div className="subject-card-top"><span className="subject-code">{(subject.code || subject.name).slice(0,3).toUpperCase()}</span><span className="subject-term">{subject.term}</span></div>
         <h3>{subject.name}</h3><p>{subject.code || "College of Medicine"}</p>
-        <div className="subject-card-bottom"><small>{subject.academicYear}</small><strong className="subject-open">Open</strong></div>
+        <div className="subject-card-bottom"><small>{subject.academicYear}</small></div>
       </Link>)}
-      {!filtered.length && <div className="panel subject-empty-card"><EmptyState title="No matching subjects" description="Try another search or term." /></div>}
+      {!filtered.length && <div className="subject-empty-state"><EmptyState title="No matching subjects" description="Try another search or term." /></div>}
     </div>
   </>;
 }

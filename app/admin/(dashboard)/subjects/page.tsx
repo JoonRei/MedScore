@@ -1,2 +1,20 @@
-import {PageHeader} from "@/components/PageHeader"; import {SubjectsClient} from "@/components/SubjectsClient"; import {createAdminClient} from "@/lib/supabase/admin"; import {requireAdmin} from "@/lib/admin-auth";
-export default async function Page(){await requireAdmin();const {data}=await createAdminClient().from('subjects').select('*').order('is_archived').order('name');return <><PageHeader eyebrow="Curriculum" title="Subjects" description="Create and organize College of Medicine subjects without deleting previous academic records."/><SubjectsClient subjects={data||[]}/></>}
+import { PageHeader } from "@/components/PageHeader";
+import { SubjectsClient } from "@/components/SubjectsClient";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-auth";
+
+export default async function Page() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+  const [{ data: subjects }, { data: students }] = await Promise.all([
+    supabase.from("subjects").select("*,enrollments(student_id)").order("is_archived").order("name"),
+    supabase.from("students").select("id,first_name,last_name,code_name,student_number,year_level,is_active").order("last_name"),
+  ]);
+
+  return (
+    <>
+      <PageHeader eyebrow="Curriculum" title="Subjects" description="Create subjects, organize the curriculum and update student rosters efficiently."/>
+      <SubjectsClient subjects={(subjects || []) as any[]} students={(students || []) as any[]} />
+    </>
+  );
+}

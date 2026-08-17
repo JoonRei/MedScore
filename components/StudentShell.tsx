@@ -27,7 +27,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
             const active = item.href === "/student" ? pathname === "/student" : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className={cn("nav-item", active && "active")}>
+              <Link key={item.href} href={item.href} prefetch={true} className={cn("nav-item", active && "active")}>
                 <Icon size={19}/>
                 <span className="nav-label nav-label-desktop">{item.label}</span>
                 <span className="nav-label nav-label-mobile">{item.mobileLabel}</span>
@@ -40,7 +40,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
           <form action="/api/student/logout" method="post"><button className="nav-item nav-button" type="submit"><LogoutIcon size={19}/><span>Sign out</span></button></form>
         </div>
       </aside>
-      <div className="mobile-topbar"><Brand href="/student" compact /><div className="mobile-account"><span>{codeName}</span><form action="/api/student/logout" method="post"><button type="submit">Sign out</button></form></div></div>
+      <div className="mobile-topbar"><Brand href="/student" /><div className="mobile-account"><span>{codeName}</span><form action="/api/student/logout" method="post"><button type="submit">Sign out</button></form></div></div>
       <main className="main-content"><div className="page-surface">{children}</div></main>
     </div>
   );

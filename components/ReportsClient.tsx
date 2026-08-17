@@ -14,7 +14,9 @@ type ReportRow = {
   total: number;
   passing: number | null;
   subject: string;
+  doctor: string | null;
   scores: number[];
+  absent: number;
 };
 
 export function ReportsClient({ reports }: { reports: ReportRow[] }) {
@@ -47,7 +49,7 @@ export function ReportsClient({ reports }: { reports: ReportRow[] }) {
       reports.filter((item) => {
         const q = query.trim().toLowerCase();
         return (
-          (!q || `${item.title} ${item.subject} ${item.type}`.toLowerCase().includes(q)) &&
+          (!q || `${item.title} ${item.subject} ${item.type} ${item.doctor || ""}`.toLowerCase().includes(q)) &&
           (subject === "all" || item.subject === subject) &&
           (type === "all" || item.type === type)
         );
@@ -124,7 +126,7 @@ export function ReportsClient({ reports }: { reports: ReportRow[] }) {
                 <div className="report-row-main">
                   <strong>{item.title}</strong>
                   <span>{item.subject}</span>
-                  <small>{item.type} · {formatDate(item.date)} · {item.total} pts</small>
+                  <small>{item.type} · {formatDate(item.date)} · {item.total} pts{item.doctor ? ` · ${item.doctor}` : ""}{item.absent ? ` · ${item.absent} did not take` : ""}</small>
                 </div>
                 <div className="report-row-metric" data-label="Average">
                   <span>Average</span>
