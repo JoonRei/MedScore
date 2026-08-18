@@ -149,10 +149,7 @@ export function Leaderboard() {
         <div className="leaderboard-ad-carousel" aria-live="polite">
           <article className="leaderboard-ad-card leaderboard-podium-card" key={`${activeBoard.id}-${cycle}`}>
             <div className="leaderboard-ad-topline">
-              <div className="leaderboard-ad-context">
-                <span className="leaderboard-ad-type">{activeBoard.type}</span>
-                <span className="leaderboard-ad-date">{formatDate(activeBoard.date)}</span>
-              </div>
+              <span className="leaderboard-ad-date">{formatDate(activeBoard.date)}</span>
               <div className="leaderboard-ad-count"><strong>{activeIndex + 1}</strong><span>/ {boards.length}</span></div>
             </div>
 

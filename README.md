@@ -1,19 +1,10 @@
-# MedScores V3.5 Update Only
+# MedScores V3.7 Update Only
 
-Copy these files over the existing MedScores project.
+Focused leaderboard cleanup:
+- Removed the assessment-type badge from the leaderboard.
+- Removed the visible nested showcase container so the leaderboard uses one main content surface.
+- Kept compact, even edge spacing on desktop and mobile.
+- Centered both the "Max score" label and score value inside the Max Score box.
+- Preserved podium, ties, ranking logic, rotation, and responsive assessment grid.
 
-This update restores the preferred V2-style layout on Student Home and Student Results without changing the Admin portal, database schema, authentication, or Achievement Board.
-
-Then run:
-
-```powershell
-npm run dev
-```
-
-Deploy with:
-
-```powershell
-git add .
-git commit -m "Restore V2 layout on student portal"
-git push
-```
+No database migration is required.
