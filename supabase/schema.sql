@@ -43,6 +43,7 @@ create table if not exists public.assessments (
   passing_score numeric(10,2),
   doctor_name text,
   status text not null default 'draft' check (status in ('draft', 'published', 'archived')),
+  released_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (passing_score is null or (passing_score >= 0 and passing_score <= total_score))
@@ -75,6 +76,26 @@ create table if not exists public.student_login_attempts (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.academic_periods (
+  id uuid primary key default gen_random_uuid(),
+  academic_year text not null,
+  term text not null check (term in ('1st Semester', '2nd Semester', 'Summer')),
+  is_active boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (academic_year, term)
+);
+
+create unique index if not exists academic_periods_one_active_idx
+  on public.academic_periods ((is_active))
+  where is_active = true;
+
+create table if not exists public.student_result_views (
+  student_id uuid not null references public.students(id) on delete cascade,
+  assessment_id uuid not null references public.assessments(id) on delete cascade,
+  viewed_at timestamptz not null default now(),
+  primary key (student_id, assessment_id)
+);
+
 create index if not exists idx_enrollments_student on public.enrollments(student_id);
 create index if not exists idx_enrollments_subject on public.enrollments(subject_id);
 create index if not exists idx_assessments_subject on public.assessments(subject_id);
@@ -83,6 +104,7 @@ create index if not exists idx_scores_student on public.scores(student_id);
 create index if not exists idx_scores_assessment on public.scores(assessment_id);
 create index if not exists idx_student_sessions_hash on public.student_sessions(token_hash);
 create index if not exists idx_student_sessions_expiry on public.student_sessions(expires_at);
+create index if not exists idx_student_result_views_student on public.student_result_views(student_id);
 
 alter table public.students enable row level security;
 alter table public.subjects enable row level security;
@@ -91,6 +113,8 @@ alter table public.assessments enable row level security;
 alter table public.scores enable row level security;
 alter table public.student_sessions enable row level security;
 alter table public.student_login_attempts enable row level security;
+alter table public.academic_periods enable row level security;
+alter table public.student_result_views enable row level security;
 
 -- Intentionally no anon/authenticated data policies. All academic reads/writes are
 -- authorized by Next.js server routes using the server-only Supabase secret key.

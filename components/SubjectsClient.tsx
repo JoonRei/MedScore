@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArchiveIcon, CloseIcon, DeleteIcon, EditIcon, RestoreIcon, SearchIcon, UsersIcon } from "@/components/icons";
 import { ActionMenu } from "@/components/ui/ActionMenu";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { TERMS, YEAR_LEVELS } from "@/lib/constants";
+import { YEAR_LEVELS } from "@/lib/constants";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
 const yearOptions = [{ value: "all", label: "All year levels" }, ...YEAR_LEVELS.map((year) => ({ value: year, label: year }))];
@@ -25,6 +25,8 @@ type StudentOption = {
   is_active: boolean;
 };
 
+type PeriodOption = { id: string; academic_year: string; term: string; is_active: boolean };
+
 type SubjectRow = {
   id: string;
   name: string;
@@ -36,14 +38,17 @@ type SubjectRow = {
   enrollments: Array<{ student_id: string }>;
 };
 
-function SubjectFields({ subject }: { subject?: SubjectRow }) {
+function SubjectFields({ subject, periods, activePeriodId }: { subject?: SubjectRow; periods: PeriodOption[]; activePeriodId?: string | null }) {
+  const matched = subject ? periods.find((period) => period.academic_year === subject.academic_year && period.term === subject.term)?.id : null;
+  const periodOptions = [...periods.map((period) => ({ value: period.id, label: `${period.academic_year} · ${period.term}${period.is_active ? " · Current" : ""}` }))];
+  if (subject && !matched) periodOptions.unshift({ value: `legacy:${subject.academic_year}|${subject.term}`, label: `${subject.academic_year} · ${subject.term}` });
+  const defaultPeriodId = matched || (subject ? `legacy:${subject.academic_year}|${subject.term}` : activePeriodId || periods[0]?.id || "");
   return (
     <div className="form-grid">
       <div className="field full"><label>Subject name</label><input className="input" name="name" defaultValue={subject?.name || ""} autoComplete="off" required /></div>
       <div className="field"><label>Subject code</label><input className="input code-input" name="code" defaultValue={subject?.code || ""} autoComplete="off" /></div>
       <div className="field"><label>Year level</label><CustomSelect name="yearLevel" defaultValue={subject?.year_level || ""} options={YEAR_LEVELS.map((year) => ({ value: year, label: year }))} placeholder="Choose year level" /></div>
-      <div className="field"><label>Term</label><CustomSelect name="term" defaultValue={subject?.term || ""} options={TERMS.map((term) => ({ value: term, label: term }))} placeholder="Choose term" /></div>
-      <div className="field"><label>Academic year</label><input className="input" name="academicYear" defaultValue={subject?.academic_year || ""} autoComplete="off" required /></div>
+      <div className="field full"><label>Academic period</label><CustomSelect name="periodId" defaultValue={defaultPeriodId} options={periodOptions} placeholder="Choose academic year and semester" searchable /></div>
     </div>
   );
 }
@@ -120,7 +125,7 @@ function SubjectRoster({
   );
 }
 
-export function SubjectsClient({ subjects, students }: { subjects: SubjectRow[]; students: StudentOption[] }) {
+export function SubjectsClient({ subjects, students, periods, activePeriodId }: { subjects: SubjectRow[]; students: StudentOption[]; periods: PeriodOption[]; activePeriodId?: string | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<SubjectRow | null>(null);
@@ -147,7 +152,7 @@ export function SubjectsClient({ subjects, students }: { subjects: SubjectRow[];
   async function submit(event: React.FormEvent<HTMLFormElement>, subject?: SubjectRow) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
     const form = new FormData(event.currentTarget);
-    const payload = { name: form.get("name"), code: form.get("code"), yearLevel: form.get("yearLevel"), term: form.get("term"), academicYear: form.get("academicYear") };
+    const payload = { name: form.get("name"), code: form.get("code"), yearLevel: form.get("yearLevel"), periodId: form.get("periodId") };
     const response = await fetch(subject ? `/api/admin/subjects/${subject.id}` : "/api/admin/subjects", { method: subject ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({})); setBusy(false);
     if (!response.ok) { setError(body.error || `Unable to ${subject ? "update" : "create"} subject.`); return; }
@@ -231,7 +236,7 @@ export function SubjectsClient({ subjects, students }: { subjects: SubjectRow[];
       {notice && <div className="alert alert-success page-feedback">{notice}<button type="button" onClick={() => setNotice("")}>Dismiss</button></div>}
       {error && !open && !edit && !rosterSubject && !deleteSubject && <div className="alert alert-error page-feedback">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
       <div className="panel data-panel">
-        <div className="panel-header panel-header-stack-mobile"><div><h2>Subject catalog</h2><p>Organize subjects and manage student rosters from one place.</p></div><button className="button button-primary" onClick={() => { setError(""); setOpen(true); }}>Add subject</button></div>
+        <div className="panel-header panel-header-stack-mobile"><div><h2>Subject catalog</h2><p>Organize subjects and manage student rosters from one place.{periods.find((period) => period.id === activePeriodId) ? ` Current: ${periods.find((period) => period.id === activePeriodId)?.academic_year} · ${periods.find((period) => period.id === activePeriodId)?.term}.` : ""}</p></div><button className="button button-primary" onClick={() => { setError(""); setOpen(true); }}>Add subject</button></div>
         <div className="toolbar">
           <div className="search-box toolbar-search"><SearchIcon size={17}/><input className="input" placeholder="Search subject, code or academic year" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
           <div className="toolbar-filters"><CustomSelect value={year} onChange={setYear} options={yearOptions} /><CustomSelect value={status} onChange={setStatus} options={statusOptions} /></div>
@@ -255,7 +260,7 @@ export function SubjectsClient({ subjects, students }: { subjects: SubjectRow[];
 
       {(open || edit) && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}><form className="modal" onSubmit={(event) => submit(event, edit || undefined)}>
         <div className="modal-header"><div><span className="modal-eyebrow">Curriculum</span><h2>{edit ? "Edit subject" : "Add subject"}</h2><p>{edit ? "Update the subject details without changing existing records." : "Create a subject for the current or upcoming academic term."}</p></div><button type="button" className="modal-close" onClick={close} aria-label="Close"><CloseIcon size={20} /></button></div>
-        <div className="modal-body">{error && <div className="alert alert-error modal-alert">{error}</div>}<SubjectFields key={edit?.id || "new"} subject={edit || undefined} /></div>
+        <div className="modal-body">{error && <div className="alert alert-error modal-alert">{error}</div>}<SubjectFields key={edit?.id || "new"} subject={edit || undefined} periods={periods} activePeriodId={activePeriodId} /></div>
         <div className="modal-actions"><button type="button" className="button button-secondary" onClick={close}>Cancel</button><button className="button button-primary" disabled={busy}>{busy ? "Saving…" : edit ? "Save changes" : "Create subject"}</button></div>
       </form></div>}
 

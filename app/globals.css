@@ -3419,7 +3419,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   .leaderboard-podium-co-rankers span { padding-inline: 4px; font-size: 7px; }
 }
 
-/* V3.0 — Base 40 grading, cleaner selections, richer statistics */
+/* V3.0 — cleaner selections and statistics refinements */
 /* Dropdown selection is intentionally borderless: surface + typography only. */
 .custom-select-option.selected,
 .custom-select-option[aria-selected="true"] {
@@ -4869,4 +4869,114 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   .student-results-summary > div:first-child { padding: 12px !important; }
   .student-v2-results-summary strong,
   .student-results-summary strong { font-size: 20px; }
+}
+
+/* V4.0 — academic periods, release safety, score-entry workflow, new results and PWA. */
+.academic-period-panel { margin-bottom: 16px; }
+.academic-period-create {
+  display: grid;
+  grid-template-columns: minmax(180px, .9fr) minmax(210px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.academic-period-create .field { min-width: 0; }
+.academic-period-create .button { min-height: 42px; }
+.academic-period-list { display: grid; }
+.academic-period-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+}
+.academic-period-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.academic-period-row > div:first-child { min-width: 0; display: grid; gap: 3px; }
+.academic-period-row > div:first-child strong { font-size: 13.5px; color: var(--text); }
+.academic-period-row > div:first-child span { color: var(--muted); font-size: 11.5px; }
+.academic-period-row.is-current > div:first-child strong { color: var(--brand); }
+.academic-period-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; flex: 0 0 auto; }
+.settings-panel-compact { margin-top: 0; }
+.settings-pin-header { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.pwa-settings-action { display: flex; justify-content: flex-end; }
+
+.release-confirm-modal { width: min(520px, calc(100vw - 28px)); }
+.release-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
+}
+.release-summary-grid > div { min-width: 0; padding: 14px 12px; border-left: 1px solid var(--border); }
+.release-summary-grid > div:first-child { border-left: 0; }
+.release-summary-grid span { display: block; color: var(--muted); font-size: 10.5px; font-weight: 750; line-height: 1.25; }
+.release-summary-grid strong { display: block; margin-top: 5px; color: var(--text); font-size: 21px; line-height: 1; }
+.release-summary-grid .has-warning strong { color: var(--danger); }
+.release-warning,
+.release-ready { display: grid; gap: 4px; margin-top: 13px; padding: 12px 13px; border-radius: 11px; }
+.release-warning { background: var(--danger-soft); color: var(--danger); }
+.release-ready { background: var(--success-soft); color: var(--success); }
+.release-warning strong,
+.release-ready strong { font-size: 12px; }
+.release-warning span,
+.release-ready span { font-size: 11px; line-height: 1.45; color: inherit; opacity: .86; }
+
+.score-save-area { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.unsaved-label { color: #8b5c17; background: #fff7e8; border-radius: 999px; padding: 6px 9px; font-size: 10.5px; font-weight: 800; white-space: nowrap; }
+.score-keyboard-note { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 10.5px; line-height: 1.45; background: #fcfbfc; }
+.score-entry-row.has-invalid-score { background: #fffafa; }
+.score-entry-control { position: relative; }
+.score-inline-error { grid-column: 1 / -1; margin-top: -3px; color: var(--danger); font-size: 10px; font-weight: 750; line-height: 1.2; }
+.score-input-wrap.invalid .input { color: var(--danger); }
+
+.student-result-card-button { width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.student-result-card-button:focus-visible { outline: 3px solid rgba(116,16,143,.16); outline-offset: 2px; border-color: #b987c5; }
+.new-result-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  overflow: visible !important;
+}
+.student-result-detail-score { display: grid; gap: 5px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.student-result-detail-score span,
+.student-result-detail-grid span { color: var(--muted); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .035em; }
+.student-result-detail-score strong { color: var(--text); font-size: 28px; line-height: 1.15; letter-spacing: -.035em; }
+.student-result-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-top: 16px; }
+.student-result-detail-grid > div { min-width: 0; display: grid; gap: 5px; }
+.student-result-detail-grid strong { color: var(--text); font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .academic-period-create { grid-template-columns: 1fr 1fr; }
+  .academic-period-create .button { grid-column: 1 / -1; width: 100%; }
+  .release-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .release-summary-grid > div { border-left: 1px solid var(--border); border-top: 1px solid var(--border); }
+  .release-summary-grid > div:nth-child(odd) { border-left: 0; }
+  .release-summary-grid > div:nth-child(-n+2) { border-top: 0; }
+  .score-save-area { width: 100%; justify-content: space-between; }
+}
+
+@media (max-width: 520px) {
+  .academic-period-create { grid-template-columns: 1fr; gap: 10px; }
+  .academic-period-create .button { grid-column: auto; }
+  .academic-period-row { align-items: flex-start; gap: 12px; }
+  .academic-period-actions { align-items: flex-end; flex-direction: column; }
+  .academic-period-actions .button { min-width: 94px; }
+  .pwa-settings-action { justify-content: flex-start; }
+  .score-keyboard-note { display: none; }
+  .student-result-detail-grid { grid-template-columns: 1fr; gap: 12px; }
 }

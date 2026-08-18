@@ -13,7 +13,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 type SubjectOption = { id: string; name: string };
 type AssessmentRow = {
   id: string; title: string; assessment_type: string; assessment_date: string; total_score: number; passing_score: number | null; doctor_name?: string | null; status: string;
-  subjects?: any; scores?: any[];
+  subjects?: any; scores?: Array<{ student_id?: string; result_status?: string }>;
 };
 
 const statusOptions = [
@@ -41,6 +41,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyForm, setBusyForm] = useState(false);
   const [deleteAssessment, setDeleteAssessment] = useState<AssessmentRow | null>(null);
+  const [releaseAssessment, setReleaseAssessment] = useState<AssessmentRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -72,6 +73,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
     const response = await fetch(`/api/admin/assessments/${assessment.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: next }) });
     const body = await response.json().catch(() => ({})); setBusyId(null);
     if (!response.ok) { setError(body.error || "Unable to update assessment."); return; }
+    if (next === "published") setReleaseAssessment(null);
     setNotice(next === "published" ? "Scores released to students." : next === "archived" ? "Assessment archived." : "Assessment returned to Draft."); router.refresh();
   }
 
@@ -101,7 +103,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
         <div className="toolbar-count"><strong>{filtered.length}</strong><span>of {assessments.length} assessments</span></div>
       </div>
       <div className="table-wrap responsive-table-wrap"><table className="responsive-table"><thead><tr><th>Assessment</th><th>Subject</th><th>Date</th><th>Scores</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-        {filtered.map((assessment) => { const subject = Array.isArray(assessment.subjects) ? assessment.subjects[0] : assessment.subjects; const count = assessment.scores?.[0]?.count ?? assessment.scores?.length ?? 0; return <tr key={assessment.id}>
+        {filtered.map((assessment) => { const subject = Array.isArray(assessment.subjects) ? assessment.subjects[0] : assessment.subjects; const count = assessment.scores?.length ?? 0; return <tr key={assessment.id}>
           <td data-label="Assessment"><div className="cell-title"><strong>{assessment.title}</strong><small>{assessment.assessment_type} · {assessment.total_score} pts{assessment.passing_score != null ? ` · Pass ${assessment.passing_score}` : ""}{assessment.doctor_name ? ` · ${assessment.doctor_name}` : ""}</small></div></td>
           <td data-label="Subject">{subject?.name || "—"}</td><td data-label="Date">{formatDate(assessment.assessment_date)}</td><td data-label="Scores"><span className="count-pill">{count}</span></td>
           <td data-label="Status"><span className={`status-dot ${assessment.status === "published" ? "active" : assessment.status === "archived" ? "inactive" : "draft"}`}><i />{assessment.status === "published" ? "Released" : assessment.status.charAt(0).toUpperCase() + assessment.status.slice(1)}</span></td>
@@ -112,7 +114,7 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
               ? { label: "Return to draft", icon: UnpublishIcon, onClick: () => void changeStatus(assessment, "draft"), disabled: busyId === assessment.id }
               : assessment.status === "archived"
                 ? { label: "Restore assessment", icon: RestoreIcon, tone: "accent" as const, onClick: () => void changeStatus(assessment, "draft"), disabled: busyId === assessment.id }
-                : { label: "Release scores", icon: PublishIcon, tone: "accent" as const, onClick: () => void changeStatus(assessment, "published"), disabled: busyId === assessment.id },
+                : { label: "Release scores", icon: PublishIcon, tone: "accent" as const, onClick: () => setReleaseAssessment(assessment), disabled: busyId === assessment.id },
             ...(assessment.status !== "archived" ? [{ label: "Archive assessment", icon: ArchiveIcon, tone: "danger" as const, onClick: () => void changeStatus(assessment, "archived"), disabled: busyId === assessment.id }] : []),
             { label: "Delete assessment", icon: DeleteIcon, tone: "danger" as const, onClick: () => setDeleteAssessment(assessment), disabled: busyId === assessment.id },
           ]} /></td>
@@ -120,6 +122,30 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
         {!filtered.length && <tr><td colSpan={6}><div className="table-empty"><strong>No assessments found</strong><span>Try another search or filter.</span></div></td></tr>}
       </tbody></table></div>
     </div>
+
+    {releaseAssessment && (() => {
+      const subject = Array.isArray(releaseAssessment.subjects) ? releaseAssessment.subjects[0] : releaseAssessment.subjects;
+      const enrolledIds = new Set<string>((subject?.enrollments || []).map((item: any) => item.student_id));
+      const enrolled = enrolledIds.size;
+      const scored = (releaseAssessment.scores || []).filter((item) => enrolledIds.has(String(item.student_id || "")) && item.result_status === "scored").length;
+      const absent = (releaseAssessment.scores || []).filter((item) => enrolledIds.has(String(item.student_id || "")) && item.result_status === "absent").length;
+      const remaining = Math.max(enrolled - scored - absent, 0);
+      return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && busyId !== releaseAssessment.id && setReleaseAssessment(null)}>
+        <div className="modal modal-compact release-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="release-confirm-title">
+          <div className="modal-header"><div><span className="modal-eyebrow">Release confirmation</span><h2 id="release-confirm-title">Release {releaseAssessment.title}?</h2><p>Review the score-entry summary before students can see this assessment.</p></div><button type="button" className="modal-close" onClick={() => setReleaseAssessment(null)} disabled={busyId === releaseAssessment.id} aria-label="Close"><CloseIcon size={20} /></button></div>
+          <div className="modal-body">
+            <div className="release-summary-grid">
+              <div><span>Enrolled</span><strong>{enrolled}</strong></div>
+              <div><span>Scored</span><strong>{scored}</strong></div>
+              <div><span>Did not take</span><strong>{absent}</strong></div>
+              <div className={remaining ? "has-warning" : ""}><span>Not entered</span><strong>{remaining}</strong></div>
+            </div>
+            {remaining > 0 ? <div className="release-warning"><strong>{remaining} student{remaining === 1 ? "" : "s"} still {remaining === 1 ? "has" : "have"} no entry.</strong><span>You can still release, but those students will have no result until scores are entered and saved.</span></div> : <div className="release-ready"><strong>All enrolled students have an entry.</strong><span>The assessment is ready to release.</span></div>}
+          </div>
+          <div className="modal-actions"><button type="button" className="button button-secondary" onClick={() => setReleaseAssessment(null)} disabled={busyId === releaseAssessment.id}>Cancel</button><button type="button" className="button button-primary" onClick={() => void changeStatus(releaseAssessment, "published")} disabled={busyId === releaseAssessment.id}>{busyId === releaseAssessment.id ? "Releasing…" : "Release scores"}</button></div>
+        </div>
+      </div>;
+    })()}
 
     <ConfirmDialog
       open={Boolean(deleteAssessment)}

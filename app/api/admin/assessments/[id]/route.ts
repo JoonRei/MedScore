@@ -12,6 +12,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (body.status !== undefined) {
       if (!["draft", "published", "archived"].includes(body.status)) return NextResponse.json({ error: "Invalid status." }, { status: 400 });
       patch.status = body.status;
+      if (body.status === "published") patch.released_at = new Date().toISOString();
     }
 
     const hasDetails = ["subjectId", "title", "assessmentType", "date", "totalScore", "passingScore", "doctorName"].some((key) => key in body);

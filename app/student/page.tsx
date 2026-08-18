@@ -11,19 +11,23 @@ const categories = ["Quiz", "Long Exam", "Pre-Test", "Post-Test"];
 export default async function Page() {
   const { student } = await requireStudent();
   const db = createAdminClient();
-  const [{ data: enrollments }, { data: scores }] = await Promise.all([
+  const [{ data: enrollments }, { data: scores }, { data: views }] = await Promise.all([
     db.from("enrollments").select("subjects(id,name,code,term,academic_year)").eq("student_id", student.id),
     db.from("scores")
-      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,subjects(id,name,code))")
+      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,released_at,subjects(id,name,code))")
       .eq("student_id", student.id)
       .eq("assessments.status", "published")
       .order("created_at", { ascending: false }),
+    db.from("student_result_views").select("assessment_id,viewed_at").eq("student_id", student.id),
   ]);
+  const viewMap = new Map((views || []).map((view: any) => [view.assessment_id, view.viewed_at]));
 
   const rows = (scores || []).map((row: any) => {
     const assessment = Array.isArray(row.assessments) ? row.assessments[0] : row.assessments;
     const subject = Array.isArray(assessment?.subjects) ? assessment.subjects[0] : assessment?.subjects;
-    return { ...row, assessment, subject };
+    const viewedAt = assessment ? viewMap.get(assessment.id) as string | undefined : undefined;
+    const releasedAt = assessment?.released_at as string | null | undefined;
+    return { ...row, assessment, subject, isNew: Boolean(releasedAt && (!viewedAt || new Date(viewedAt).getTime() < new Date(releasedAt).getTime())) };
   }).filter((row: any) => row.assessment);
 
   const scoredRows = rows.filter((row: any) => row.result_status !== "absent" && row.score !== null && row.score !== undefined);
@@ -111,7 +115,7 @@ export default async function Page() {
             const passedRow = !absent && hasPass && Number(row.score) >= Number(row.assessment.passing_score);
             return (
               <div className={`result-card ${absent ? "is-absent" : ""}`} key={row.assessment.id}>
-                <div className="result-main"><div className="meta"><span>{row.subject?.name}</span><span>·</span><span>{formatDate(row.assessment.assessment_date)}</span></div><h3>{row.assessment.title}</h3><p>{row.assessment.assessment_type}{row.assessment.doctor_name ? ` · ${row.assessment.doctor_name}` : ""}</p></div>
+                <div className="result-main"><div className="meta"><span>{row.subject?.name}</span><span>·</span><span>{formatDate(row.assessment.assessment_date)}</span>{row.isNew && <span className="new-result-badge">New</span>}</div><h3>{row.assessment.title}</h3><p>{row.assessment.assessment_type}{row.assessment.doctor_name ? ` · ${row.assessment.doctor_name}` : ""}</p></div>
                 <div className="result-score">{absent ? <><strong>Did not take</strong><small>No score recorded</small></> : <><strong>{row.score} / {row.assessment.total_score}</strong><small>{hasPass ? (passedRow ? "Passed" : "Below passing score") : "Recorded result"}</small></>}</div>
               </div>
             );

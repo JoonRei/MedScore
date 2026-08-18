@@ -10,9 +10,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const body = await request.json();
     const rows = Array.isArray(body.scores) ? body.scores : [];
     const db = createAdminClient();
-    const { data: assessment } = await db.from("assessments").select("total_score").eq("id", id).single();
-    if (!assessment) return NextResponse.json({ error: "Assessment not found." }, { status: 404 });
+    const { data: assessment, error: assessmentError } = await db.from("assessments").select("total_score,subject_id").eq("id", id).single();
+    if (assessmentError || !assessment) return NextResponse.json({ error: "Assessment not found." }, { status: 404 });
 
+    const { data: enrollments, error: enrollmentError } = await db.from("enrollments").select("student_id").eq("subject_id", assessment.subject_id);
+    if (enrollmentError) throw enrollmentError;
+    const enrolledIds = new Set((enrollments || []).map((row) => row.student_id));
+    const seenIds = new Set<string>();
     const total = Number(assessment.total_score);
     const toDelete: string[] = [];
     const toUpsert: Array<{ assessment_id: string; student_id: string; score: number | null; result_status: "scored" | "absent" }> = [];
@@ -20,20 +24,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     for (const row of rows) {
       const studentId = String(row.studentId || "");
       if (!studentId) continue;
+      if (!enrolledIds.has(studentId)) return NextResponse.json({ error: "A score entry belongs to a student who is not enrolled in this subject." }, { status: 400 });
+      if (seenIds.has(studentId)) return NextResponse.json({ error: "Duplicate student score entry detected." }, { status: 400 });
+      seenIds.add(studentId);
+
       const status = row.status === "absent" ? "absent" : row.status === "scored" ? "scored" : "unentered";
-
-      if (status === "unentered") {
-        toDelete.push(studentId);
-        continue;
-      }
-
-      if (status === "absent") {
-        toUpsert.push({ assessment_id: id, student_id: studentId, score: null, result_status: "absent" });
-        continue;
-      }
+      if (status === "unentered") { toDelete.push(studentId); continue; }
+      if (status === "absent") { toUpsert.push({ assessment_id: id, student_id: studentId, score: null, result_status: "absent" }); continue; }
 
       const score = Number(row.score);
-      if (!Number.isFinite(score) || score < 0 || score > total) return NextResponse.json({ error: "A score is outside the valid range." }, { status: 400 });
+      if (!Number.isFinite(score) || score < 0 || score > total) return NextResponse.json({ error: `Every score must be between 0 and ${total}.` }, { status: 400 });
       toUpsert.push({ assessment_id: id, student_id: studentId, score, result_status: "scored" });
     }
 

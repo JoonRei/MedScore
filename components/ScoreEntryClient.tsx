@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import { formatDate } from "@/lib/utils";
@@ -25,14 +25,24 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [dirty, setDirty] = useState(false);
+  const maxScore = Number(assessment.total_score);
+
+  function isInvalid(entry: EntryState | undefined) {
+    if (!entry || entry.status !== "scored") return false;
+    if (entry.value.trim() === "") return true;
+    const value = Number(entry.value);
+    return !Number.isFinite(value) || value < 0 || value > maxScore;
+  }
 
   const totals = useMemo(() => {
-    const all = Object.values(entries);
+    const all = Object.values(entries) as EntryState[];
     const scored = all.filter((entry) => entry.status === "scored").length;
     const absent = all.filter((entry) => entry.status === "absent").length;
     const recorded = scored + absent;
     return { scored, absent, recorded, remaining: Math.max(students.length - recorded, 0), progress: students.length ? Math.round((recorded / students.length) * 100) : 0 };
   }, [entries, students.length]);
+
+  const invalidCount = useMemo(() => (Object.values(entries) as EntryState[]).filter((entry) => isInvalid(entry)).length, [entries, maxScore]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -44,13 +54,38 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
     });
   }, [students, entries, query, filter]);
 
+  useEffect(() => {
+    if (!dirty) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    const protectLinks = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target === "_blank" || link.href === window.location.href) return;
+      if (!window.confirm("You have unsaved score changes. Leave this page without saving?")) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", protectLinks, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", protectLinks, true);
+    };
+  }, [dirty]);
+
   function setEntry(studentId: string, next: EntryState) {
     setEntries((current) => ({ ...current, [studentId]: next }));
     setDirty(true); setMessage(""); setError("");
   }
 
   function updateScore(studentId: string, raw: string) {
-    const next = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+    let next = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+    if (next.includes(".")) {
+      const [whole, decimal = ""] = next.split(".");
+      next = `${whole}.${decimal.slice(0, 2)}`;
+    }
     setEntry(studentId, { value: next, status: next === "" ? "unentered" : "scored" });
   }
 
@@ -59,10 +94,19 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
     setEntry(studentId, current?.status === "absent" ? { value: "", status: "unentered" } : { value: "", status: "absent" });
   }
 
+  function handleScoreKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (!["Enter", "ArrowDown", "ArrowUp"].includes(event.key)) return;
+    event.preventDefault();
+    const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[data-score-input="true"]:not(:disabled)'));
+    const index = inputs.indexOf(event.currentTarget);
+    if (index < 0) return;
+    const direction = event.key === "ArrowUp" ? -1 : 1;
+    const next = inputs[index + direction];
+    if (next) { next.focus(); next.select(); }
+  }
+
   function parsePasteColumn(text: string) {
     let normalized = text.replace(/\r/g, "");
-    // Spreadsheet clipboards often append one final line break. Remove only that terminator
-    // so interior blank rows still map to Did not take without shifting the roster.
     if (normalized.endsWith("\n")) normalized = normalized.slice(0, -1);
     if (normalized.includes("\n") || normalized.includes("\t")) return normalized.split(/\n|\t/).map((value) => value.trim());
     return normalized.split(",").map((value) => value.trim());
@@ -72,7 +116,8 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
     setError(""); setMessage("");
     if (paste === "") { setError("Paste a score column first."); return; }
     const raw = parsePasteColumn(paste);
-    const invalid = raw.find((value) => value !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > Number(assessment.total_score)));
+    if (raw.length > students.length) { setError(`The pasted column has ${raw.length} rows, but this subject has only ${students.length} enrolled students.`); return; }
+    const invalid = raw.find((value) => value !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > maxScore));
     if (invalid !== undefined) { setError(`“${invalid}” is outside the valid 0–${assessment.total_score} range.`); return; }
 
     const next = { ...entries };
@@ -84,7 +129,7 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
     setDirty(true);
     setPasteOpen(false);
     setPaste("");
-    setMessage(`${Math.min(raw.length, students.length)} roster entries applied. Blank rows were marked Did not take.`);
+    setMessage(`${raw.length} roster entr${raw.length === 1 ? "y" : "ies"} applied. Blank rows were marked Did not take.`);
   }
 
   function clearVisible() {
@@ -94,19 +139,13 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
   }
 
   async function save() {
-    setBusy(true); setMessage(""); setError("");
-    const invalidStudent = students.find((student) => {
-      const entry = entries[student.id];
-      if (!entry || entry.status !== "scored") return false;
-      const number = Number(entry.value);
-      return !Number.isFinite(number) || number < 0 || number > Number(assessment.total_score);
-    });
+    setMessage(""); setError("");
+    const invalidStudent = students.find((student) => isInvalid(entries[student.id]));
     if (invalidStudent) {
-      setBusy(false);
       setError(`Check the score entered for ${invalidStudent.last_name}, ${invalidStudent.first_name}. Valid scores are 0–${assessment.total_score}.`);
       return;
     }
-
+    setBusy(true);
     const response = await fetch(`/api/admin/assessments/${assessment.id}/scores`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -125,7 +164,7 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
         <h2>{assessment.title}</h2>
         <p>{assessment.subjectName} · {formatDate(assessment.assessment_date)} · Maximum {assessment.total_score} points{assessment.doctor_name ? ` · ${assessment.doctor_name}` : ""}</p>
       </div>
-      <button className="button button-primary score-save-button" type="button" onClick={save} disabled={busy || !dirty}>{busy ? "Saving…" : dirty ? "Save entries" : "Saved"}</button>
+      <div className="score-save-area">{dirty && <span className="unsaved-label">Unsaved changes</span>}<button className="button button-primary score-save-button" type="button" onClick={save} disabled={busy || !dirty || invalidCount > 0}>{busy ? "Saving…" : dirty ? "Save entries" : "Saved"}</button></div>
     </section>
 
     <div className="score-metric-grid">
@@ -136,6 +175,7 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
     </div>
 
     <div className="score-progress-line"><span><i style={{ width: `${totals.progress}%` }} /></span><strong>{totals.progress}% complete</strong></div>
+    {invalidCount > 0 && <div className="alert alert-error score-feedback">{invalidCount} invalid score entr{invalidCount === 1 ? "y" : "ies"}. Every score must be between 0 and {assessment.total_score}.</div>}
     {(message || error) && <div className={`alert ${error ? "alert-error" : "alert-success"} score-feedback`}>{error || message}</div>}
 
     <section className="score-roster-surface">
@@ -147,17 +187,19 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
         <div className="score-toolbar-actions"><button className="button button-secondary button-sm" type="button" onClick={() => { setPasteOpen(true); setError(""); }}>Paste scores</button><button className="button button-quiet button-sm" type="button" onClick={clearVisible} disabled={!visible.length}>Clear visible</button></div>
       </div>
 
+      <div className="score-keyboard-note">Keyboard: Enter or ↓ moves to the next score, ↑ moves back. Focusing a score selects it so typing replaces the existing value.</div>
       <div className="score-entry-list-head" aria-hidden="true"><span>Student</span><span>Code Name</span><span>Entry</span></div>
       <div className="score-entry-list">
         {visible.map((student) => {
           const entry = entries[student.id] || { value: "", status: "unentered" as EntryStatus };
-          const invalid = entry.status === "scored" && (!Number.isFinite(Number(entry.value)) || Number(entry.value) < 0 || Number(entry.value) > Number(assessment.total_score));
-          return <article className={`score-entry-row ${entry.status === "absent" ? "is-absent" : entry.status === "scored" ? "is-scored" : ""}`} key={student.id}>
+          const invalid = isInvalid(entry);
+          return <article className={`score-entry-row ${entry.status === "absent" ? "is-absent" : entry.status === "scored" ? "is-scored" : ""} ${invalid ? "has-invalid-score" : ""}`} key={student.id}>
             <div className="student-cell score-student-cell"><span className="table-avatar">{student.first_name.slice(0,1)}{student.last_name.slice(0,1)}</span><div className="cell-title"><strong>{student.last_name}, {student.first_name}</strong><small>{student.student_number || "No student number"}</small></div></div>
             <div className="score-code-cell"><span className="code-badge">{student.code_name}</span></div>
             <div className="score-entry-control">
-              <div className={`score-input-wrap ${invalid ? "invalid" : ""} ${entry.status === "absent" ? "is-disabled" : ""}`}><input className="input" inputMode="decimal" type="text" value={entry.value} disabled={entry.status === "absent"} onChange={(event) => updateScore(student.id, event.target.value)} aria-label={`Score for ${student.code_name}`} /><span>/ {assessment.total_score}</span></div>
+              <div className={`score-input-wrap ${invalid ? "invalid" : ""} ${entry.status === "absent" ? "is-disabled" : ""}`}><input className="input" data-score-input="true" inputMode="decimal" type="text" value={entry.value} disabled={entry.status === "absent"} onChange={(event) => updateScore(student.id, event.target.value)} onFocus={(event) => event.currentTarget.select()} onKeyDown={handleScoreKeyDown} aria-invalid={invalid} aria-label={`Score for ${student.code_name}`} /><span>/ {assessment.total_score}</span></div>
               <button type="button" className={`score-absence-toggle ${entry.status === "absent" ? "active" : ""}`} onClick={() => toggleAbsent(student.id)}>{entry.status === "absent" ? "Did not take" : "Mark absent"}</button>
+              {invalid && <small className="score-inline-error">Enter 0–{assessment.total_score}</small>}
             </div>
           </article>;
         })}
