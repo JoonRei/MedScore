@@ -4,7 +4,9 @@ import { EmptyState } from "@/components/EmptyState";
 import { Leaderboard } from "@/components/Leaderboard";
 import { requireStudent } from "@/lib/student-session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatDate, formatPercent, percent, weightedPercent } from "@/lib/utils";
+import { formatDate, scoreFill } from "@/lib/utils";
+
+const categories = ["Quiz", "Long Exam", "Pre-Test", "Post-Test"];
 
 export default async function Page() {
   const { student } = await requireStudent();
@@ -26,64 +28,73 @@ export default async function Page() {
 
   const scoredRows = rows.filter((row: any) => row.result_status !== "absent" && row.score !== null && row.score !== undefined);
   const absentCount = rows.filter((row: any) => row.result_status === "absent").length;
-  const overallAverage = weightedPercent(scoredRows.map((row: any) => ({ score: Number(row.score), total: Number(row.assessment.total_score) })));
-  const percentages = scoredRows.map((row: any) => percent(Number(row.score), Number(row.assessment.total_score)));
-  const highest = percentages.length ? Math.max(...percentages) : null;
   const gradedForPassing = scoredRows.filter((row: any) => row.assessment.passing_score !== null && row.assessment.passing_score !== undefined);
   const passed = gradedForPassing.filter((row: any) => Number(row.score) >= Number(row.assessment.passing_score)).length;
-  const passingRate = gradedForPassing.length ? (passed / gradedForPassing.length) * 100 : null;
-  const categories = ["Quiz", "Long Exam", "Pre-Test", "Post-Test"];
+  const latest = scoredRows[0] || null;
+
   return (
     <>
-      <PageHeader eyebrow="Student Portal" title={`Welcome, ${student.code_name}`} description="Your current academic performance at a glance." />
+      <PageHeader eyebrow="Student Portal" title={`Welcome, ${student.code_name}`} description="Your subjects, latest scores and assessment activity in one place." />
 
-      <div className="student-dashboard-top">
-        <div className="performance-hero compact-performance-hero">
+      <div className="student-dashboard-top student-v2-home-top">
+        <section className="performance-hero compact-performance-hero student-v2-hero">
           <div className="performance-hero-top">
             <div>
-              <div className="label">Overall performance</div>
-              <div className="big">{scoredRows.length ? formatPercent(overallAverage) : "—"}</div>
-              <p>{scoredRows.length ? `Based on ${scoredRows.length} scored result${scoredRows.length === 1 ? "" : "s"}.` : "Your performance summary will appear as scores are added."}</p>
+              <div className="label">Latest recorded score</div>
+              <div className="big">{latest ? `${latest.score} / ${latest.assessment.total_score}` : "—"}</div>
+              {latest ? (
+                <p>{latest.assessment.title} · {latest.subject?.name || "Subject"} · {formatDate(latest.assessment.assessment_date)}</p>
+              ) : (
+                <p>Your latest score will appear here once an assessment result is recorded.</p>
+              )}
             </div>
             <span className="badge badge-purple hero-year-badge">{student.year_level}</span>
           </div>
-          <div className="progress"><span style={{ width: `${scoredRows.length ? Math.min(overallAverage, 100) : 0}%` }} /></div>
-        </div>
+          <div className="progress" aria-hidden="true">
+            <span style={{ width: `${latest ? scoreFill(Number(latest.score), Number(latest.assessment.total_score)) : 0}%` }} />
+          </div>
+        </section>
 
-        <div className="student-metric-grid">
+        <div className="student-metric-grid student-v2-metrics">
           <div className="student-metric"><span>Subjects</span><strong>{enrollments?.length || 0}</strong><small>currently enrolled</small></div>
-          <div className="student-metric"><span>Results</span><strong>{rows.length}</strong><small>{absentCount ? `${absentCount} did not take` : "recorded entries"}</small></div>
-          <div className="student-metric"><span>Highest score</span><strong>{highest === null ? "—" : formatPercent(highest)}</strong><small>best percentage</small></div>
-          <div className="student-metric"><span>Passing rate</span><strong>{passingRate === null ? "—" : formatPercent(passingRate)}</strong><small>{gradedForPassing.length ? `${passed} of ${gradedForPassing.length} passed` : "no passing score set"}</small></div>
+          <div className="student-metric"><span>Results</span><strong>{rows.length}</strong><small>{scoredRows.length} with recorded scores</small></div>
+          <div className="student-metric"><span>Passed</span><strong>{gradedForPassing.length ? `${passed}/${gradedForPassing.length}` : "—"}</strong><small>{gradedForPassing.length ? "assessments with a passing score" : "no passing score set"}</small></div>
+          <div className="student-metric"><span>Did not take</span><strong>{absentCount}</strong><small>{rows.length} total recorded entr{rows.length === 1 ? "y" : "ies"}</small></div>
         </div>
       </div>
 
       <Leaderboard />
 
-      <section className="dashboard-section section-gap">
-        <div className="panel-header compact-section-header"><div><h2>Assessment overview</h2><p>Performance across common assessment types.</p></div></div>
-        <div className="category-grid refined-category-grid">
+      <section className="dashboard-section section-gap student-v2-section">
+        <div className="panel-header compact-section-header"><div><h2>Assessment overview</h2><p>Your latest recorded score in each common assessment type.</p></div></div>
+        <div className="category-grid refined-category-grid student-v2-category-grid">
           {categories.map((category) => {
             const categoryRows = scoredRows.filter((row: any) => row.assessment.assessment_type === category);
-            const value = categoryRows.length ? weightedPercent(categoryRows.map((row: any) => ({ score: Number(row.score), total: Number(row.assessment.total_score) }))) : null;
-            return <div className="category-card refined-category-card" key={category}><span>{category}</span><strong>{value === null ? "—" : formatPercent(value)}</strong><small>{categoryRows.length} scored result{categoryRows.length === 1 ? "" : "s"}</small></div>;
+            const latestCategory = categoryRows[0] || null;
+            return (
+              <div className="category-card refined-category-card student-v2-category-card" key={category}>
+                <span>{category}</span>
+                <strong>{latestCategory ? `${latestCategory.score} / ${latestCategory.assessment.total_score}` : "—"}</strong>
+                <small>{categoryRows.length} scored result{categoryRows.length === 1 ? "" : "s"}</small>
+              </div>
+            );
           })}
         </div>
       </section>
 
-      <section className="dashboard-section section-gap">
-        <div className="panel-header compact-section-header"><div><h2>Your subjects</h2><p>Select a subject to review its assessments and performance.</p></div><Link className="button button-secondary button-sm" href="/student/subjects" prefetch>View all</Link></div>
-        <div className="subject-list dashboard-subject-list">
+      <section className="dashboard-section section-gap student-v2-section">
+        <div className="panel-header compact-section-header"><div><h2>Your subjects</h2><p>Select a subject to review its assessments and recorded scores.</p></div><Link className="button button-secondary button-sm" href="/student/subjects" prefetch>View all</Link></div>
+        <div className="subject-list dashboard-subject-list student-v2-subject-list">
           {(enrollments || []).slice(0, 6).map((item: any) => {
             const subject = Array.isArray(item.subjects) ? item.subjects[0] : item.subjects;
             const subjectRows = scoredRows.filter((row: any) => row.subject?.id === subject?.id);
-            const subjectAverage = weightedPercent(subjectRows.map((row: any) => ({ score: Number(row.score), total: Number(row.assessment.total_score) })));
+            const latestSubject = subjectRows[0] || null;
             return (
-              <Link className="subject-card" href={`/student/subjects/${subject.id}`} prefetch key={subject.id}>
+              <Link className="subject-card student-v2-subject-card" href={`/student/subjects/${subject.id}`} prefetch key={subject.id}>
                 <div className="subject-card-top"><span className="subject-code">{(subject.code || subject.name).slice(0, 3).toUpperCase()}</span><span className="subject-term">{subject.term}</span></div>
                 <h3>{subject.name}</h3>
                 <p>{subject.code || "College of Medicine"} · {subject.academic_year}</p>
-                <div className="subject-card-bottom"><div><small>Performance</small><strong>{subjectRows.length ? formatPercent(subjectAverage) : "—"}</strong></div><small>{subjectRows.length} scored result{subjectRows.length === 1 ? "" : "s"}</small></div>
+                <div className="subject-card-bottom"><div><small>Latest score</small><strong>{latestSubject ? `${latestSubject.score}/${latestSubject.assessment.total_score}` : "—"}</strong></div><small>{subjectRows.length} scored result{subjectRows.length === 1 ? "" : "s"}</small></div>
               </Link>
             );
           })}
@@ -91,15 +102,17 @@ export default async function Page() {
         {!(enrollments || []).length && <EmptyState title="No subjects assigned" description="Your subjects will appear after they are assigned to your account." />}
       </section>
 
-      <section className="dashboard-section section-gap">
-        <div className="panel-header compact-section-header"><div><h2>Recent results</h2><p>Your latest assessment entries.</p></div><Link className="button button-secondary button-sm" href="/student/results" prefetch>All results</Link></div>
-        <div className="result-list compact-result-list">
+      <section className="dashboard-section section-gap student-v2-section">
+        <div className="panel-header compact-section-header"><div><h2>Recent results</h2><p>Your latest assessment entries and result status.</p></div><Link className="button button-secondary button-sm" href="/student/results" prefetch>All results</Link></div>
+        <div className="result-list compact-result-list student-v2-result-list">
           {rows.slice(0, 5).map((row: any) => {
             const absent = row.result_status === "absent";
+            const hasPass = row.assessment.passing_score != null;
+            const passedRow = !absent && hasPass && Number(row.score) >= Number(row.assessment.passing_score);
             return (
               <div className={`result-card ${absent ? "is-absent" : ""}`} key={row.assessment.id}>
                 <div className="result-main"><div className="meta"><span>{row.subject?.name}</span><span>·</span><span>{formatDate(row.assessment.assessment_date)}</span></div><h3>{row.assessment.title}</h3><p>{row.assessment.assessment_type}{row.assessment.doctor_name ? ` · ${row.assessment.doctor_name}` : ""}</p></div>
-                <div className="result-score">{absent ? <><strong>Did not take</strong><small>No score recorded</small></> : <><strong>{row.score} / {row.assessment.total_score}</strong><small>{formatPercent(percent(Number(row.score), Number(row.assessment.total_score)))}</small></>}</div>
+                <div className="result-score">{absent ? <><strong>Did not take</strong><small>No score recorded</small></> : <><strong>{row.score} / {row.assessment.total_score}</strong><small>{hasPass ? (passedRow ? "Passed" : "Below passing score") : "Recorded result"}</small></>}</div>
               </div>
             );
           })}

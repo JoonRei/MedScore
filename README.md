@@ -1,11 +1,19 @@
-# MedScores V2.9 — Shared Rank Display
+# MedScores V3.5 Update Only
 
-Small update for the V2.8 Achievement Board.
+Copy these files over the existing MedScores project.
 
-- Keeps the existing V2.8 podium and carousel design.
-- Students with identical scores now remain in the same numeric rank.
-- Additional tied code names appear neatly inside the same podium/rank position.
-- Rank 4 and Rank 5 also show all code names sharing that score.
-- No duplicate podiums are created and the score is shown only once per shared rank.
-- Responsive wrapping prevents tied code names from overlapping the podium on phones.
-- No Supabase migration is required.
+This update restores the preferred V2-style layout on Student Home and Student Results without changing the Admin portal, database schema, authentication, or Achievement Board.
+
+Then run:
+
+```powershell
+npm run dev
+```
+
+Deploy with:
+
+```powershell
+git add .
+git commit -m "Restore V2 layout on student portal"
+git push
+```

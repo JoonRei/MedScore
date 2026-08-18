@@ -39,3 +39,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Unable to update assessment." }, { status: 500 });
   }
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await getAdminUser()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  try {
+    const db = createAdminClient();
+    const { data: assessment, error: lookupError } = await db.from("assessments").select("id,title").eq("id", id).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (!assessment) return NextResponse.json({ error: "Assessment not found." }, { status: 404 });
+    const { error } = await db.from("assessments").delete().eq("id", id);
+    if (error) throw error;
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete assessment." }, { status: 500 });
+  }
+}

@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArchiveIcon, CloseIcon, EditIcon, PublishIcon, RestoreIcon, ScoresIcon, SearchIcon, UnpublishIcon } from "@/components/icons";
+import { ArchiveIcon, CloseIcon, DeleteIcon, EditIcon, PublishIcon, RestoreIcon, ScoresIcon, SearchIcon, UnpublishIcon } from "@/components/icons";
 import { ActionMenu } from "@/components/ui/ActionMenu";
 import { ASSESSMENT_TYPES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type SubjectOption = { id: string; name: string };
 type AssessmentRow = {
@@ -39,6 +40,8 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
   const [edit, setEdit] = useState<AssessmentRow | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyForm, setBusyForm] = useState(false);
+  const [deleteAssessment, setDeleteAssessment] = useState<AssessmentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
@@ -72,6 +75,19 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
     setNotice(next === "published" ? "Scores released to students." : next === "archived" ? "Assessment archived." : "Assessment returned to Draft."); router.refresh();
   }
 
+  async function confirmDelete() {
+    if (!deleteAssessment) return;
+    setDeleting(true); setError(""); setNotice("");
+    const response = await fetch(`/api/admin/assessments/${deleteAssessment.id}`, { method: "DELETE" });
+    const body = await response.json().catch(() => ({}));
+    setDeleting(false);
+    if (!response.ok) { setDeleteAssessment(null); setError(body.error || "Unable to delete assessment."); return; }
+    const title = deleteAssessment.title;
+    setDeleteAssessment(null);
+    setNotice(`${title} was deleted.`);
+    router.refresh();
+  }
+
   function close() { setOpen(false); setEdit(null); setError(""); }
 
   return <>
@@ -98,11 +114,23 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
                 ? { label: "Restore assessment", icon: RestoreIcon, tone: "accent" as const, onClick: () => void changeStatus(assessment, "draft"), disabled: busyId === assessment.id }
                 : { label: "Release scores", icon: PublishIcon, tone: "accent" as const, onClick: () => void changeStatus(assessment, "published"), disabled: busyId === assessment.id },
             ...(assessment.status !== "archived" ? [{ label: "Archive assessment", icon: ArchiveIcon, tone: "danger" as const, onClick: () => void changeStatus(assessment, "archived"), disabled: busyId === assessment.id }] : []),
+            { label: "Delete assessment", icon: DeleteIcon, tone: "danger" as const, onClick: () => setDeleteAssessment(assessment), disabled: busyId === assessment.id },
           ]} /></td>
         </tr>; })}
         {!filtered.length && <tr><td colSpan={6}><div className="table-empty"><strong>No assessments found</strong><span>Try another search or filter.</span></div></td></tr>}
       </tbody></table></div>
     </div>
+
+    <ConfirmDialog
+      open={Boolean(deleteAssessment)}
+      title={deleteAssessment ? `Delete ${deleteAssessment.title}?` : "Delete assessment?"}
+      description={deleteAssessment ? `This permanently removes ${deleteAssessment.title} and every recorded score attached to it. This action cannot be undone.` : ""}
+      confirmLabel="Delete assessment"
+      busyLabel="Deleting…"
+      busy={deleting}
+      onCancel={() => !deleting && setDeleteAssessment(null)}
+      onConfirm={() => void confirmDelete()}
+    />
 
     {(open || edit) && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}><form className="modal" onSubmit={(event) => submit(event, edit || undefined)}>
       <div className="modal-header"><div><span className="modal-eyebrow">Assessment</span><h2>{edit ? "Edit assessment" : "New assessment"}</h2><p>{edit ? "Update assessment details without removing recorded scores." : "New assessments start as Draft and remain unavailable to students until you release the scores."}</p></div><button type="button" className="modal-close" onClick={close} aria-label="Close"><CloseIcon size={20} /></button></div>

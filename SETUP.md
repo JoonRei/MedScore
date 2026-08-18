@@ -1,13 +1,22 @@
-# Update steps
+# MedScores V3.1 Update
 
-1. Copy the update files over your existing MedScores repository.
-2. Run `npm run dev` and check the Student Achievement Board on desktop and mobile.
-3. Commit and push:
+For an existing MedScores repository, copy the Update Only package over your current project.
+
+No Supabase migration is required.
+
+Run:
+
+```powershell
+npm install
+npm run dev
+```
+
+Verify Student code-name login, Admin Overview, Students/Subjects/Assessments lists, Reports, Student Results, and mobile layouts.
+
+Deploy:
 
 ```powershell
 git add .
-git commit -m "Refine MedScores podium score layout"
+git commit -m "Update MedScores to V3.1"
 git push
 ```
-
-No database migration or environment-variable change is required.
