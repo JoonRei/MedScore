@@ -1,10 +1,13 @@
-# MedScores V3.7 Update Only
+# MedScores V3.8 — Update Only
 
-Focused leaderboard cleanup:
-- Removed the assessment-type badge from the leaderboard.
-- Removed the visible nested showcase container so the leaderboard uses one main content surface.
-- Kept compact, even edge spacing on desktop and mobile.
-- Centered both the "Max score" label and score value inside the Max Score box.
-- Preserved podium, ties, ranking logic, rotation, and responsive assessment grid.
+Focused Student Portal UI update.
+
+## Changes
+- Redesigned Student Results into a cleaner responsive card grid.
+- Improved result hierarchy for subject, assessment type, title, date, doctor, score, and outcome.
+- Kept raw-score and passing-score logic unchanged.
+- Simplified Student navigation selected state; removed the large filled active pill.
+- Improved bottom navigation spacing and active indication on Android/iOS-sized screens.
+- Keeps Results summary in a compact 2x2 grid on phones.
 
 No database migration is required.

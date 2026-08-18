@@ -55,27 +55,51 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
         <span className="filter-count">{filtered.length} results</span>
       </div>
 
-      <section className="student-results-surface student-v2-results-surface">
-        <div className="student-results-head" aria-hidden="true"><span>Assessment</span><span>Subject</span><span>Date</span><span>Score</span><span>Result</span></div>
-        <div className="student-results-rows">
+      {filtered.length ? (
+        <section className="student-results-card-grid" aria-label="Assessment results">
           {filtered.map((row) => {
             const absent = row.status === "absent";
             const hasPass = row.passing != null;
             const passed = !absent && hasPass && Number(row.score) >= Number(row.passing);
             const resultLabel = absent ? "Did not take" : hasPass ? (passed ? "Passed" : "Below passing") : "Recorded";
+            const statusClass = absent ? "is-neutral" : hasPass ? (passed ? "is-pass" : "is-below") : "is-neutral";
+
             return (
-              <article className={`student-result-row student-v2-result-row ${absent ? "is-absent" : ""}`} key={row.id}>
-                <div className="student-result-main"><strong>{row.title}</strong><small>{row.type}{row.doctor ? ` · ${row.doctor}` : ""}</small></div>
-                <div className="student-result-cell" data-label="Subject">{row.subject}</div>
-                <div className="student-result-cell" data-label="Date">{formatDate(row.date)}</div>
-                <div className="student-result-score" data-label="Score"><strong>{absent ? "—" : `${row.score} / ${row.total}`}</strong></div>
-                <div className="student-result-percent" data-label="Result"><strong className={absent ? "result-neutral" : hasPass ? (passed ? "result-pass" : "result-below") : "result-neutral"}>{resultLabel}</strong></div>
+              <article className={`student-result-card ${absent ? "is-absent" : ""}`} key={row.id}>
+                <div className="student-result-card-top">
+                  <div className="student-result-card-copy">
+                    <div className="student-result-card-meta">
+                      <span>{row.subject}</span>
+                      <i aria-hidden="true" />
+                      <span>{row.type}</span>
+                    </div>
+                    <h3>{row.title}</h3>
+                    <p>{row.doctor ? row.doctor : "Assessment result"}</p>
+                  </div>
+                  <time dateTime={row.date}>{formatDate(row.date)}</time>
+                </div>
+
+                <div className="student-result-card-bottom">
+                  <div className="student-result-card-score">
+                    <span>Score</span>
+                    <div>
+                      <strong>{absent ? "—" : row.score}</strong>
+                      <small>{absent ? "Not recorded" : ` / ${row.total}`}</small>
+                    </div>
+                  </div>
+                  <div className="student-result-card-status">
+                    <span>Result</span>
+                    <strong className={statusClass}>{resultLabel}</strong>
+                    {!absent && hasPass && <small>Passing score {row.passing} / {row.total}</small>}
+                  </div>
+                </div>
               </article>
             );
           })}
-        </div>
-        {!filtered.length && <EmptyState title="No matching results" description="Try a different search or filter." />}
-      </section>
+        </section>
+      ) : (
+        <div className="student-results-empty"><EmptyState title="No matching results" description="Try a different search or filter." /></div>
+      )}
     </>
   );
 }
