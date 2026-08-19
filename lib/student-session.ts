@@ -27,7 +27,7 @@ const readStudentSession = cache(async () => {
 
   const { data, error } = await supabase
     .from("student_sessions")
-    .select("id, expires_at, students(id, first_name, last_name, code_name, year_level, is_active)")
+    .select("id, expires_at, students(id, owner_id, first_name, last_name, code_name, year_level, is_active)")
     .eq("token_hash", tokenHash)
     .gt("expires_at", now)
     .maybeSingle();

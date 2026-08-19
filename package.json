@@ -1,6 +1,6 @@
 {
   "name": "medscores",
-  "version": "4.0.0",
+  "version": "4.6.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,7 +17,9 @@
     "react-dom": "19.2.0",
     "@hugeicons/react": "latest",
     "@hugeicons/core-free-icons": "latest",
-    "@fontsource-variable/plus-jakarta-sans": "latest"
+    "@fontsource-variable/plus-jakarta-sans": "latest",
+    "@simplewebauthn/server": "^13.3.2",
+    "@simplewebauthn/browser": "^13.3.0"
   },
   "devDependencies": {
     "@types/node": "latest",

@@ -11,10 +11,10 @@ const categories = ["Quiz", "Long Exam", "Pre-Test", "Post-Test"];
 export default async function Page() {
   const { student } = await requireStudent();
   const db = createAdminClient();
-  const [{ data: enrollments }, { data: scores }, { data: views }] = await Promise.all([
-    db.from("enrollments").select("subjects(id,name,code,term,academic_year)").eq("student_id", student.id),
+  const { data: activePeriod } = await db.from("academic_periods").select("academic_year,term").eq("owner_id", student.owner_id).eq("is_active", true).maybeSingle();
+  const [{ data: scores }, { data: views }] = await Promise.all([
     db.from("scores")
-      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,released_at,subjects(id,name,code))")
+      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,released_at,subjects(id,name,code,term,academic_year))")
       .eq("student_id", student.id)
       .eq("assessments.status", "published")
       .order("created_at", { ascending: false }),
@@ -28,17 +28,18 @@ export default async function Page() {
     const viewedAt = assessment ? viewMap.get(assessment.id) as string | undefined : undefined;
     const releasedAt = assessment?.released_at as string | null | undefined;
     return { ...row, assessment, subject, isNew: Boolean(releasedAt && (!viewedAt || new Date(viewedAt).getTime() < new Date(releasedAt).getTime())) };
-  }).filter((row: any) => row.assessment);
+  }).filter((row: any) => row.assessment && (!activePeriod || (row.subject?.academic_year === activePeriod.academic_year && row.subject?.term === activePeriod.term)));
 
   const scoredRows = rows.filter((row: any) => row.result_status !== "absent" && row.score !== null && row.score !== undefined);
   const absentCount = rows.filter((row: any) => row.result_status === "absent").length;
   const gradedForPassing = scoredRows.filter((row: any) => row.assessment.passing_score !== null && row.assessment.passing_score !== undefined);
   const passed = gradedForPassing.filter((row: any) => Number(row.score) >= Number(row.assessment.passing_score)).length;
   const latest = scoredRows[0] || null;
+  const newCount = rows.filter((row: any) => row.isNew).length;
 
   return (
     <>
-      <PageHeader eyebrow="Student Portal" title={`Welcome, ${student.code_name}`} description="Your subjects, latest scores and assessment activity in one place." />
+      <PageHeader eyebrow="Student Portal" title={`Welcome, ${student.code_name}`} description="Your latest scores and assessment activity in one place." />
 
       <div className="student-dashboard-top student-v2-home-top">
         <section className="performance-hero compact-performance-hero student-v2-hero">
@@ -60,8 +61,8 @@ export default async function Page() {
         </section>
 
         <div className="student-metric-grid student-v2-metrics">
-          <div className="student-metric"><span>Subjects</span><strong>{enrollments?.length || 0}</strong><small>currently enrolled</small></div>
           <div className="student-metric"><span>Results</span><strong>{rows.length}</strong><small>{scoredRows.length} with recorded scores</small></div>
+          <div className="student-metric"><span>New results</span><strong>{newCount}</strong><small>{newCount ? "not yet opened" : "all caught up"}</small></div>
           <div className="student-metric"><span>Passed</span><strong>{gradedForPassing.length ? `${passed}/${gradedForPassing.length}` : "—"}</strong><small>{gradedForPassing.length ? "assessments with a passing score" : "no passing score set"}</small></div>
           <div className="student-metric"><span>Did not take</span><strong>{absentCount}</strong><small>{rows.length} total recorded entr{rows.length === 1 ? "y" : "ies"}</small></div>
         </div>
@@ -84,26 +85,6 @@ export default async function Page() {
             );
           })}
         </div>
-      </section>
-
-      <section className="dashboard-section section-gap student-v2-section">
-        <div className="panel-header compact-section-header"><div><h2>Your subjects</h2><p>Select a subject to review its assessments and recorded scores.</p></div><Link className="button button-secondary button-sm" href="/student/subjects" prefetch>View all</Link></div>
-        <div className="subject-list dashboard-subject-list student-v2-subject-list">
-          {(enrollments || []).slice(0, 6).map((item: any) => {
-            const subject = Array.isArray(item.subjects) ? item.subjects[0] : item.subjects;
-            const subjectRows = scoredRows.filter((row: any) => row.subject?.id === subject?.id);
-            const latestSubject = subjectRows[0] || null;
-            return (
-              <Link className="subject-card student-v2-subject-card" href={`/student/subjects/${subject.id}`} prefetch key={subject.id}>
-                <div className="subject-card-top"><span className="subject-code">{(subject.code || subject.name).slice(0, 3).toUpperCase()}</span><span className="subject-term">{subject.term}</span></div>
-                <h3>{subject.name}</h3>
-                <p>{subject.code || "College of Medicine"} · {subject.academic_year}</p>
-                <div className="subject-card-bottom"><div><small>Latest score</small><strong>{latestSubject ? `${latestSubject.score}/${latestSubject.assessment.total_score}` : "—"}</strong></div><small>{subjectRows.length} scored result{subjectRows.length === 1 ? "" : "s"}</small></div>
-              </Link>
-            );
-          })}
-        </div>
-        {!(enrollments || []).length && <EmptyState title="No subjects assigned" description="Your subjects will appear after they are assigned to your account." />}
       </section>
 
       <section className="dashboard-section section-gap student-v2-section">

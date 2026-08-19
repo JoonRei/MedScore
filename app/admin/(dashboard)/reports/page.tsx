@@ -1,15 +1,18 @@
 import { PageHeader } from "@/components/PageHeader";
 import { ReportsClient } from "@/components/ReportsClient";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdminWorkspace } from "@/lib/admin-workspace";
 
 export default async function Page() {
-  await requireAdmin();
-  const { data } = await createAdminClient()
+  const context = await requireAdminWorkspace();
+  let query = createAdminClient()
     .from("assessments")
-    .select("id,title,assessment_type,assessment_date,total_score,passing_score,doctor_name,status,subjects(name),scores(score,result_status)")
+    .select("id,title,assessment_type,assessment_date,total_score,passing_score,doctor_name,status,subjects!inner(name,owner_id,academic_year,term),scores(score,result_status)")
     .eq("status", "published")
+    .eq("subjects.owner_id", context.workspace.id)
     .order("assessment_date", { ascending: false });
+  if (context.period) query = query.eq("subjects.academic_year", context.period.academic_year).eq("subjects.term", context.period.term);
+  const { data } = await query;
 
   const reports = (data || []).map((assessment: any) => {
     const subject = Array.isArray(assessment.subjects) ? assessment.subjects[0] : assessment.subjects;

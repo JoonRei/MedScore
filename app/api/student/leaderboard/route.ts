@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const LEADERBOARD_TYPES = ["Long Exam", "Prelim Examination", "Midterm Examination", "Final Examination"];
 
 type StudentRow = { id: string; code_name: string };
-type SubjectRow = { id: string; name: string; code: string | null; is_archived: boolean };
+type SubjectRow = { id: string; name: string; code: string | null; is_archived: boolean; academic_year: string; term: string };
 type AssessmentRow = {
   id: string;
   subject_id: string;
@@ -95,6 +95,7 @@ export async function GET() {
   if (!session) return json({ error: "Unauthorized" }, 401);
 
   const db = createAdminClient();
+  const { data: activePeriod } = await db.from("academic_periods").select("academic_year,term").eq("owner_id", session.student.owner_id).eq("is_active", true).maybeSingle();
 
   const { data: ownEnrollments, error: enrollmentError } = await db
     .from("enrollments")
@@ -111,7 +112,7 @@ export async function GET() {
 
   const { data: subjectData, error: subjectError } = await db
     .from("subjects")
-    .select("id,name,code,is_archived")
+    .select("id,name,code,is_archived,academic_year,term")
     .in("id", subjectIds);
 
   if (subjectError) {
@@ -119,7 +120,7 @@ export async function GET() {
     return json({ error: "Unable to load the achievement board." }, 500);
   }
 
-  const subjects = ((subjectData || []) as SubjectRow[]).filter((subject) => !subject.is_archived);
+  const subjects = ((subjectData || []) as SubjectRow[]).filter((subject) => !subject.is_archived && (!activePeriod || (subject.academic_year === activePeriod.academic_year && subject.term === activePeriod.term)));
   const activeSubjectIds = subjects.map((subject) => subject.id);
   if (!activeSubjectIds.length) return json({ boards: [] });
 

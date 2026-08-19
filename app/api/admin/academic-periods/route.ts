@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminUser } from "@/lib/admin-auth";
+import { getAdminWorkspaceContext } from "@/lib/admin-workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { TERMS } from "@/lib/constants";
 
@@ -13,7 +13,8 @@ function normalizeAcademicYear(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  if (!await getAdminUser()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const context = await getAdminWorkspaceContext();
+  if (!context) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await request.json();
     const academicYear = normalizeAcademicYear(body.academicYear);
@@ -23,13 +24,14 @@ export async function POST(request: Request) {
     }
 
     const db = createAdminClient();
-    const { data: existing, error: lookupError } = await db.from("academic_periods").select("id,is_active").eq("academic_year", academicYear).eq("term", term).maybeSingle();
+    const { data: existing, error: lookupError } = await db.from("academic_periods").select("id,is_active")
+      .eq("owner_id", context.workspace.id).eq("academic_year", academicYear).eq("term", term).maybeSingle();
     if (lookupError) throw lookupError;
-    if (existing) return NextResponse.json({ error: "That academic period already exists." }, { status: 409 });
+    if (existing) return NextResponse.json({ error: "That academic period already exists for this Admin account." }, { status: 409 });
 
-    const { count } = await db.from("academic_periods").select("id", { count: "exact", head: true });
+    const { count } = await db.from("academic_periods").select("id", { count: "exact", head: true }).eq("owner_id", context.workspace.id);
     const shouldActivate = !count;
-    const { data, error } = await db.from("academic_periods").insert({ academic_year: academicYear, term, is_active: shouldActivate }).select("id,academic_year,term,is_active").single();
+    const { data, error } = await db.from("academic_periods").insert({ owner_id: context.workspace.id, academic_year: academicYear, term, is_active: shouldActivate }).select("id,owner_id,academic_year,term,is_active").single();
     if (error) throw error;
     return NextResponse.json({ ok: true, period: data });
   } catch {

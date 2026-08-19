@@ -15,7 +15,7 @@ export default async function AdminLoginPage() {
         <div className="login-message">
           <div className="kicker">Administrator</div>
           <h1>Manage academic records with controlled access.</h1>
-          <p>Create subjects and assessments, encode scores, control score availability and manage student access from one workspace.</p>
+          <p>Create subjects and assessments, encode scores, control score availability and manage student access from your Admin account.</p>
         </div>
         <div className="login-visual-footer">College of Medicine · Administrative Workspace</div>
       </section>
@@ -23,7 +23,7 @@ export default async function AdminLoginPage() {
         <div className="login-card">
           <div className="login-card-brand"><BrandLogo /><span><strong>MedScores</strong><small>College of Medicine</small></span></div>
           <h2>Admin sign in</h2>
-          <p>Use the administrator account configured for this deployment.</p>
+          <p>Use your MedScores user account.</p>
           <AdminLoginForm />
           <div className="login-meta"><span>Administrative access</span><Link href="/">Student Portal</Link></div>
         </div>

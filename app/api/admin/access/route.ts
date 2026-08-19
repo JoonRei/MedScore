@@ -1,19 +1,35 @@
 import { NextResponse } from "next/server";
-import { configuredAdminEmail, getAuthenticatedSupabaseUser, isAuthorizedAdminEmail } from "@/lib/admin-auth";
+import { getAdminIdentity, recoverLegacyAdminData } from "@/lib/admin-auth";
+import { ADMIN_PERIOD_COOKIE } from "@/lib/admin-workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET() {
-  if (!configuredAdminEmail()) {
-    return NextResponse.json({ error: "ADMIN_EMAIL is not configured on the server." }, { status: 500, headers: { "Cache-Control": "no-store" } });
-  }
-
-  const user = await getAuthenticatedSupabaseUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication session is invalid." }, { status: 401, headers: { "Cache-Control": "no-store" } });
-  }
-
-  if (!isAuthorizedAdminEmail(user.email)) {
+  const identity = await getAdminIdentity();
+  if (!identity) {
     return NextResponse.json({ error: "This account is not authorized for the Admin portal." }, { status: 403, headers: { "Cache-Control": "no-store" } });
   }
 
-  return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+  const recovery = await recoverLegacyAdminData(identity);
+  const db = createAdminClient();
+  const { data: periods } = await db
+    .from("academic_periods")
+    .select("id,is_active")
+    .eq("owner_id", identity.profile.id)
+    .order("is_active", { ascending: false })
+    .order("created_at", { ascending: true });
+  const periodId = (periods || []).find((period: any) => period.is_active)?.id || periods?.[0]?.id || "";
+
+  const response = NextResponse.json({ ok: true, recovered: recovery.recovered }, { headers: { "Cache-Control": "no-store" } });
+  if (periodId) {
+    response.cookies.set(ADMIN_PERIOD_COOKIE, periodId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  } else {
+    response.cookies.delete(ADMIN_PERIOD_COOKIE);
+  }
+  return response;
 }

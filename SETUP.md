@@ -1,16 +1,11 @@
-# MedScores V4.0 update steps
+# MedScores V4.6 Update
 
-1. Back up the current project/database as usual.
-2. In Supabase SQL Editor, run `supabase/v4.0_academic_periods_new_results.sql` once.
-3. Copy the V4.0 Update Only files over the current MedScores project.
-4. Run `npm install` only if dependencies are not already installed.
-5. Run `npm run dev` and test:
-   - Admin → Settings → Academic year & semester
-   - Admin → Subjects → Add subject
-   - Admin → Assessments → Release scores
-   - Admin → Enter scores → validation/keyboard/unsaved warning
-   - Student → Results → New badge + open result
-   - Admin/Student → Settings → Install MedScores
-6. Deploy normally through GitHub/Vercel.
+1. Copy the V4.6 update files over the current MedScores project.
+2. Run `database/v4.6_student_roster_repair.sql` once in the project database console.
+3. Run `npm install` if dependencies are not already installed.
+4. Run `npm run dev`.
+5. Open Admin → Settings and select **1st Semester**.
+6. Open Admin → Students and confirm the original student roster is visible again.
+7. Switch to a later semester and use **Copy** only for students continuing into that semester.
 
-No environment-variable changes are required.
+The repair does not copy old subjects or scores into another semester. No environment-variable changes are required.

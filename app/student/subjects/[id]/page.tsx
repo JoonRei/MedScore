@@ -12,11 +12,12 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { data: enrollment } = await db.from("enrollments").select("id").eq("student_id", student.id).eq("subject_id", id).maybeSingle();
   if (!enrollment) notFound();
 
-  const [{ data: subject }, { data: assessments }] = await Promise.all([
+  const [{ data: subject }, { data: assessments }, { data: activePeriod }] = await Promise.all([
     db.from("subjects").select("*").eq("id", id).single(),
     db.from("assessments").select("id,title,assessment_type,assessment_date,total_score,passing_score,doctor_name").eq("subject_id", id).eq("status", "published").order("assessment_date", { ascending: false }),
+    db.from("academic_periods").select("academic_year,term").eq("owner_id", student.owner_id).eq("is_active", true).maybeSingle(),
   ]);
-  if (!subject) notFound();
+  if (!subject || (activePeriod && (subject.academic_year !== activePeriod.academic_year || subject.term !== activePeriod.term))) notFound();
 
   const ids = (assessments || []).map((item: any) => item.id);
   const { data: scoreRows } = ids.length ? await db.from("scores").select("assessment_id,score,result_status").eq("student_id", student.id).in("assessment_id", ids) : { data: [] as any[] };

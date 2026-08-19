@@ -11,9 +11,9 @@ function friendlyAuthError(message?: string) {
   if (value.includes("invalid login credentials")) return "Email or password is incorrect.";
   if (value.includes("email not confirmed")) return "This Admin email is not confirmed yet.";
   if (value.includes("admin_email")) return message || "Administrator access is not configured.";
-  if (value.includes("invalid path") || value.includes("pgrst125")) return "The Supabase Project URL is incorrect. Use only the project base URL.";
-  if (value.includes("supabase_url") || value.includes("valid url") || value.includes("project url")) return message || "Check the Supabase project configuration.";
-  if (value.includes("fetch") || value.includes("network")) return "MedScores cannot reach the authentication service.";
+  if (value.includes("invalid path") || value.includes("pgrst125")) return "MedScores sign-in is not configured correctly.";
+  if (value.includes("supabase_url") || value.includes("valid url") || value.includes("project url")) return "MedScores sign-in is not configured correctly.";
+  if (value.includes("fetch") || value.includes("network")) return "MedScores cannot connect right now.";
   return message || "Unable to sign in.";
 }
 
@@ -68,7 +68,7 @@ export function AdminLoginForm() {
   }
 
   return (
-    <form className="login-form" onSubmit={submit}>
+    <form className="login-form" onSubmit={submit} autoComplete="off" data-form-type="other">
       {inactive && !error && <div className="alert alert-success">You were signed out after 15 minutes of inactivity.</div>}
       {error && <div className="alert alert-error">{error}</div>}
       <div className="field">
@@ -76,15 +76,22 @@ export function AdminLoginForm() {
         <input
           id="admin-email"
           className="input"
-          type="email"
+          type="text"
+          inputMode="email"
+          name="ms-admin-identity"
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
           spellCheck={false}
+          data-lpignore="true"
+          data-1p-ignore="true"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onPaste={blockClipboard}
           onCopy={blockClipboard}
           onCut={blockClipboard}
           onDrop={blockClipboard}
+          onContextMenu={(event) => event.preventDefault()}
           required
         />
       </div>
@@ -94,18 +101,25 @@ export function AdminLoginForm() {
           id="admin-password"
           className="input"
           type="password"
+          name="ms-admin-secret"
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          data-lpignore="true"
+          data-1p-ignore="true"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onPaste={blockClipboard}
           onCopy={blockClipboard}
           onCut={blockClipboard}
           onDrop={blockClipboard}
+          onContextMenu={(event) => event.preventDefault()}
           required
         />
       </div>
       <button className="button button-primary button-block" type="submit" disabled={loading}>
-        {loading ? "Signing in…" : "Sign in as Admin"}
+        {loading ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

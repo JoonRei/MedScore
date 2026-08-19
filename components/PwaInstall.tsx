@@ -7,7 +7,7 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-export function PwaInstall() {
+export function PwaInstall({ compact = false }: { compact?: boolean } = {}) {
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -37,7 +37,7 @@ export function PwaInstall() {
     setPromptEvent(null);
   }
 
-  return <div className="settings-row pwa-settings-row">
+  return <div className={`${compact ? "student-settings-row" : "settings-row"} pwa-settings-row`}>
     <div><h3>Install MedScores</h3><p>{installed ? "MedScores is already running as an installed app on this device." : isIos ? "On iPhone or iPad, use Safari Share → Add to Home Screen." : "Add MedScores to your device for an app-like full-screen experience."}</p></div>
     <div className="settings-value pwa-settings-action">
       {installed ? "Installed" : promptEvent ? <button type="button" className="button button-secondary button-sm" onClick={() => void install()}>Install app</button> : isIos ? "Safari" : "Available when supported"}
