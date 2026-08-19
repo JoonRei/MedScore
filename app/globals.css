@@ -5800,7 +5800,7 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
   line-height: 1.4;
 }
 
-/* Device sign-in is present but visibly inactive until the entered code name has a registered device. */
+/* Fingerprint sign-in stays inactive until the entered code name has a registered credential. */
 .login-device-option .button:disabled {
   opacity: .5;
   cursor: not-allowed;
@@ -5856,4 +5856,215 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
 @media (max-width: 350px) {
   .student-header-actions { gap: 4px; }
   .student-header-actions .button { min-height: 33px; padding-inline: 3px; font-size: 9.4px; letter-spacing: -.01em; }
+}
+
+/* MedScores V4.7 — fingerprint-first sign-in, centered mobile login, logo-backed PWA. */
+.fingerprint-login-option {
+  gap: 8px;
+  margin-top: 0;
+}
+.login-device-option > .login-device-or {
+  display: block;
+  color: var(--muted-2);
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.login-device-option > .login-device-or::before,
+.login-device-option > .login-device-or::after {
+  display: none !important;
+  content: none !important;
+}
+
+.fingerprint-login-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border: 1px solid #e2d7e5;
+  border-radius: 13px;
+  background: #fbf8fc;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.fingerprint-login-button:hover:not(:disabled) {
+  border-color: #cfb7d5;
+  background: #f8f1fa;
+  box-shadow: 0 7px 18px rgba(116,16,143,.07);
+  transform: translateY(-1px);
+}
+.fingerprint-login-button:focus-visible {
+  outline: 3px solid rgba(116,16,143,.13);
+  outline-offset: 2px;
+  border-color: var(--brand);
+}
+.fingerprint-login-button:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+  transform: none;
+  box-shadow: none;
+}
+.fingerprint-login-mark,
+.fingerprint-settings-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 11px;
+  overflow: hidden;
+}
+.fingerprint-login-mark { width: 38px; height: 38px; }
+.fingerprint-login-mark svg { width: 24px; height: 24px; }
+.fingerprint-login-button.is-scanning .fingerprint-login-mark::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 8px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 7px rgba(116,16,143,.35);
+  animation: fingerprint-scan 1s ease-in-out infinite alternate;
+}
+@keyframes fingerprint-scan {
+  from { transform: translateY(0); opacity: .6; }
+  to { transform: translateY(21px); opacity: 1; }
+}
+.fingerprint-login-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.fingerprint-login-copy strong {
+  min-width: 0;
+  color: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.fingerprint-login-copy small {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 9.75px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Fingerprint settings stays one clean row with no divider directly beneath it. */
+.fingerprint-settings-row { border-bottom: 0 !important; }
+.fingerprint-settings-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.fingerprint-settings-mark { width: 36px; height: 36px; }
+.fingerprint-settings-mark svg { width: 22px; height: 22px; }
+
+/* Student login footer is intentionally borderless; the fingerprint action should not sit above a stray line. */
+.student-login-page .login-meta {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 17px;
+}
+
+@media (max-width: 900px) {
+  html.student-login-lock,
+  body.student-login-lock {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .student-login-page {
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+  .student-login-page .login-panel {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    place-items: center;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+  }
+  .student-login-page .login-card {
+    width: min(100%, 390px);
+    max-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    overflow: hidden;
+  }
+  .student-login-page .login-card-brand { margin-bottom: 18px; }
+  .student-login-page .login-card > p { margin: 7px 0 18px; line-height: 1.5; }
+  .student-login-page .login-form { gap: 13px; }
+  .student-login-page .login-form .field { gap: 6px; }
+  .student-login-page .login-form .input { height: 46px; }
+  .student-login-page .login-form .button { min-height: 46px; }
+  .student-login-page .fingerprint-login-button { min-height: 54px; }
+  .student-login-page .login-meta { margin-top: 14px; font-size: 10.5px; }
+}
+
+@media (max-width: 430px) {
+  .student-login-page .login-panel {
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+  .student-login-page .login-card { width: min(100%, 365px); }
+  .student-login-page .login-card h2 { font-size: 25px; }
+  .student-login-page .login-card-brand { margin-bottom: 16px; }
+  .student-login-page .login-card > p { margin-bottom: 16px; font-size: 12.5px; }
+  .student-login-page .login-form { gap: 12px; }
+  .student-login-page .login-meta { margin-top: 12px; gap: 8px; }
+  .fingerprint-login-button { grid-template-columns: 36px minmax(0, 1fr); gap: 9px; padding: 8px 10px; }
+  .fingerprint-login-mark { width: 36px; height: 36px; }
+  .fingerprint-login-mark svg { width: 22px; height: 22px; }
+  .fingerprint-settings-copy { grid-template-columns: 32px minmax(0, 1fr); gap: 9px; }
+  .fingerprint-settings-mark { width: 32px; height: 32px; border-radius: 9px; }
+  .fingerprint-settings-mark svg { width: 20px; height: 20px; }
+}
+
+/* Short phone viewports: compact only the vertical rhythm so the sign-in page remains centered and non-scrollable. */
+@media (max-width: 900px) and (max-height: 700px) {
+  .student-login-page .login-panel {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .student-login-page .login-card-brand { margin-bottom: 11px; }
+  .student-login-page .login-card-brand .brand-logo { width: 34px; height: 34px; }
+  .student-login-page .login-card h2 { font-size: 23px; }
+  .student-login-page .login-card > p { margin: 5px 0 11px; font-size: 11.5px; line-height: 1.4; }
+  .student-login-page .login-form { gap: 9px; }
+  .student-login-page .login-form .field { gap: 4px; }
+  .student-login-page .login-form .field label { font-size: 10.5px; }
+  .student-login-page .login-form .input { height: 42px; }
+  .student-login-page .login-form .button { min-height: 42px; }
+  .student-login-page .fingerprint-login-option { gap: 6px; }
+  .student-login-page .fingerprint-login-button { min-height: 48px; padding-block: 6px; }
+  .student-login-page .fingerprint-login-mark { width: 34px; height: 34px; }
+  .student-login-page .fingerprint-login-copy strong { font-size: 11.5px; }
+  .student-login-page .fingerprint-login-copy small { font-size: 9px; }
+  .student-login-page .login-meta { margin-top: 9px; font-size: 9.5px; line-height: 1.3; }
+}
+
+@media (max-width: 360px) and (max-height: 640px) {
+  .student-login-page .login-card-brand { margin-bottom: 8px; }
+  .student-login-page .login-card > p { margin-bottom: 9px; }
+  .student-login-page .login-form { gap: 8px; }
+  .student-login-page .login-device-or { font-size: 8.5px; }
+  .student-login-page .login-meta { margin-top: 7px; }
 }

@@ -9,14 +9,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const challengeId = String(body.challengeId || "");
     const response = body.response;
-    if (!challengeId || !response?.id) return NextResponse.json({ error: "Device sign-in response is incomplete." }, { status: 400 });
+    if (!challengeId || !response?.id) return NextResponse.json({ error: "Fingerprint sign-in response is incomplete." }, { status: 400 });
     const db = createAdminClient();
     const { data: challenge } = await db.from("student_webauthn_challenges").select("id,student_id,challenge,expires_at,purpose").eq("id", challengeId).eq("purpose", "authenticate").maybeSingle();
-    if (!challenge || new Date(challenge.expires_at).getTime() < Date.now()) return NextResponse.json({ error: "Device sign-in expired. Try again." }, { status: 400 });
+    if (!challenge || new Date(challenge.expires_at).getTime() < Date.now()) return NextResponse.json({ error: "Fingerprint sign-in expired. Try again." }, { status: 400 });
     const { data: student } = await db.from("students").select("id,is_active").eq("id", challenge.student_id).maybeSingle();
     if (!student?.is_active) return NextResponse.json({ error: "Student account is not active." }, { status: 403 });
     const { data: passkey } = await db.from("student_passkeys").select("credential_id,public_key,counter,transports").eq("credential_id", response.id).eq("student_id", student.id).maybeSingle();
-    if (!passkey) return NextResponse.json({ error: "This device credential is not registered." }, { status: 404 });
+    if (!passkey) return NextResponse.json({ error: "Fingerprint sign-in is not registered on this account." }, { status: 404 });
     const config = getWebAuthnRequestConfig(request);
     const verification = await verifyAuthenticationResponse({
       response,
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         transports: passkey.transports || undefined,
       },
     });
-    if (!verification.verified) return NextResponse.json({ error: "Device verification was not completed." }, { status: 401 });
+    if (!verification.verified) return NextResponse.json({ error: "Fingerprint verification was not completed." }, { status: 401 });
     await Promise.all([
       db.from("student_passkeys").update({ counter: verification.authenticationInfo.newCounter, last_used_at: new Date().toISOString() }).eq("credential_id", passkey.credential_id),
       db.from("student_webauthn_challenges").delete().eq("id", challenge.id),
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const result = NextResponse.json({ ok: true, verified: true });
     result.cookies.set(STUDENT_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", expires: expiresAt });
     return result;
-  } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to sign in with this device." }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Unable to sign in with fingerprint." }, { status: 400 });
   }
 }

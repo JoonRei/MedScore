@@ -9,7 +9,7 @@ export default async function StudentLoginPage() {
   if (session) redirect("/student");
 
   return (
-    <div className="login-page">
+    <div className="login-page student-login-page">
       <section className="login-visual">
         <div className="login-brand"><BrandLogo className="login-logo" /><span>MedScores</span></div>
         <div className="login-message">

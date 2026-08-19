@@ -34,6 +34,6 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ options, challengeId: challenge.id });
   } catch {
-    return NextResponse.json({ error: "Unable to prepare device sign-in." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to prepare fingerprint sign-in." }, { status: 500 });
   }
 }

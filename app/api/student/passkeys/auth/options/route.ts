@@ -11,9 +11,9 @@ export async function POST(request: Request) {
     if (!/^[A-Za-z0-9_-]{4,30}$/.test(codeName)) return NextResponse.json({ error: "Enter your code name first." }, { status: 400 });
     const db = createAdminClient();
     const { data: student } = await db.from("students").select("id,is_active").eq("code_name", codeName).maybeSingle();
-    if (!student?.is_active) return NextResponse.json({ error: "Device sign-in is not available for this account." }, { status: 404 });
+    if (!student?.is_active) return NextResponse.json({ error: "Fingerprint sign-in is not available for this account." }, { status: 404 });
     const { data: passkeys } = await db.from("student_passkeys").select("credential_id,transports").eq("student_id", student.id);
-    if (!passkeys?.length) return NextResponse.json({ error: "Device sign-in has not been enabled for this student." }, { status: 404 });
+    if (!passkeys?.length) return NextResponse.json({ error: "Fingerprint sign-in has not been enabled for this student." }, { status: 404 });
     const config = getWebAuthnRequestConfig(request);
     const options = await generateAuthenticationOptions({
       rpID: config.rpID,
@@ -25,6 +25,6 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ options, challengeId: challenge.id });
   } catch {
-    return NextResponse.json({ error: "Unable to start device sign-in." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to start fingerprint sign-in." }, { status: 500 });
   }
 }

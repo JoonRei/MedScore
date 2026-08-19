@@ -12,6 +12,6 @@ export async function DELETE() {
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Unable to disable device sign-in." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to disable fingerprint sign-in." }, { status: 500 });
   }
 }
