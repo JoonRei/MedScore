@@ -246,7 +246,7 @@ export function StudentDeviceNotifications() {
                 <span className="student-setting-toggle-knob-v422" aria-hidden="true" />
               </button>
             ) : (
-              <span className={`student-setting-status-v419${state === "enabled" ? " is-active" : ""}`}>{status}</span>
+              <span className="student-setting-status-v419">{status}</span>
             )}
           </div>
         </div>
