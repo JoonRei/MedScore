@@ -89,16 +89,32 @@ export default async function Page() {
 
       <section className="dashboard-section section-gap student-v2-section">
         <div className="panel-header compact-section-header"><div><h2>Recent results</h2><p>Your latest assessment entries and result status.</p></div><Link className="button button-secondary button-sm" href="/student/results" prefetch>All results</Link></div>
-        <div className="result-list compact-result-list student-v2-result-list">
+        <div className="student-home-recent-list-v422">
           {rows.slice(0, 5).map((row: any) => {
             const absent = row.result_status === "absent";
             const hasPass = row.assessment.passing_score != null;
             const passedRow = !absent && hasPass && Number(row.score) >= Number(row.assessment.passing_score);
+            const statusText = absent ? "Did not take" : hasPass ? (passedRow ? "Passed" : "Below passing") : "Recorded";
+            const statusClass = absent ? "is-neutral" : hasPass ? (passedRow ? "is-pass" : "is-below") : "is-neutral";
             return (
-              <div className={`result-card ${absent ? "is-absent" : ""}`} key={row.assessment.id}>
-                <div className="result-main"><div className="meta"><span>{row.subject?.name}</span><span>·</span><span>{formatDate(row.assessment.assessment_date)}</span>{row.isNew && <span className="new-result-badge">New</span>}</div><h3>{row.assessment.title}</h3><p>{row.assessment.assessment_type}{row.assessment.doctor_name ? ` · ${row.assessment.doctor_name}` : ""}</p></div>
-                <div className="result-score">{absent ? <><strong>Did not take</strong><small>No score recorded</small></> : <><strong>{row.score} / {row.assessment.total_score}</strong><small>{hasPass ? (passedRow ? "Passed" : "Below passing score") : "Recorded result"}</small></>}</div>
-              </div>
+              <article className={`student-home-result-v422${absent ? " is-absent" : ""}`} key={row.assessment.id}>
+                <div className="student-home-result-copy-v422">
+                  <div className="student-home-result-meta-v422">
+                    <span>{row.subject?.name || "Subject"}</span>
+                    <time dateTime={row.assessment.assessment_date}>{formatDate(row.assessment.assessment_date)}</time>
+                    {row.isNew && <span className="new-result-badge">New</span>}
+                  </div>
+                  <h3>{row.assessment.title}</h3>
+                  <p>{row.assessment.assessment_type}{row.assessment.doctor_name ? ` · ${row.assessment.doctor_name}` : ""}</p>
+                </div>
+                <div className="student-home-result-summary-v422">
+                  <div className="student-home-result-score-v422">
+                    <span>{absent ? "Result" : "Score"}</span>
+                    {absent ? <strong>—</strong> : <strong>{row.score}<small> / {row.assessment.total_score}</small></strong>}
+                  </div>
+                  <span className={`student-home-result-status-v422 ${statusClass}`}>{statusText}</span>
+                </div>
+              </article>
             );
           })}
           {!rows.length && <EmptyState title="No results yet" description="Your scores will appear here when they are ready." />}

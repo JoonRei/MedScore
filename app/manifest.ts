@@ -5,13 +5,14 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "MedScores | College of Medicine",
     short_name: "MedScores",
     description: "Academic performance portal for the College of Medicine.",
+    id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#74108f",
     icons: [
-      { src: "/logo.png?v=421", sizes: "any", type: "image/png", purpose: "any" },
+      { src: "/logo.png?v=422", sizes: "any", type: "image/png", purpose: "any" },
     ],
   };
 }

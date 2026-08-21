@@ -16,6 +16,66 @@ export function getPushPublicKey() {
   return pushConfig()?.publicKey || "";
 }
 
+type StoredSubscription = {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
+type PushPayload = {
+  title: string;
+  body: string;
+  url: string;
+  tag: string;
+  assessmentId?: string | null;
+  releasedAt?: string | null;
+};
+
+async function deliver(subscription: StoredSubscription, payload: PushPayload) {
+  const config = pushConfig();
+  if (!config) return { ok: false, reason: "unconfigured" as const };
+
+  try {
+    await webpush.sendNotification({
+      endpoint: String(subscription.endpoint),
+      keys: { p256dh: String(subscription.p256dh), auth: String(subscription.auth) },
+    }, JSON.stringify(payload), {
+      TTL: 60 * 60 * 24,
+      urgency: "high",
+    });
+    return { ok: true as const };
+  } catch (error: any) {
+    const status = Number(error?.statusCode || 0);
+    if (status === 404 || status === 410) return { ok: false as const, reason: "expired" as const };
+    console.error("student push delivery failed", error);
+    return { ok: false as const, reason: "delivery" as const };
+  }
+}
+
+export async function sendTestPush(studentId: string, endpoint: string) {
+  if (!pushConfig()) return { sent: false, reason: "unconfigured" };
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from("student_push_subscriptions")
+    .select("id,endpoint,p256dh,auth")
+    .eq("student_id", studentId)
+    .eq("endpoint", endpoint)
+    .maybeSingle();
+  if (error || !data) return { sent: false, reason: "missing" };
+
+  const result = await deliver(data as StoredSubscription, {
+    title: "MedScores notifications are ready",
+    body: "This is a phone notification test. New score releases will appear here automatically.",
+    url: "/student/notifications",
+    tag: "medscores-notification-test",
+  });
+  if (!result.ok && result.reason === "expired") {
+    await db.from("student_push_subscriptions").delete().eq("id", data.id);
+  }
+  return { sent: result.ok, reason: result.ok ? null : result.reason };
+}
+
 export async function sendAssessmentReleasePush(assessmentId: string, ownerId: string) {
   const config = pushConfig();
   if (!config) return { sent: 0, skipped: true };
@@ -41,30 +101,23 @@ export async function sendAssessmentReleasePush(assessmentId: string, ownerId: s
     .in("student_id", studentIds);
   if (!subscriptions?.length) return { sent: 0, skipped: false };
 
-  const payload = JSON.stringify({
-    title: "New result available",
-    body: `${String(subject?.name || "Subject")} · ${String((assessment as any).title || "Assessment")}`,
-    url: "/student/notifications",
+  const subjectName = String(subject?.name || "Subject");
+  const assessmentTitle = String((assessment as any).title || "Assessment");
+  const releasedAt = String((assessment as any).released_at || new Date().toISOString());
+  const payload: PushPayload = {
+    title: "New score released",
+    body: `${subjectName} · ${assessmentTitle}\nYour result is ready to view.`,
+    url: `/student/results?assessment=${encodeURIComponent(String((assessment as any).id))}`,
+    tag: `medscores-result-${String((assessment as any).id)}-${releasedAt}`,
     assessmentId: String((assessment as any).id),
-    releasedAt: String((assessment as any).released_at || new Date().toISOString()),
-  });
+    releasedAt,
+  };
 
   let sent = 0;
   await Promise.all(subscriptions.map(async (row: any) => {
-    try {
-      await webpush.sendNotification({
-        endpoint: String(row.endpoint),
-        keys: { p256dh: String(row.p256dh), auth: String(row.auth) },
-      }, payload, { TTL: 60 * 60 * 12, urgency: "high" });
-      sent += 1;
-    } catch (error: any) {
-      const status = Number(error?.statusCode || 0);
-      if (status === 404 || status === 410) {
-        await db.from("student_push_subscriptions").delete().eq("id", row.id);
-      } else {
-        console.error("student push delivery failed", error);
-      }
-    }
+    const result = await deliver(row as StoredSubscription, payload);
+    if (result.ok) sent += 1;
+    else if (result.reason === "expired") await db.from("student_push_subscriptions").delete().eq("id", row.id);
   }));
 
   return { sent, skipped: false };

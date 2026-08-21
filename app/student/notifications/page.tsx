@@ -10,7 +10,7 @@ export default async function NotificationsPage() {
   const session = await requireStudent();
   const items = await loadReleasedNotifications(session.student, { unreadOnly: false, limit: 40 });
   return <>
-    <PageHeader eyebrow="Student portal" title="Notifications" description="Stay updated when new assessment results are released." />
+    <PageHeader eyebrow="Student portal" title="Notifications" description="Review newly released assessment results and unread updates." />
     <StudentNotificationsPage initialItems={items} />
   </>;
 }

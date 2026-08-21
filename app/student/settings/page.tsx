@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ChangePinForm } from "@/components/ChangePinForm";
 import { PwaInstall } from "@/components/PwaInstall";
 import { StudentPasskeySettings } from "@/components/StudentPasskeySettings";
+import { StudentDeviceNotifications } from "@/components/StudentDeviceNotifications";
 import { requireStudent } from "@/lib/student-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -14,11 +15,15 @@ export default async function Page() {
 
   return (
     <>
-      <PageHeader eyebrow="Account" title="Settings" description="Manage your sign-in and app access." />
+      <PageHeader eyebrow="Account" title="Settings" description="Manage your sign-in, phone notifications and app access." />
 
       <div className="student-settings-layout-v419">
         <section className="panel student-setting-card-v419 student-setting-card-fingerprint-v419">
           <StudentPasskeySettings count={count || 0} />
+        </section>
+
+        <section className="panel student-setting-card-v419 student-setting-card-notifications-v422">
+          <StudentDeviceNotifications />
         </section>
 
         <section className="panel student-setting-card-v419 student-setting-card-pin-v419">

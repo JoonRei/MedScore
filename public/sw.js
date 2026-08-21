@@ -2,20 +2,36 @@ self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 // MedScores intentionally does not cache protected academic pages or API responses.
-// The service worker supports installation and opt-in result notifications only.
+// The worker is dedicated to installation and opt-in score release notifications.
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   let payload = {};
   try { payload = event.data.json(); } catch { payload = { body: event.data.text() }; }
-  const title = payload.title || "MedScores notification";
+
+  const title = payload.title || "MedScores";
   const options = {
-    body: payload.body || "A new result is available.",
+    body: payload.body || "A new score is available.",
     icon: "/logo.png",
-    data: { url: payload.url || "/student/notifications", assessmentId: payload.assessmentId || null },
-    tag: payload.assessmentId ? `medscores-result-${payload.assessmentId}` : "medscores-result",
+    badge: "/logo.png",
+    data: {
+      url: payload.url || "/student/notifications",
+      assessmentId: payload.assessmentId || null,
+      releasedAt: payload.releasedAt || null,
+    },
+    tag: payload.tag || (payload.assessmentId ? `medscores-result-${payload.assessmentId}` : "medscores-notification"),
     renotify: true,
+    requireInteraction: false,
+    silent: false,
+    timestamp: Date.now(),
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, options);
+    // Keep the installed PWA badge useful when the platform supports it.
+    if (self.navigator && "setAppBadge" in self.navigator) {
+      try { await self.navigator.setAppBadge(); } catch { /* optional platform feature */ }
+    }
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {

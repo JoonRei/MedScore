@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   description: "Academic performance portal for the College of Medicine.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/logo.png?v=421",
-    shortcut: "/logo.png?v=421",
-    apple: "/logo.png?v=421",
+    icon: "/logo.png?v=422",
+    shortcut: "/logo.png?v=422",
+    apple: "/logo.png?v=422",
   },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "MedScores" },
   robots: { index: false, follow: false, noarchive: true, nocache: true },

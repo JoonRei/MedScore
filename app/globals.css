@@ -8716,3 +8716,235 @@ svg {
   .student-shell .sidebar-nav .nav-item { font-size: 8px; }
   .student-shell .sidebar-nav .nav-item svg { width: 17px; height: 17px; }
 }
+
+/* MedScores V4.22 — persistent phone push settings + refined Student Home recent results. */
+
+/* Notifications is history-only; phone notification controls live in Settings. */
+.student-notifications-page-grid { display: block !important; }
+.student-notification-history-v422 {
+  width: 100%;
+  max-width: none;
+}
+.student-device-notification-card { display: none !important; }
+
+/* Student Settings: Fingerprint / Notifications / Install on the left, PIN on the right. */
+.student-settings-layout-v419 {
+  grid-template-areas:
+    "fingerprint pin"
+    "notifications pin"
+    "install pin";
+}
+.student-setting-card-notifications-v422 { grid-area: notifications; }
+.student-device-settings-v422 {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+.student-device-settings-head-v422 { align-items: flex-start; }
+.student-device-settings-title-v422 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+.student-device-settings-mark-v422 {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+.student-device-settings-note-v422 {
+  min-width: 0;
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  background: rgba(116,16,143,.045);
+}
+.student-device-settings-note-v422 span {
+  color: var(--text);
+  font-size: 10.5px;
+  font-weight: 750;
+}
+.student-device-settings-note-v422 small {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  text-align: right;
+}
+.student-device-settings-actions-v422 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.student-device-settings-actions-v422 .button { min-width: 0; }
+
+/* Home Recent Results: summary cards are display-only, not selectable/clickable. */
+.student-home-recent-list-v422 {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  margin-top: 3px;
+}
+.student-home-result-v422 {
+  position: relative;
+  min-width: 0;
+  padding: 14px 15px 14px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(34,22,39,.045);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.student-home-result-v422::before {
+  content: "";
+  position: absolute;
+  inset: 11px auto 11px 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: rgba(116,16,143,.48);
+}
+.student-home-result-v422.is-absent::before { background: #c5bdc8; }
+.student-home-result-copy-v422 { min-width: 0; }
+.student-home-result-meta-v422 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 9.75px;
+  font-weight: 680;
+  line-height: 1.25;
+}
+.student-home-result-meta-v422 > span:first-child {
+  color: var(--brand-strong);
+  font-weight: 780;
+}
+.student-home-result-meta-v422 time::before {
+  content: "·";
+  margin-right: 7px;
+  color: #b7aeb9;
+}
+.student-home-result-v422 h3 {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 780;
+  line-height: 1.3;
+  letter-spacing: -.015em;
+  overflow-wrap: anywhere;
+}
+.student-home-result-v422 p {
+  margin: 3px 0 0;
+  color: var(--text-soft);
+  font-size: 10.5px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.student-home-result-summary-v422 {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.student-home-result-score-v422 {
+  min-width: 66px;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.student-home-result-score-v422 > span {
+  color: var(--muted);
+  font-size: 8.5px;
+  font-weight: 750;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+.student-home-result-score-v422 strong {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
+.student-home-result-score-v422 strong small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.student-home-result-status-v422 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+.student-home-result-status-v422.is-pass { background: var(--success-soft); color: var(--success); }
+.student-home-result-status-v422.is-below { background: var(--danger-soft); color: var(--danger); }
+.student-home-result-status-v422.is-neutral { background: #f2eff3; color: var(--text-soft); }
+
+@media (max-width: 820px) {
+  .student-settings-layout-v419 {
+    grid-template-areas:
+      "fingerprint"
+      "notifications"
+      "pin"
+      "install";
+  }
+}
+
+@media (max-width: 620px) {
+  .student-home-result-v422 {
+    padding: 13px 13px 13px 16px;
+    grid-template-columns: 1fr;
+    gap: 11px;
+    border-radius: 14px;
+  }
+  .student-home-result-summary-v422 {
+    min-width: 0;
+    padding-top: 9px;
+    justify-content: space-between;
+    border-top: 1px solid rgba(231,226,233,.75);
+  }
+  .student-home-result-score-v422 { justify-items: start; }
+  .student-home-result-score-v422 strong { font-size: 19px; }
+  .student-device-settings-actions-v422 .button-primary { flex: 1 1 160px; }
+}
+
+@media (max-width: 420px) {
+  .student-home-recent-list-v422 { gap: 8px; }
+  .student-home-result-v422 { padding: 12px 11px 12px 14px; }
+  .student-home-result-v422 h3 { font-size: 13.5px; }
+  .student-home-result-meta-v422 { gap: 5px; font-size: 9.25px; }
+  .student-home-result-meta-v422 time::before { margin-right: 5px; }
+  .student-home-result-v422 p { font-size: 10px; }
+  .student-home-result-status-v422 { font-size: 8.5px; padding-inline: 7px; }
+  .student-device-settings-title-v422 { grid-template-columns: 32px minmax(0, 1fr); gap: 8px; }
+  .student-device-settings-mark-v422 { width: 32px; height: 32px; }
+  .student-device-settings-note-v422 { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .student-device-settings-note-v422 small { text-align: left; }
+  .student-device-settings-actions-v422 { display: grid; grid-template-columns: 1fr; }
+  .student-device-settings-actions-v422 .button { width: 100%; }
+}

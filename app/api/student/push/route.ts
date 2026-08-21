@@ -15,8 +15,29 @@ function sameOrigin(request: Request) {
 export async function GET() {
   const session = await getStudentSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const publicKey = getPushPublicKey();
-  return NextResponse.json({ configured: Boolean(publicKey), publicKey }, { headers: { "Cache-Control": "no-store" } });
+  let storageReady = true;
+  let savedDevices = 0;
+  try {
+    const db = createAdminClient();
+    const { count, error } = await db
+      .from("student_push_subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", session.student.id);
+    if (error) throw error;
+    savedDevices = count || 0;
+  } catch (error) {
+    storageReady = false;
+    console.error("student push status failed", error);
+  }
+
+  return NextResponse.json({
+    configured: Boolean(publicKey),
+    storageReady,
+    publicKey,
+    savedDevices,
+  }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -47,7 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("student push subscription save failed", error);
-    return NextResponse.json({ error: "Unable to enable device notifications." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to enable phone notifications." }, { status: 500 });
   }
 }
 
@@ -65,6 +86,6 @@ export async function DELETE(request: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Unable to disable device notifications." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to disable phone notifications." }, { status: 500 });
   }
 }
