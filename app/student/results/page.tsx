@@ -25,7 +25,8 @@ function buildClassStats(rows: AggregateScoreRow[]) {
   };
 }
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ assessment?: string }> }) {
+  const params = await searchParams;
   const { student } = await requireStudent();
   const db = createAdminClient();
   const [{ data }, { data: views }, { data: activePeriod }] = await Promise.all([
@@ -93,6 +94,6 @@ export default async function Page() {
 
   return <>
     <PageHeader eyebrow="Student Portal" title="Results" description="Review your released assessment scores and result status." />
-    <StudentResultsClient rows={rows} />
+    <StudentResultsClient rows={rows} initialOpenId={String(params.assessment || "")} />
   </>;
 }

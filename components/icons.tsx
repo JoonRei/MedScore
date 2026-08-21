@@ -16,6 +16,7 @@ import {
   Edit02Icon,
   Key01Icon,
   LockPasswordIcon,
+  Notification01Icon,
   Logout03Icon,
   ReloadIcon,
   SchoolReportCardIcon,
@@ -45,6 +46,7 @@ export const BookIcon = makeIcon(BookOpen01Icon);
 export const FileIcon = makeIcon(ClipboardIcon);
 export const ChartIcon = makeIcon(ChartHistogramIcon);
 export const SettingsIcon = makeIcon(Settings02Icon);
+export const NotificationIcon = makeIcon(Notification01Icon);
 export const LogoutIcon = makeIcon(Logout03Icon);
 export const SearchIcon = makeIcon(Search01Icon);
 export const LockIcon = makeIcon(LockPasswordIcon);

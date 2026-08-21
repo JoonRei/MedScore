@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import { formatDate } from "@/lib/utils";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 type EntryStatus = "unentered" | "scored" | "absent";
 type EntryState = { value: string; status: EntryStatus };
@@ -176,7 +177,7 @@ export function ScoreEntryClient({ assessment, students }: { assessment: any; st
 
     <div className="score-progress-line"><span><i style={{ width: `${totals.progress}%` }} /></span><strong>{totals.progress}% complete</strong></div>
     {invalidCount > 0 && <div className="alert alert-error score-feedback">{invalidCount} invalid score entr{invalidCount === 1 ? "y" : "ies"}. Every score must be between 0 and {assessment.total_score}.</div>}
-    {(message || error) && <div className={`alert ${error ? "alert-error" : "alert-success"} score-feedback`}>{error || message}</div>}
+    {(message || error) && <ToastNotice message={error || message} tone={error ? "error" : "success"} onDismiss={() => { setError(""); setMessage(""); }} />}
 
     <section className="score-roster-surface">
       <div className="score-roster-toolbar">

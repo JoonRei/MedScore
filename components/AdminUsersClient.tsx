@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 type UserRow = { id: string; display_name: string; email: string; role: "owner" | "member"; is_active: boolean };
 
@@ -55,7 +56,7 @@ export function AdminUsersClient({ users, ownerId }: { users: UserRow[]; ownerId
       <div><h2>Users & workspaces</h2><p>Each user manages a separate set of students and subjects. The Owner can switch between workspaces.</p></div>
       <button className="button button-primary button-sm" type="button" onClick={() => setOpen((value) => !value)}>{open ? "Close" : "Add user"}</button>
     </div>
-    {(notice || error) && <div className={`alert ${error ? "alert-error" : "alert-success"}`}>{error || notice}</div>}
+    {(notice || error) && <ToastNotice message={error || notice} tone={error ? "error" : "success"} onDismiss={() => { setError(""); setNotice(""); }} />}
     {open && <form className="admin-user-create" onSubmit={addUser}>
       <div className="field"><label>Name</label><input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} autoComplete="off" required /></div>
       <div className="field"><label>Email</label><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" required /></div>

@@ -110,26 +110,17 @@ function LeaderboardCard({ board, index, totalBoards }: { board: ShowcaseBoard; 
       {runners.length > 0 && (
         <div className="leaderboard-runner-stack-v419">
           {runners.map((group) => (
-            <div className={`leaderboard-runner-row-v419 rank-${group.rank}`} key={`${board.id}-rank-${group.rank}`}>
-              <div className="leaderboard-runner-rank-v419" aria-hidden="true">
-                <strong>#{group.rank}</strong>
-                <span>{group.entries.length > 1 ? `${group.entries.length} tied` : "Rank"}</span>
+            <div className={`leaderboard-runner-row-v421 rank-${group.rank}`} key={`${board.id}-rank-${group.rank}`}>
+              <div className="leaderboard-runner-rank-v421" aria-hidden="true"><strong>#{group.rank}</strong></div>
+              <div className="leaderboard-runner-students-v421" aria-label={`Rank ${group.rank}`}>
+                {group.entries.map((entry) => (
+                  <div className="leaderboard-runner-student-v421" key={`${group.rank}-${entry.codeName}`}>
+                    <span aria-hidden="true">{initials(entry.codeName)}</span>
+                    <strong>{entry.codeName}</strong>
+                  </div>
+                ))}
               </div>
-
-              <div className="leaderboard-runner-content-v419">
-                <div className="leaderboard-runner-meta-v419">
-                  <span>{group.entries.length > 1 ? "Shared position" : "Outstanding scorer"}</span>
-                  <strong>{formatScore(group.score)} <small>/ {formatScore(board.totalScore)}</small></strong>
-                </div>
-                <div className="leaderboard-runner-students-v419" aria-label={`${group.entries.length} student${group.entries.length === 1 ? "" : "s"} at rank ${group.rank}`}>
-                  {group.entries.map((entry) => (
-                    <div className="leaderboard-runner-student-v419" key={`${group.rank}-${entry.codeName}`}>
-                      <span aria-hidden="true">{initials(entry.codeName)}</span>
-                      <strong>{entry.codeName}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <div className="leaderboard-runner-score-v421"><strong>{formatScore(group.score)}</strong><small>/ {formatScore(board.totalScore)}</small></div>
             </div>
           ))}
         </div>

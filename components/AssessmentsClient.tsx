@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 type SubjectOption = { id: string; name: string };
 type AssessmentRow = {
@@ -93,8 +94,8 @@ export function AssessmentsClient({ assessments, subjects }: { assessments: Asse
   function close() { setOpen(false); setEdit(null); setError(""); }
 
   return <>
-    {notice && <div className="alert alert-success page-feedback">{notice}<button type="button" onClick={() => setNotice("")}>Dismiss</button></div>}
-    {error && !open && !edit && <div className="alert alert-error page-feedback">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
+    {notice && <ToastNotice message={notice} tone="success" onDismiss={() => setNotice("")} />}
+    {error && !open && !edit && <ToastNotice message={error} tone="error" onDismiss={() => setError("")} />}
     <div className="panel data-panel">
       <div className="panel-header panel-header-stack-mobile"><div><h2>Assessment workspace</h2><p>Encode in Draft, review scores, then release when ready.</p></div><button className="button button-primary" onClick={() => { setError(""); setOpen(true); }}>New assessment</button></div>
       <div className="toolbar">

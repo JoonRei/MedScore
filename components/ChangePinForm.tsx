@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 export function ChangePinForm() {
   const [busy, setBusy] = useState(false);
@@ -25,7 +26,7 @@ export function ChangePinForm() {
 
   return (
     <form className="change-pin-form-v419" onSubmit={submit}>
-      {msg && <div className={`alert ${ok ? "alert-success" : "alert-error"}`}>{msg}</div>}
+      {msg && <ToastNotice message={msg} tone={ok ? "success" : "error"} onDismiss={() => setMsg("")} />}
       <div className="change-pin-fields-v419">
         <div className="field">
           <label>Current PIN</label>

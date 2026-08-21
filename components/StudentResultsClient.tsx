@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -55,12 +55,18 @@ function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; co
   );
 }
 
-export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
+export function StudentResultsClient({ rows, initialOpenId = "" }: { rows: StudentResultRow[]; initialOpenId?: string }) {
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState("all");
   const [type, setType] = useState("all");
   const [openResult, setOpenResult] = useState<StudentResultRow | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!initialOpenId) return;
+    const match = rows.find((row) => row.id === initialOpenId);
+    if (match) setOpenResult(match);
+  }, [initialOpenId, rows]);
 
   const subjectOptions = useMemo(() => [{ value: "all", label: "All subjects" }, ...Array.from(new Set(rows.map((row) => row.subject))).sort().map((value) => ({ value, label: value }))], [rows]);
   const typeOptions = useMemo(() => [{ value: "all", label: "All assessment types" }, ...Array.from(new Set(rows.map((row) => row.type))).sort().map((value) => ({ value, label: value }))], [rows]);
@@ -79,6 +85,7 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
     setOpenResult(row);
     if (!row.isNew || viewedIds.has(row.id)) return;
     setViewedIds((current) => new Set(current).add(row.id));
+    window.dispatchEvent(new CustomEvent("medscores:result-viewed", { detail: { assessmentId: row.id } }));
     await fetch(`/api/student/results/${row.id}/view`, { method: "POST" }).catch(() => undefined);
   }
 

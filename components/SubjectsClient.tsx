@@ -7,6 +7,7 @@ import { ActionMenu } from "@/components/ui/ActionMenu";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { YEAR_LEVELS } from "@/lib/constants";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 const yearOptions = [{ value: "all", label: "All year levels" }, ...YEAR_LEVELS.map((year) => ({ value: year, label: year }))];
 const statusOptions = [
@@ -233,8 +234,8 @@ export function SubjectsClient({ subjects, students, periods, activePeriodId }: 
 
   return (
     <>
-      {notice && <div className="alert alert-success page-feedback">{notice}<button type="button" onClick={() => setNotice("")}>Dismiss</button></div>}
-      {error && !open && !edit && !rosterSubject && !deleteSubject && <div className="alert alert-error page-feedback">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
+      {notice && <ToastNotice message={notice} tone="success" onDismiss={() => setNotice("")} />}
+      {error && !open && !edit && !rosterSubject && !deleteSubject && <ToastNotice message={error} tone="error" onDismiss={() => setError("")} />}
       <div className="panel data-panel">
         <div className="panel-header panel-header-stack-mobile"><div><h2>Subject catalog</h2><p>Organize subjects and manage student rosters from one place.{periods.find((period) => period.id === activePeriodId) ? ` Current: ${periods.find((period) => period.id === activePeriodId)?.academic_year} · ${periods.find((period) => period.id === activePeriodId)?.term}.` : ""}</p></div><button className="button button-primary" onClick={() => { setError(""); setOpen(true); }}>Add subject</button></div>
         <div className="toolbar">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { browserSupportsWebAuthn, platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FingerprintMark } from "@/components/FingerprintMark";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 export function StudentPasskeySettings({ count }: { count: number }) {
   const router = useRouter();
@@ -92,7 +93,7 @@ export function StudentPasskeySettings({ count }: { count: number }) {
         <span className={`student-setting-status-v419${count ? " is-active" : ""}`}>{status}</span>
       </div>
 
-      {(notice || error) && <div className={`alert ${error ? "alert-error" : "alert-success"}`}>{error || notice}</div>}
+      {(notice || error) && <ToastNotice message={error || notice} tone={error ? "error" : "success"} onDismiss={() => { setError(""); setNotice(""); }} />}
 
       <div className="fingerprint-card-actions-v419">
         {supported && (

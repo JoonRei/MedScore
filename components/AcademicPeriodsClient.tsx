@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TERMS } from "@/lib/constants";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 type Period = { id: string; academic_year: string; term: string; is_active: boolean };
 
@@ -64,7 +65,7 @@ export function AcademicPeriodsClient({ periods, selectedPeriodId }: { periods: 
   return <section className="panel academic-period-panel settings-compact-panel">
     {switching && <div className="semester-switch-loading" role="status" aria-live="polite"><div className="semester-switch-loading-card"><span className="semester-spinner"/><strong>Switching semester</strong><small>Updating subjects, assessments and reports…</small></div></div>}
     <div className="settings-compact-head"><div><h2>Academic year & semester</h2><p>Choose the semester you are currently working on.</p></div></div>
-    {(notice || error) && <div className={`alert ${error ? "alert-error" : "alert-success"}`}>{error || notice}</div>}
+    {(notice || error) && <ToastNotice message={error || notice} tone={error ? "error" : "success"} onDismiss={() => { setError(""); setNotice(""); }} />}
 
     <div className="semester-settings-switch">
       <div><strong>Active semester</strong><span>Students, subjects and assessment records follow the active semester.</span></div>

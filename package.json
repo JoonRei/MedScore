@@ -1,6 +1,6 @@
 {
   "name": "medscores",
-  "version": "4.19.0",
+  "version": "4.21.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,7 +19,8 @@
     "@hugeicons/core-free-icons": "latest",
     "@fontsource-variable/plus-jakarta-sans": "latest",
     "@simplewebauthn/server": "^13.3.2",
-    "@simplewebauthn/browser": "^13.3.0"
+    "@simplewebauthn/browser": "^13.3.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/node": "latest",
@@ -27,6 +28,7 @@
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "16.2.10",
-    "typescript": "latest"
+    "typescript": "latest",
+    "@types/web-push": "^3.6.4"
   }
 }

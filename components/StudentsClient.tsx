@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { YEAR_LEVELS } from "@/lib/constants";
 import { ChoiceGroup } from "@/components/ui/ChoiceGroup";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { ToastNotice } from "@/components/ui/ToastNotice";
 
 export type StudentRow = {
   id: string;
@@ -239,8 +240,8 @@ export function StudentsClient({
 
   return (
     <>
-      {notice && <div className="alert alert-success page-feedback">{notice}<button type="button" onClick={() => setNotice("")}>Dismiss</button></div>}
-      {error && !showAdd && !showCarry && !showPaste && !editStudent && !resetStudent && !deleteStudent && <div className="alert alert-error page-feedback">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
+      {notice && <ToastNotice message={notice} tone="success" onDismiss={() => setNotice("")} />}
+      {error && !showAdd && !showCarry && !showPaste && !editStudent && !resetStudent && !deleteStudent && <ToastNotice message={error} tone="error" onDismiss={() => setError("")} />}
 
       <div className="panel data-panel">
         <div className="panel-header panel-header-stack-mobile">

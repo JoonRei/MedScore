@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminWorkspaceContext } from "@/lib/admin-workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendAssessmentReleasePush } from "@/lib/push-notifications";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const context = await getAdminWorkspaceContext(); if (!context) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); const { id } = await params;
@@ -16,7 +17,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const { data: subject } = await db.from("subjects").select("id").eq("id", String(body.subjectId)).eq("owner_id", context.workspace.id).maybeSingle(); if (!subject) return NextResponse.json({ error: "Choose a subject from this Admin account." }, { status: 400 });
       Object.assign(patch, { subject_id: subject.id, title, assessment_type: body.assessmentType, assessment_date: body.date, total_score: total, passing_score: pass, doctor_name: String(body.doctorName || "").trim() || null });
     }
-    if (!Object.keys(patch).length) return NextResponse.json({ ok: true }); const { error } = await db.from("assessments").update(patch).eq("id", id); if (error) throw error; return NextResponse.json({ ok: true });
+    if (!Object.keys(patch).length) return NextResponse.json({ ok: true });
+    const { error } = await db.from("assessments").update(patch).eq("id", id);
+    if (error) throw error;
+    if (body.status === "published") {
+      try { await sendAssessmentReleasePush(id, context.workspace.id); } catch (pushError) { console.error("score release push failed", pushError); }
+    }
+    return NextResponse.json({ ok: true });
   } catch { return NextResponse.json({ error: "Unable to update assessment." }, { status: 500 }); }
 }
 
