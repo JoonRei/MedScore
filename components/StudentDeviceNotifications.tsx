@@ -231,24 +231,24 @@ export function StudentDeviceNotifications() {
               <p>{description}</p>
             </div>
           </div>
-          <span className={`student-setting-status-v419${state === "enabled" ? " is-active" : ""}`}>{status}</span>
-        </div>
-
-        <div className="student-device-settings-actions-v422">
-          {state === "enabled" || state === "disabled" ? (
-            <button
-              type="button"
-              className={`student-setting-toggle-v422${state === "enabled" ? " is-on" : ""}`}
-              role="switch"
-              aria-checked={state === "enabled"}
-              aria-label={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
-              title={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
-              disabled={busy}
-              onClick={() => void (state === "enabled" ? disable() : enable())}
-            >
-              <span className="student-setting-toggle-knob-v422" aria-hidden="true" />
-            </button>
-          ) : null}
+          <div className="student-device-settings-actions-v422">
+            {state === "enabled" || state === "disabled" ? (
+              <button
+                type="button"
+                className={`student-setting-toggle-v422${state === "enabled" ? " is-on" : ""}`}
+                role="switch"
+                aria-checked={state === "enabled"}
+                aria-label={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
+                title={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
+                disabled={busy}
+                onClick={() => void (state === "enabled" ? disable() : enable())}
+              >
+                <span className="student-setting-toggle-knob-v422" aria-hidden="true" />
+              </button>
+            ) : (
+              <span className={`student-setting-status-v419${state === "enabled" ? " is-active" : ""}`}>{status}</span>
+            )}
+          </div>
         </div>
       </div>
       <ToastNotice
