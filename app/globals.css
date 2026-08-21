@@ -7285,3 +7285,930 @@ svg {
     opacity: .78;
   }
 }
+
+/* V4.17 — continuous carousel track, flat page canvas, responsive loading, and friendly failures. */
+
+/* The page itself is the canvas now. Useful cards/panels remain, but there is no giant outer surface. */
+.main-content {
+  max-width: none;
+  margin: 0;
+}
+.main-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 901px) {
+  .main-content,
+  .admin-main-content {
+    padding: 34px 56px 68px 38px;
+  }
+}
+
+@media (min-width: 1320px) {
+  .main-content,
+  .admin-main-content {
+    padding-left: 44px;
+    padding-right: 68px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content,
+  .admin-main-content,
+  .student-shell .main-content {
+    padding-left: max(18px, env(safe-area-inset-left)) !important;
+    padding-right: max(20px, env(safe-area-inset-right)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-content,
+  .admin-main-content,
+  .student-shell .main-content {
+    padding-left: max(15px, env(safe-area-inset-left)) !important;
+    padding-right: max(17px, env(safe-area-inset-right)) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .main-content,
+  .admin-main-content,
+  .student-shell .main-content {
+    padding-left: max(12px, env(safe-area-inset-left)) !important;
+    padding-right: max(14px, env(safe-area-inset-right)) !important;
+  }
+}
+
+/* One physical track: no outgoing/incoming remount, no underlay handoff, no dead frame. */
+.leaderboard-track-viewport {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden !important;
+  padding: 16px 20px 26px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  isolation: isolate;
+  touch-action: pan-y;
+  cursor: grab;
+  transition: height 260ms cubic-bezier(.22,.78,.24,1);
+}
+.leaderboard-track-viewport.is-dragging { cursor: grabbing; }
+.leaderboard-track-viewport:focus-visible {
+  outline: 2px solid rgba(116,16,143,.14) !important;
+  outline-offset: -2px;
+}
+.leaderboard-track {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 340ms cubic-bezier(.20,.82,.24,1);
+}
+.leaderboard-track-viewport.is-dragging .leaderboard-track {
+  transition: none !important;
+}
+.leaderboard-track-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.leaderboard-track-slide .leaderboard-swipe-card {
+  width: 100%;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: linear-gradient(145deg, rgba(255,255,255,.99), rgba(253,249,254,.97));
+  border-color: rgba(116,16,143,.14);
+  box-shadow:
+    0 10px 21px rgba(56,29,62,.085),
+    0 2px 7px rgba(116,16,143,.035);
+}
+.leaderboard-track-slide .leaderboard-swipe-card::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.10) 32%, transparent 52%, rgba(116,16,143,.02) 100%);
+  opacity: .58;
+}
+.leaderboard-track-slide .leaderboard-swipe-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Retire all previous single-card transition layers so they cannot conflict with the track. */
+.leaderboard-single-slide,
+.leaderboard-single-underlay {
+  display: none !important;
+}
+
+@media (max-width: 700px) {
+  .leaderboard-track-viewport {
+    padding: 10px 8px 18px !important;
+  }
+  .leaderboard-track {
+    transition-duration: 320ms;
+  }
+  .leaderboard-track-slide .leaderboard-swipe-card {
+    box-shadow:
+      0 7px 15px rgba(56,29,62,.075),
+      0 2px 5px rgba(116,16,143,.03);
+  }
+}
+
+@media (max-width: 390px) {
+  .leaderboard-track-viewport {
+    padding-inline: 5px !important;
+    padding-bottom: 15px !important;
+  }
+}
+
+/* Loading: one compact language everywhere instead of page-shaped skeleton guesses. */
+.route-loading-v417,
+.leaderboard-loading-v417 {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  color: var(--text);
+}
+.route-loading-v417 {
+  min-height: 150px;
+  padding: 22px 2px;
+}
+.leaderboard-loading-v417 {
+  min-height: 132px;
+  padding: 28px 20px;
+  margin-top: 8px;
+}
+.route-loading-v417 > span:last-child,
+.leaderboard-loading-v417 > span:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.route-loading-v417 strong,
+.leaderboard-loading-v417 strong {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.route-loading-v417 small,
+.leaderboard-loading-v417 small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.medscores-loader-ring {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 2px solid rgba(116,16,143,.15);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: medscores-loader-spin .72s linear infinite;
+}
+@keyframes medscores-loader-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  .route-loading-v417 {
+    min-height: 120px;
+    padding: 18px 0;
+  }
+  .leaderboard-loading-v417 {
+    min-height: 112px;
+    padding: 22px 8px;
+  }
+}
+
+/* Branded interruption / maintenance-ready state. */
+.app-problem-page {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  background: var(--page);
+}
+.app-problem {
+  width: min(560px, 100%);
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  padding: clamp(24px, 4vw, 36px);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 46px rgba(31,23,34,.08);
+}
+.app-problem.is-compact {
+  width: min(620px, 100%);
+  margin: clamp(10px, 3vw, 30px) auto;
+  box-shadow: var(--shadow-sm);
+}
+.app-problem-mark {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+}
+.app-problem-mark img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.app-problem-copy {
+  display: grid;
+  gap: 7px;
+}
+.app-problem-label {
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.app-problem h1 {
+  margin: 0;
+  font-size: clamp(25px, 4vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+.app-problem p {
+  max-width: 500px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.app-problem-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.app-problem-note {
+  color: var(--muted-2);
+  font-size: 11.5px;
+}
+
+@media (max-width: 480px) {
+  .app-problem {
+    gap: 15px;
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+  .app-problem-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .app-problem-actions .button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-track,
+  .leaderboard-track-viewport {
+    transition: none !important;
+  }
+  .medscores-loader-ring {
+    animation-duration: 1.4s;
+  }
+}
+
+/* MedScores V4.18 — stable single-card leaderboard, clean shared ranks, responsive skeletons. */
+.leaderboard-swipe-viewport-v418 {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden !important;
+  padding: 14px 18px 20px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  touch-action: pan-y;
+  cursor: grab;
+  isolation: isolate;
+}
+.leaderboard-swipe-viewport-v418.is-dragging { cursor: grabbing; }
+.leaderboard-swipe-viewport-v418:focus-visible {
+  outline: 2px solid rgba(116,16,143,.14) !important;
+  outline-offset: -2px;
+}
+.leaderboard-swipe-layer {
+  width: 100%;
+  min-width: 0;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition:
+    transform 250ms cubic-bezier(.22,.78,.24,1),
+    opacity 220ms ease-out;
+}
+.leaderboard-swipe-current {
+  position: relative;
+  z-index: 2;
+}
+.leaderboard-swipe-incoming {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  left: 18px;
+  right: 18px;
+  pointer-events: none;
+}
+.leaderboard-swipe-viewport-v418 .leaderboard-ad-card.leaderboard-podium-card {
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow:
+    0 8px 18px rgba(56,29,62,.075),
+    0 2px 5px rgba(116,16,143,.025) !important;
+}
+
+.leaderboard-tied-runners-v418 {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+.leaderboard-rank-group-v418 {
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0,1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 11px !important;
+}
+.leaderboard-rank-group-v418 .leaderboard-rank-group-number {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #f1ebf3;
+  color: var(--brand-strong);
+  font-size: 11.5px;
+  font-weight: 850;
+}
+.leaderboard-rank-chips {
+  min-width: 0;
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px !important;
+}
+.leaderboard-rank-chips .leaderboard-rank-chip {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid rgba(116,16,143,.10);
+  border-radius: 9px;
+  background: rgba(116,16,143,.045);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 760;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.leaderboard-rank-chips .leaderboard-rank-chip + .leaderboard-rank-chip::before,
+.leaderboard-rank-group-v418 .leaderboard-rank-group-names strong + strong::before {
+  content: none !important;
+}
+.leaderboard-rank-group-v418 .leaderboard-rank-group-score {
+  white-space: nowrap;
+  align-self: center;
+  color: var(--brand-strong);
+  font-size: 12.5px;
+  font-weight: 820;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A restrained responsive skeleton system. */
+.skeleton-block {
+  display: block;
+  border-radius: 9px;
+  background: linear-gradient(100deg, #f0ecf1 20%, #f8f5f8 44%, #f0ecf1 68%);
+  background-size: 220% 100%;
+  animation: medscores-skeleton-shift 1.55s ease-in-out infinite;
+}
+@keyframes medscores-skeleton-shift {
+  0% { background-position: 100% 0; opacity: .92; }
+  50% { opacity: 1; }
+  100% { background-position: -100% 0; opacity: .92; }
+}
+.medscores-skeleton-page {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+  padding: 2px 0 12px;
+}
+.medscores-skeleton-head {
+  width: min(620px, 100%);
+  display: grid;
+  gap: 8px;
+}
+.skeleton-kicker { width: 92px; height: 10px; }
+.skeleton-title { width: min(360px, 78%); height: 31px; border-radius: 10px; }
+.skeleton-copy { width: min(540px, 92%); height: 13px; }
+.medscores-skeleton-stats {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 12px;
+}
+.medscores-skeleton-stat {
+  min-width: 0;
+  min-height: 108px;
+  display: grid;
+  align-content: center;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid rgba(72,49,76,.07);
+  border-radius: 17px;
+  background: rgba(255,255,255,.72);
+}
+.skeleton-stat-label { width: 58%; height: 10px; }
+.skeleton-stat-value { width: 40%; height: 25px; }
+.skeleton-stat-note { width: 72%; height: 9px; }
+.medscores-skeleton-content {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid rgba(72,49,76,.07);
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+}
+.medscores-skeleton-content-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.skeleton-section-title { width: min(190px,52%); height: 18px; }
+.skeleton-section-action { width: 86px; height: 30px; border-radius: 10px; }
+.medscores-skeleton-rows { display: grid; gap: 8px; }
+.medscores-skeleton-row {
+  min-width: 0;
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(80px,22%);
+  align-items: center;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(72,49,76,.055);
+}
+.medscores-skeleton-row:first-child { border-top: 0; }
+.skeleton-row-main { width: min(420px,82%); height: 13px; }
+.skeleton-row-side { width: 100%; height: 12px; }
+
+.leaderboard-card-skeleton {
+  width: calc(100% - 36px);
+  margin: 8px 18px 14px;
+  min-width: 0;
+  display: grid;
+  gap: 17px;
+  padding: 21px 22px 20px;
+  border: 1px solid rgba(116,16,143,.10);
+  border-radius: 19px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 7px 17px rgba(56,29,62,.055);
+}
+.leaderboard-skeleton-top,
+.leaderboard-skeleton-title-row,
+.leaderboard-skeleton-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.leaderboard-skeleton-top span:first-child { width: 88px; height: 10px; }
+.leaderboard-skeleton-top span:last-child { width: 42px; height: 15px; }
+.leaderboard-skeleton-title-row > div { min-width: 0; flex: 1; display: grid; gap: 8px; }
+.leaderboard-skeleton-title-row > div span:first-child { width: min(330px,72%); height: 25px; }
+.leaderboard-skeleton-title-row > div span:last-child { width: min(250px,54%); height: 11px; }
+.leaderboard-skeleton-max { width: 88px; height: 51px; border-radius: 12px; }
+.leaderboard-skeleton-podium {
+  min-height: 165px;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  align-items: end;
+  gap: 10px;
+  padding-top: 8px;
+}
+.leaderboard-skeleton-podium > div { display: grid; justify-items: center; align-content: end; gap: 8px; }
+.leaderboard-skeleton-podium > div span:first-child { width: 46px; height: 46px; border-radius: 50%; }
+.leaderboard-skeleton-podium > div span:last-child { width: 86%; height: 72px; border-radius: 13px 13px 7px 7px; }
+.leaderboard-skeleton-podium > div.is-first span:first-child { width: 52px; height: 52px; }
+.leaderboard-skeleton-podium > div.is-first span:last-child { height: 104px; }
+.leaderboard-skeleton-bottom span { width: 49%; height: 45px; border-radius: 12px; }
+
+/* Retire V4.17 spinner-only loaders. */
+.route-loading-v417,
+.leaderboard-loading-v417,
+.medscores-loader-ring { display: none !important; }
+
+@media (max-width: 900px) {
+  .medscores-skeleton-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 640px) {
+  .leaderboard-swipe-viewport-v418 { padding: 9px 7px 15px !important; }
+  .leaderboard-swipe-incoming { top: 9px; left: 7px; right: 7px; }
+  .leaderboard-swipe-layer { transition-duration: 235ms; }
+  .leaderboard-swipe-viewport-v418 .leaderboard-ad-card.leaderboard-podium-card {
+    box-shadow: 0 6px 13px rgba(56,29,62,.06) !important;
+  }
+  .leaderboard-rank-group-v418 {
+    grid-template-columns: 34px minmax(0,1fr) !important;
+    gap: 7px 9px !important;
+    padding: 9px !important;
+  }
+  .leaderboard-rank-group-v418 .leaderboard-rank-group-number {
+    width: 30px;
+    height: 30px;
+  }
+  .leaderboard-rank-group-v418 .leaderboard-rank-group-score {
+    grid-column: 2;
+    justify-self: start;
+    font-size: 11.5px;
+  }
+  .leaderboard-rank-chips .leaderboard-rank-chip {
+    min-height: 24px;
+    padding: 3px 7px;
+    font-size: 10.5px;
+  }
+
+  .medscores-skeleton-page { gap: 16px; padding-top: 0; }
+  .medscores-skeleton-head { gap: 7px; }
+  .skeleton-title { height: 27px; width: 74%; }
+  .skeleton-copy { width: 88%; }
+  .medscores-skeleton-stats { gap: 9px; }
+  .medscores-skeleton-stat { min-height: 88px; padding: 13px; border-radius: 14px; }
+  .skeleton-stat-value { height: 21px; }
+  .medscores-skeleton-content { padding: 13px; border-radius: 15px; }
+  .skeleton-section-action { width: 66px; height: 28px; }
+  .medscores-skeleton-row { min-height: 47px; grid-template-columns: minmax(0,1fr) 70px; gap: 10px; }
+
+  .leaderboard-card-skeleton {
+    width: calc(100% - 14px);
+    margin: 6px 7px 10px;
+    gap: 13px;
+    padding: 16px 12px 14px;
+    border-radius: 16px;
+  }
+  .leaderboard-skeleton-title-row { align-items: flex-start; }
+  .leaderboard-skeleton-max { width: 70px; height: 44px; }
+  .leaderboard-skeleton-podium { min-height: 142px; gap: 6px; }
+  .leaderboard-skeleton-podium > div span:first-child { width: 38px; height: 38px; }
+  .leaderboard-skeleton-podium > div.is-first span:first-child { width: 44px; height: 44px; }
+  .leaderboard-skeleton-podium > div span:last-child { height: 61px; }
+  .leaderboard-skeleton-podium > div.is-first span:last-child { height: 88px; }
+  .leaderboard-skeleton-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .leaderboard-skeleton-bottom span { width: 100%; height: 39px; }
+}
+
+@media (max-width: 380px) {
+  .medscores-skeleton-stat { min-height: 82px; padding: 11px; }
+  .medscores-skeleton-content-head { gap: 9px; }
+  .skeleton-section-title { width: 58%; }
+  .leaderboard-skeleton-title-row > div span:first-child { height: 22px; }
+  .leaderboard-skeleton-podium { min-height: 132px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block { animation: none !important; }
+  .leaderboard-swipe-layer { transition-duration: 1ms !important; }
+}
+
+/* V4.18 height-safe overlap: both swipe cards size the stage, so tied ranks never clip. */
+.leaderboard-swipe-viewport-v418 { display: grid !important; }
+.leaderboard-swipe-viewport-v418 .leaderboard-swipe-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+.leaderboard-swipe-viewport-v418 .leaderboard-swipe-current {
+  position: relative !important;
+  z-index: 2;
+}
+.leaderboard-swipe-viewport-v418 .leaderboard-swipe-incoming {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  z-index: 1;
+}
+
+/* MedScores V4.19 — one logo source, cleaner lower ranks, organized Student Settings. */
+
+/* #4 / #5: one calm rank strip with an orderly student list instead of chip clutter. */
+.leaderboard-runner-stack-v419 {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+.leaderboard-runner-row-v419 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid rgba(116,16,143,.075);
+  border-radius: 14px;
+  background: rgba(250,248,251,.78);
+}
+.leaderboard-runner-rank-v419 {
+  min-width: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  align-self: stretch;
+  gap: 2px;
+  padding: 8px 5px;
+  border-radius: 11px;
+  background: rgba(116,16,143,.065);
+  color: var(--brand-strong);
+  text-align: center;
+}
+.leaderboard-runner-rank-v419 strong {
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+.leaderboard-runner-rank-v419 span {
+  color: var(--muted);
+  font-size: 8.5px;
+  font-weight: 760;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.leaderboard-runner-content-v419 {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+.leaderboard-runner-meta-v419 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.leaderboard-runner-meta-v419 > span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 740;
+  letter-spacing: .015em;
+}
+.leaderboard-runner-meta-v419 > strong {
+  flex: 0 0 auto;
+  color: var(--brand-strong);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.leaderboard-runner-meta-v419 > strong small {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+.leaderboard-runner-students-v419 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 6px 10px;
+}
+.leaderboard-runner-student-v419 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+.leaderboard-runner-student-v419 > span {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #efe7f1;
+  color: var(--brand-strong);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+.leaderboard-runner-student-v419 > strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 780;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+/* Fully retire the old #4/#5 layouts so historical CSS cannot leak through. */
+.leaderboard-tied-runners-v418,
+.leaderboard-rank-group-v418,
+.leaderboard-rank-chips { display: none !important; }
+
+/* Student Settings: three meaningful surfaces, no long divider-heavy list. */
+.student-settings-layout-v419 {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(270px, .78fr) minmax(0, 1.22fr);
+  grid-template-areas:
+    "fingerprint pin"
+    "install pin";
+  gap: 14px;
+  align-items: start;
+}
+.student-setting-card-v419 {
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.student-setting-card-fingerprint-v419 { grid-area: fingerprint; }
+.student-setting-card-pin-v419 { grid-area: pin; }
+.student-setting-card-install-v419 { grid-area: install; }
+.student-setting-card-head-v419 {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.student-setting-card-head-v419 > div { min-width: 0; }
+.student-setting-eyebrow-v419 {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--brand);
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+.student-setting-card-v419 h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -.02em;
+}
+.student-setting-card-v419 p {
+  max-width: 520px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.student-setting-status-v419 {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1edf2;
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.student-setting-status-v419.is-active {
+  background: rgba(116,16,143,.08);
+  color: var(--brand-strong);
+}
+.fingerprint-card-v419 {
+  min-width: 0;
+  display: grid;
+  gap: 15px;
+}
+.fingerprint-card-head-v419 { align-items: center; }
+.fingerprint-card-title-v419 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.fingerprint-card-mark-v419 {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+.fingerprint-card-mark-v419 svg { width: 25px; height: 25px; }
+.fingerprint-card-actions-v419 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.student-install-card-v419 {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+.student-install-action-v419 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.change-pin-form-v419 {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.change-pin-fields-v419 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.change-pin-fields-v419 .field,
+.change-pin-fields-v419 .input { min-width: 0; width: 100%; }
+.change-pin-actions-v419 {
+  display: flex;
+  justify-content: flex-end;
+}
+.change-pin-actions-v419 .button { min-width: 126px; }
+/* Disable the old compact Settings geometry for the new V4.19 markup. */
+.student-settings-layout-v419 .student-settings-row,
+.student-settings-layout-v419 .passkey-settings-row,
+.student-settings-layout-v419 .pwa-settings-row { border: 0 !important; padding: 0 !important; }
+
+@media (max-width: 820px) {
+  .student-settings-layout-v419 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "fingerprint"
+      "pin"
+      "install";
+    gap: 11px;
+  }
+  .student-setting-card-v419 { padding: 16px; border-radius: 16px; }
+  .change-pin-form-v419 { margin-top: 15px; }
+}
+
+@media (max-width: 540px) {
+  .leaderboard-runner-row-v419 {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 9px;
+    padding: 9px;
+    border-radius: 12px;
+  }
+  .leaderboard-runner-rank-v419 { padding-inline: 4px; border-radius: 10px; }
+  .leaderboard-runner-rank-v419 strong { font-size: 14px; }
+  .leaderboard-runner-rank-v419 span { font-size: 7.5px; }
+  .leaderboard-runner-meta-v419 { gap: 8px; }
+  .leaderboard-runner-meta-v419 > span { font-size: 8.5px; }
+  .leaderboard-runner-meta-v419 > strong { font-size: 11.5px; }
+  .leaderboard-runner-students-v419 { grid-template-columns: 1fr; gap: 6px; }
+  .leaderboard-runner-student-v419 { grid-template-columns: 23px minmax(0, 1fr); gap: 6px; }
+  .leaderboard-runner-student-v419 > span { width: 23px; height: 23px; font-size: 7.5px; }
+  .leaderboard-runner-student-v419 > strong { font-size: 10.75px; }
+
+  .student-setting-card-v419 { padding: 14px 13px; border-radius: 15px; }
+  .student-setting-card-head-v419 { gap: 10px; }
+  .student-setting-card-v419 h2 { font-size: 15px; }
+  .student-setting-card-v419 p { font-size: 11px; }
+  .fingerprint-card-title-v419 { grid-template-columns: 32px minmax(0, 1fr); gap: 8px; }
+  .fingerprint-card-mark-v419 { width: 32px; height: 32px; }
+  .fingerprint-card-mark-v419 svg { width: 22px; height: 22px; }
+  .change-pin-fields-v419 { grid-template-columns: 1fr; gap: 9px; }
+  .change-pin-actions-v419 { justify-content: stretch; }
+  .change-pin-actions-v419 .button { width: 100%; min-width: 0; }
+}
+
+@media (max-width: 360px) {
+  .student-setting-card-v419 { padding: 13px 11px; }
+  .student-setting-status-v419 { font-size: 8.5px; padding-inline: 7px; }
+  .fingerprint-card-actions-v419 .button { flex: 1 1 auto; }
+}

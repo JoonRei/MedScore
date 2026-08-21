@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent, TransitionEvent as ReactTransitionEvent } from "react";
 import { formatDate } from "@/lib/utils";
 
 type Entry = { codeName: string; score: number; rank: number; isCurrent: boolean };
@@ -20,18 +20,18 @@ type ShowcaseBoard = {
 };
 type Payload = { boards?: ShowcaseBoard[]; error?: string };
 type RankGroup = { rank: number; score: number; entries: Entry[] };
+type SettleState = { mode: "advance" | "snapback"; direction: 1 | -1; targetIndex: number };
 
 type GestureState = {
   pointerId: number | null;
   startX: number;
   startY: number;
-  latestX: number;
-  latestY: number;
+  startedAt: number;
   moved: boolean;
 };
 
 const AUTO_ADVANCE_MS = 6500;
-const TRANSITION_MS = 300;
+const TRANSITION_MS = 250;
 
 function initials(codeName: string) {
   const compact = codeName.replace(/[^A-Za-z0-9]/g, "");
@@ -108,16 +108,28 @@ function LeaderboardCard({ board, index, totalBoards }: { board: ShowcaseBoard; 
       </div>
 
       {runners.length > 0 && (
-        <div className="leaderboard-tied-runners">
+        <div className="leaderboard-runner-stack-v419">
           {runners.map((group) => (
-            <div className={`leaderboard-rank-group rank-${group.rank}`} key={`${board.id}-rank-${group.rank}`}>
-              <span className="leaderboard-rank-group-number">#{group.rank}</span>
-              <div className="leaderboard-rank-group-names">
-                {group.entries.map((entry) => (
-                  <strong key={`${group.rank}-${entry.codeName}`}>{entry.codeName}</strong>
-                ))}
+            <div className={`leaderboard-runner-row-v419 rank-${group.rank}`} key={`${board.id}-rank-${group.rank}`}>
+              <div className="leaderboard-runner-rank-v419" aria-hidden="true">
+                <strong>#{group.rank}</strong>
+                <span>{group.entries.length > 1 ? `${group.entries.length} tied` : "Rank"}</span>
               </div>
-              <span className="leaderboard-rank-group-score">{formatScore(group.score)} / {formatScore(board.totalScore)}</span>
+
+              <div className="leaderboard-runner-content-v419">
+                <div className="leaderboard-runner-meta-v419">
+                  <span>{group.entries.length > 1 ? "Shared position" : "Outstanding scorer"}</span>
+                  <strong>{formatScore(group.score)} <small>/ {formatScore(board.totalScore)}</small></strong>
+                </div>
+                <div className="leaderboard-runner-students-v419" aria-label={`${group.entries.length} student${group.entries.length === 1 ? "" : "s"} at rank ${group.rank}`}>
+                  {group.entries.map((entry) => (
+                    <div className="leaderboard-runner-student-v419" key={`${group.rank}-${entry.codeName}`}>
+                      <span aria-hidden="true">{initials(entry.codeName)}</span>
+                      <strong>{entry.codeName}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -126,21 +138,49 @@ function LeaderboardCard({ board, index, totalBoards }: { board: ShowcaseBoard; 
   );
 }
 
+function LeaderboardSkeleton() {
+  return (
+    <div className="leaderboard-card-skeleton" role="status" aria-live="polite" aria-label="Loading leaderboard">
+      <div className="leaderboard-skeleton-top">
+        <span className="skeleton-block" />
+        <span className="skeleton-block" />
+      </div>
+      <div className="leaderboard-skeleton-title-row">
+        <div>
+          <span className="skeleton-block" />
+          <span className="skeleton-block" />
+        </div>
+        <span className="skeleton-block leaderboard-skeleton-max" />
+      </div>
+      <div className="leaderboard-skeleton-podium" aria-hidden="true">
+        <div><span className="skeleton-block" /><span className="skeleton-block" /></div>
+        <div className="is-first"><span className="skeleton-block" /><span className="skeleton-block" /></div>
+        <div><span className="skeleton-block" /><span className="skeleton-block" /></div>
+      </div>
+      <div className="leaderboard-skeleton-bottom" aria-hidden="true">
+        <span className="skeleton-block" />
+        <span className="skeleton-block" />
+      </div>
+    </div>
+  );
+}
+
 export function Leaderboard() {
   const [boards, setBoards] = useState<ShowcaseBoard[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [cycle, setCycle] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [phase, setPhase] = useState<"idle" | "exit">("idle");
-  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
-  const [pendingDirection, setPendingDirection] = useState<1 | -1>(1);
+  const [direction, setDirection] = useState<1 | -1 | 0>(0);
+  const [settle, setSettle] = useState<SettleState | null>(null);
+  const [instantReset, setInstantReset] = useState(false);
+  const [cycle, setCycle] = useState(0);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const transitionTimerRef = useRef<number | null>(null);
-  const gestureRef = useRef<GestureState>({ pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false });
+  const fallbackTimerRef = useRef<number | null>(null);
+  const settleRef = useRef<SettleState | null>(null);
+  const gestureRef = useRef<GestureState>({ pointerId: null, startX: 0, startY: 0, startedAt: 0, moved: false });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -160,6 +200,10 @@ export function Leaderboard() {
         if (!mounted) return;
         setBoards(Array.isArray(payload.boards) ? payload.boards : []);
         setActiveIndex(0);
+        setDragX(0);
+        setDirection(0);
+        settleRef.current = null;
+        setSettle(null);
         setCycle((value) => value + 1);
       } catch (error) {
         if (!mounted || controller.signal.aborted) return;
@@ -175,26 +219,9 @@ export function Leaderboard() {
     return () => {
       mounted = false;
       controller.abort();
+      if (fallbackTimerRef.current) window.clearTimeout(fallbackTimerRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (boards.length <= 1 || dragging || phase !== "idle") return;
-    const timer = window.setTimeout(() => {
-      void animateTo(activeIndex + 1, 1);
-    }, AUTO_ADVANCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [activeIndex, boards.length, cycle, dragging, phase]);
-
-  useEffect(() => {
-    if (activeIndex >= boards.length && boards.length) setActiveIndex(0);
-  }, [activeIndex, boards.length]);
-
-  useEffect(() => () => {
-    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-  }, []);
-
-  const activeBoard = boards[activeIndex] || null;
 
   const markerIndices = useMemo(() => {
     if (boards.length <= 12) return boards.map((_, index) => index);
@@ -202,60 +229,93 @@ export function Leaderboard() {
     return Array.from({ length: 12 }, (_, offset) => start + offset);
   }, [activeIndex, boards]);
 
-  function normalizedIndex(index: number) {
-    if (!boards.length) return 0;
-    return ((index % boards.length) + boards.length) % boards.length;
-  }
+  const previewIndex = settle?.mode === "advance"
+    ? settle.targetIndex
+    : direction === 0 || boards.length <= 1
+      ? activeIndex
+      : (activeIndex + direction + boards.length) % boards.length;
 
-  function clearTransitionTimer() {
-    if (transitionTimerRef.current) {
-      window.clearTimeout(transitionTimerRef.current);
-      transitionTimerRef.current = null;
+  const width = () => Math.max(280, viewportRef.current?.clientWidth || 320);
+  const progress = Math.min(1, Math.abs(dragX) / width());
+
+  useEffect(() => {
+    if (boards.length <= 1 || dragging || settle) return;
+    const timer = window.setTimeout(() => startAdvance(1), AUTO_ADVANCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, boards.length, cycle, dragging, settle]);
+
+  function clearFallback() {
+    if (fallbackTimerRef.current) {
+      window.clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
     }
   }
 
-  function animateTo(nextIndex: number, direction: 1 | -1) {
-    if (!boards.length || phase !== "idle") return;
-    const normalized = normalizedIndex(nextIndex);
-    if (normalized === activeIndex && boards.length > 1) return;
+  function completeSettle() {
+    const currentSettle = settleRef.current;
+    if (!currentSettle) return;
+    clearFallback();
 
-    const width = viewportRef.current?.clientWidth || 360;
-    clearTransitionTimer();
-    setPendingIndex(normalized);
-    setPendingDirection(direction);
-    setPhase("exit");
-    setDragging(false);
-    setDragX(direction > 0 ? -width * 0.56 : width * 0.56);
-
-    transitionTimerRef.current = window.setTimeout(() => {
-      // The preview underneath has already reached the exact final visual state.
-      // Swap it into the active slot in the same React commit: no second enter
-      // animation, opacity reset, or one-frame flash.
-      setActiveIndex(normalized);
+    if (currentSettle.mode === "advance") {
+      setInstantReset(true);
+      setActiveIndex(currentSettle.targetIndex);
       setCycle((value) => value + 1);
+    }
+    setDragX(0);
+    setDirection(0);
+    settleRef.current = null;
+    setSettle(null);
+    requestAnimationFrame(() => requestAnimationFrame(() => setInstantReset(false)));
+  }
+
+  function armFallback() {
+    clearFallback();
+    fallbackTimerRef.current = window.setTimeout(completeSettle, TRANSITION_MS + 90);
+  }
+
+  function startAdvance(nextDirection: 1 | -1, requestedIndex?: number) {
+    if (boards.length <= 1 || dragging || settle) return;
+    const targetIndex = requestedIndex ?? (activeIndex + nextDirection + boards.length) % boards.length;
+    setDirection(nextDirection);
+    const nextSettle: SettleState = { mode: "advance", direction: nextDirection, targetIndex };
+    settleRef.current = nextSettle;
+    setSettle(nextSettle);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setDragX(nextDirection === 1 ? -width() : width());
+        armFallback();
+      });
+    });
+  }
+
+  function startSnapback() {
+    if (direction === 0) {
+      setDragging(false);
       setDragX(0);
-      setPendingIndex(null);
-      setPhase("idle");
-      transitionTimerRef.current = null;
-    }, TRANSITION_MS);
+      return;
+    }
+    setDragging(false);
+    const nextSettle: SettleState = { mode: "snapback", direction, targetIndex: activeIndex };
+    settleRef.current = nextSettle;
+    setSettle(nextSettle);
+    requestAnimationFrame(() => {
+      setDragX(0);
+      armFallback();
+    });
   }
 
   function resetGesture() {
-    gestureRef.current = { pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false };
-    setDragX(0);
-    setDragging(false);
-    if (phase === "idle") setPendingIndex(null);
+    gestureRef.current = { pointerId: null, startX: 0, startY: 0, startedAt: 0, moved: false };
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (phase !== "idle") return;
+    if (settle || boards.length <= 1) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     gestureRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      latestX: event.clientX,
-      latestY: event.clientY,
+      startedAt: performance.now(),
       moved: false,
     };
     setDragging(true);
@@ -263,74 +323,93 @@ export function Leaderboard() {
 
   function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const gesture = gestureRef.current;
-    if (gesture.pointerId !== event.pointerId || phase !== "idle") return;
+    if (gesture.pointerId !== event.pointerId || settle) return;
 
-    gesture.latestX = event.clientX;
-    gesture.latestY = event.clientY;
     const dx = event.clientX - gesture.startX;
     const dy = event.clientY - gesture.startY;
-
-    if (!gesture.moved && Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)) {
+    if (!gesture.moved && Math.abs(dx) > 5 && Math.abs(dx) > Math.abs(dy) * 1.12) {
       gesture.moved = true;
       try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* no-op */ }
     }
+    if (!gesture.moved) return;
 
-    if (gesture.moved) {
-      const width = viewportRef.current?.clientWidth || 320;
-      const limited = Math.max(-width * 0.42, Math.min(width * 0.42, dx));
-      setDragX(limited);
-    }
+    const limit = width() * 0.72;
+    const nextX = Math.max(-limit, Math.min(limit, dx));
+    setDirection(nextX < 0 ? 1 : -1);
+    setDragX(nextX);
   }
 
   function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
     const gesture = gestureRef.current;
-    if (gesture.pointerId !== event.pointerId || phase !== "idle") return;
+    if (gesture.pointerId !== event.pointerId || settle) return;
 
     const dx = event.clientX - gesture.startX;
-    const width = viewportRef.current?.clientWidth || 320;
-    const threshold = Math.min(92, Math.max(48, width * 0.14));
+    const elapsed = Math.max(1, performance.now() - gesture.startedAt);
+    const velocity = Math.abs(dx) / elapsed;
+    const threshold = Math.min(76, Math.max(38, width() * 0.105));
+    const shouldAdvance = gesture.moved && (Math.abs(dx) >= threshold || (Math.abs(dx) >= 18 && velocity >= 0.28));
 
     try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* no-op */ }
+    resetGesture();
 
-    if (gesture.moved && Math.abs(dx) >= threshold && boards.length > 1) {
-      gestureRef.current = { pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false };
+    if (shouldAdvance) {
+      const nextDirection: 1 | -1 = dx < 0 ? 1 : -1;
+      const targetIndex = (activeIndex + nextDirection + boards.length) % boards.length;
+      const nextSettle: SettleState = { mode: "advance", direction: nextDirection, targetIndex };
+      setDirection(nextDirection);
       setDragging(false);
-      animateTo(activeIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+      settleRef.current = nextSettle;
+      setSettle(nextSettle);
+      requestAnimationFrame(() => {
+        setDragX(nextDirection === 1 ? -width() : width());
+        armFallback();
+      });
       return;
     }
 
+    startSnapback();
+  }
+
+  function handlePointerCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    const gesture = gestureRef.current;
+    if (gesture.pointerId !== event.pointerId) return;
     resetGesture();
+    startSnapback();
+  }
+
+  function handleTransitionEnd(event: ReactTransitionEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget || event.propertyName !== "transform" || !settle) return;
+    completeSettle();
   }
 
   function handleCarouselKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (boards.length <= 1 || phase !== "idle") return;
+    if (boards.length <= 1 || dragging || settle) return;
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      animateTo(activeIndex + 1, 1);
+      startAdvance(1);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
-      animateTo(activeIndex - 1, -1);
+      startAdvance(-1);
     }
   }
 
-  const width = viewportRef.current?.clientWidth || 360;
-  const dragProgress = Math.min(1, Math.abs(dragX) / Math.max(1, width * 0.42));
-  const dragScale = 1 - dragProgress * 0.035;
-  const dragOpacity = 1 - dragProgress * 0.14;
-  const dragDirection: 1 | -1 = dragX < 0 ? 1 : -1;
-  const previewIndex = boards.length > 1 && Math.abs(dragX) > 2
-    ? normalizedIndex(activeIndex + dragDirection)
-    : pendingIndex;
-  const previewBoard = previewIndex !== null && previewIndex !== activeIndex ? boards[previewIndex] : null;
-  const previewDirection = pendingIndex !== null ? pendingDirection : dragDirection;
-  const previewProgress = phase === "exit" ? 1 : dragProgress;
-  const previewStyle = {
-    transform: `translate3d(${previewDirection > 0 ? (1 - previewProgress) * 3.5 : -(1 - previewProgress) * 3.5}%, 0, 0) scale(${0.99 + previewProgress * 0.01})`,
-    opacity: phase === "exit" ? 1 : Math.min(0.96, 0.18 + previewProgress * 0.78),
+  function moveTo(index: number) {
+    if (index === activeIndex || dragging || settle) return;
+    const forward = (index - activeIndex + boards.length) % boards.length;
+    const backward = (activeIndex - index + boards.length) % boards.length;
+    startAdvance(forward <= backward ? 1 : -1, index);
+  }
+
+  const currentStyle = {
+    transform: `translate3d(${dragX}px,0,0) scale(${1 - progress * 0.012})`,
+    opacity: 1 - progress * 0.08,
+    transition: dragging || instantReset ? "none" : undefined,
   } as CSSProperties;
-  const cardStyle = {
-    transform: `translate3d(${dragX}px, 0, 0) scale(${phase === "exit" ? 0.975 : dragScale})`,
-    opacity: phase === "exit" ? 0.10 : dragOpacity,
+
+  const incomingStyle = direction === 0 ? undefined : {
+    transform: `translate3d(calc(${direction * 100}% + ${dragX}px),0,0) scale(${0.988 + progress * 0.012})`,
+    opacity: 0.72 + progress * 0.28,
+    transition: dragging || instantReset ? "none" : undefined,
   } as CSSProperties;
 
   return (
@@ -341,45 +420,35 @@ export function Leaderboard() {
       </div>
 
       {loading ? (
-        <div className="leaderboard-ad-loading" aria-label="Loading assessment leaderboards">
-          <div className="leaderboard-ad-loading-head"><span /><span /></div>
-          <div className="leaderboard-ad-loading-podium"><span /><span /><span /></div>
-          <div className="leaderboard-ad-loading-row"><span /><span /></div>
-        </div>
+        <LeaderboardSkeleton />
       ) : failed ? (
-        <div className="leaderboard-empty leaderboard-showcase-empty"><strong>Leaderboard unavailable</strong><span>Refresh the page to try again.</span></div>
+        <div className="leaderboard-empty leaderboard-showcase-empty"><strong>Leaderboard unavailable</strong><span>Please try again in a moment.</span></div>
       ) : !boards.length ? (
         <div className="leaderboard-empty leaderboard-showcase-empty"><strong>No rankings available yet</strong><span>Top scorers will appear when eligible assessment scores are ready.</span></div>
-      ) : activeBoard ? (
+      ) : (
         <div className="leaderboard-ad-carousel" aria-live="polite">
           <div
             ref={viewportRef}
-            className={`leaderboard-swipe-viewport leaderboard-single-viewport${dragging ? " is-dragging" : ""}${phase === "exit" ? " is-exiting" : ""}`}
+            className={`leaderboard-swipe-viewport leaderboard-swipe-viewport-v418${dragging ? " is-dragging" : ""}${settle ? " is-settling" : ""}`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            onPointerCancel={resetGesture}
+            onPointerCancel={handlePointerCancel}
             onKeyDown={handleCarouselKeyDown}
             role="region"
             aria-roledescription="carousel"
             tabIndex={0}
             aria-label={`Assessment leaderboard ${activeIndex + 1} of ${boards.length}. Swipe or use the arrow keys to change assessment.`}
           >
-            {previewBoard && (dragging || phase === "exit") && (
-              <div
-                className="leaderboard-single-underlay"
-                style={previewStyle}
-                aria-hidden="true"
-              >
-                <LeaderboardCard board={previewBoard} index={previewIndex ?? 0} totalBoards={boards.length} />
+            <div className="leaderboard-swipe-layer leaderboard-swipe-current" style={currentStyle} onTransitionEnd={handleTransitionEnd}>
+              <LeaderboardCard board={boards[activeIndex]} index={activeIndex} totalBoards={boards.length} />
+            </div>
+
+            {direction !== 0 && boards.length > 1 && (
+              <div className="leaderboard-swipe-layer leaderboard-swipe-incoming" style={incomingStyle} aria-hidden="true">
+                <LeaderboardCard board={boards[previewIndex]} index={previewIndex} totalBoards={boards.length} />
               </div>
             )}
-            <div
-              className="leaderboard-single-slide"
-              style={cardStyle}
-            >
-              <LeaderboardCard board={activeBoard} index={activeIndex} totalBoards={boards.length} />
-            </div>
           </div>
 
           {boards.length > 1 && (
@@ -391,21 +460,13 @@ export function Leaderboard() {
                   key={boards[index].id}
                   aria-label={`Show ${boards[index].title}`}
                   aria-current={index === activeIndex ? "true" : undefined}
-                  onClick={() => {
-                    if (index === activeIndex || phase !== "idle") return;
-                    const directDistance = index - activeIndex;
-                    const wrappedDistance = directDistance > 0 ? directDistance - boards.length : directDistance + boards.length;
-                    const direction: 1 | -1 = Math.abs(directDistance) <= Math.abs(wrappedDistance)
-                      ? (directDistance > 0 ? 1 : -1)
-                      : (wrappedDistance > 0 ? 1 : -1);
-                    animateTo(index, direction);
-                  }}
+                  onClick={() => moveTo(index)}
                 />
               ))}
             </div>
           )}
         </div>
-      ) : null}
+      )}
     </section>
   );
 }

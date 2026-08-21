@@ -49,7 +49,7 @@ export function AdminShell({
         </div>
       </aside>
       <div className="mobile-topbar"><Brand href="/admin" /><div className="mobile-account"><span>{displayName}</span><form action="/api/admin/logout" method="post"><button type="submit">Sign out</button></form></div></div>
-      <main className="main-content admin-main-content"><div className="page-surface">{children}</div></main>
+      <main className="main-content admin-main-content">{children}</main>
     </div>
   );
 }

@@ -1,31 +1,15 @@
-# V4.16 Update
+# MedScores V4.19 Setup
 
-No database update is required. Copy the V4.16 update files over the current project, then run `npm run dev`.
+No database update is required for V4.19.
 
-Check Student Home → Achievement Board and confirm manual swipe and timed rotation settle without a blink. Navigate between Admin and Student pages on desktop and phone and confirm the loading skeletons stay aligned, compact, and responsive.
+## Update from V4.18
 
-# V4.12 Update
+Copy the V4.19 Update Only files over the current project, then run:
 
-No database update is required. Run `npm install` if dependencies are not installed, then `npm run dev`.
+```powershell
+npm run dev
+```
 
-# MedScores V4.11 Update
+V4.19 references only `public/logo.png` for app and install branding. The previous `public/pwa-icon-192.png`, `public/pwa-icon-512.png`, and `public/apple-touch-icon.png` files are no longer used. They may be removed from an older working copy if they still exist.
 
-1. Copy the V4.11 update files over the current MedScores project.
-2. Run `npm install` if dependencies are not already installed.
-3. Run `npm run dev`.
-4. Check Student Home → Achievement Board and confirm **Max score** is restored and no rotating edge line appears.
-5. Check Student → Results and confirm scored results show Low, Mean, and High class statistics.
-
-No new database migration or environment change is required for V4.11.
-
-# MedScores V4.6 Update
-
-1. Copy the V4.6 update files over the current MedScores project.
-2. Run `database/v4.6_student_roster_repair.sql` once in the project database console.
-3. Run `npm install` if dependencies are not already installed.
-4. Run `npm run dev`.
-5. Open Admin → Settings and select **1st Semester**.
-6. Open Admin → Students and confirm the original student roster is visible again.
-7. Switch to a later semester and use **Copy** only for students continuing into that semester.
-
-The repair does not copy old subjects or scores into another semester. No environment-variable changes are required.
+After checking the Student Settings and leaderboard, deploy normally.

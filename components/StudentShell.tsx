@@ -41,7 +41,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
         </div>
       </aside>
       <div className="mobile-topbar"><Brand href="/student" /><div className="mobile-account"><span>{codeName}</span><form action="/api/student/logout" method="post"><button type="submit">Sign out</button></form></div></div>
-      <main className="main-content"><div className="page-surface">{children}</div></main>
+      <main className="main-content">{children}</main>
     </div>
   );
 }
