@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { formatDate } from "@/lib/utils";
@@ -14,11 +15,45 @@ export type StudentResultRow = {
   total: number;
   score: number | null;
   passing: number | null;
-  status: "scored" | "absent";
+  status: "scored" | "absent" | "not_entered";
   doctor: string | null;
   subject: string;
   isNew?: boolean;
+  classStats?: { low: number; mean: number; high: number; count: number } | null;
 };
+
+function formatScoreValue(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function rangePosition(value: number, low: number, high: number) {
+  if (!Number.isFinite(value) || high <= low) return 50;
+  return Math.max(0, Math.min(100, ((value - low) / (high - low)) * 100));
+}
+
+function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; compact?: boolean }) {
+  if (row.status !== "scored" || row.score == null || !row.classStats) return null;
+  const { low, mean, high } = row.classStats;
+  const style = {
+    "--student-score-position": `${rangePosition(Number(row.score), low, high)}%`,
+    "--student-mean-position": `${rangePosition(mean, low, high)}%`,
+  } as CSSProperties;
+
+  return (
+    <div className={`student-score-distribution${compact ? " is-compact" : ""}`} style={style}>
+      <div className="student-score-range" aria-hidden="true">
+        <span className="student-score-range-line" />
+        <span className="student-score-mean-marker" />
+        <span className="student-score-own-marker" />
+      </div>
+      <div className="student-score-range-labels">
+        <div><span>Low</span><strong>{formatScoreValue(low)}</strong></div>
+        <div className="is-mean"><span>Mean</span><strong>{formatScoreValue(mean)}</strong></div>
+        <div><span>High</span><strong>{formatScoreValue(high)}</strong></div>
+      </div>
+    </div>
+  );
+}
 
 export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
   const [query, setQuery] = useState("");
@@ -38,7 +73,7 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
   const scoredRows = useMemo(() => rows.filter((row) => row.status === "scored" && row.score != null), [rows]);
   const passingRows = useMemo(() => scoredRows.filter((row) => row.passing != null), [scoredRows]);
   const passedCount = useMemo(() => passingRows.filter((row) => Number(row.score) >= Number(row.passing)).length, [passingRows]);
-  const absentCount = rows.length - scoredRows.length;
+  const absentCount = rows.filter((row) => row.status === "absent").length;
 
   async function viewResult(row: StudentResultRow) {
     setOpenResult(row);
@@ -67,10 +102,12 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
     {filtered.length ? <section className="student-results-card-grid" aria-label="Assessment results">
       {filtered.map((row) => {
         const absent = row.status === "absent";
-        const hasPass = row.passing != null;
-        const passed = !absent && hasPass && Number(row.score) >= Number(row.passing);
-        const resultLabel = absent ? "Did not take" : hasPass ? (passed ? "Passed" : "Below passing") : "Recorded";
-        const statusClass = absent ? "is-neutral" : hasPass ? (passed ? "is-pass" : "is-below") : "is-neutral";
+        const notEntered = row.status === "not_entered" || (!absent && row.score == null);
+        const hasScore = !absent && !notEntered && row.score != null;
+        const hasPass = hasScore && row.passing != null;
+        const passed = hasPass && Number(row.score) >= Number(row.passing);
+        const resultLabel = absent ? "Did not take" : notEntered ? "Not entered" : hasPass ? (passed ? "Passed" : "Below passing") : "Recorded";
+        const statusClass = absent || notEntered ? "is-neutral" : hasPass ? (passed ? "is-pass" : "is-below") : "is-neutral";
         const isNew = Boolean(row.isNew && !viewedIds.has(row.id));
         return <button type="button" className={`student-result-card student-result-card-button ${absent ? "is-absent" : ""}`} key={row.id} onClick={() => void viewResult(row)}>
           <div className="student-result-card-top">
@@ -81,9 +118,19 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
             </div>
             <time dateTime={row.date}>{formatDate(row.date)}</time>
           </div>
-          <div className="student-result-card-bottom">
-            <div className="student-result-card-score"><span>Score</span><div><strong>{absent ? "—" : row.score}</strong><small>{absent ? "Not recorded" : ` / ${row.total}`}</small></div></div>
-            <div className="student-result-card-status"><span>Result</span><strong className={statusClass}>{resultLabel}</strong>{!absent && hasPass && <small>Passing score {row.passing} / {row.total}</small>}</div>
+          <div className={`student-result-performance${absent ? " is-absent" : ""}`}>
+            <div className="student-result-performance-head">
+              <div className="student-result-performance-score">
+                <span>{absent ? "Score" : "Your score"}</span>
+                {absent ? <strong>Did not take</strong> : notEntered ? <strong>Not entered</strong> : <strong>{formatScoreValue(Number(row.score))} <small>points out of {formatScoreValue(row.total)}</small></strong>}
+              </div>
+              <div className="student-result-performance-result">
+                <span>Result</span>
+                <strong className={statusClass}>{resultLabel}</strong>
+              </div>
+            </div>
+            <ScoreDistribution row={row} />
+            {hasScore && hasPass && <div className="student-result-performance-note">Passing score {formatScoreValue(Number(row.passing))} out of {formatScoreValue(row.total)}</div>}
           </div>
         </button>;
       })}
@@ -91,14 +138,17 @@ export function StudentResultsClient({ rows }: { rows: StudentResultRow[] }) {
 
     {openResult && (() => {
       const absent = openResult.status === "absent";
-      const hasPass = openResult.passing != null;
-      const passed = !absent && hasPass && Number(openResult.score) >= Number(openResult.passing);
+      const notEntered = openResult.status === "not_entered" || (!absent && openResult.score == null);
+      const hasScore = !absent && !notEntered && openResult.score != null;
+      const hasPass = hasScore && openResult.passing != null;
+      const passed = hasPass && Number(openResult.score) >= Number(openResult.passing);
       return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setOpenResult(null)}>
         <div className="modal modal-compact student-result-detail" role="dialog" aria-modal="true" aria-labelledby="student-result-detail-title">
           <div className="modal-header"><div><span className="modal-eyebrow">{openResult.subject}</span><h2 id="student-result-detail-title">{openResult.title}</h2><p>{openResult.type} · {formatDate(openResult.date)}{openResult.doctor ? ` · ${openResult.doctor}` : ""}</p></div><button type="button" className="modal-close" onClick={() => setOpenResult(null)} aria-label="Close"><CloseIcon size={20} /></button></div>
           <div className="modal-body">
-            <div className="student-result-detail-score"><span>Score</span><strong>{absent ? "Did not take" : `${openResult.score} / ${openResult.total}`}</strong></div>
-            <div className="student-result-detail-grid"><div><span>Result</span><strong>{absent ? "Did not take" : hasPass ? (passed ? "Passed" : "Below passing score") : "Recorded"}</strong></div><div><span>Passing score</span><strong>{openResult.passing == null ? "Not set" : `${openResult.passing} / ${openResult.total}`}</strong></div></div>
+            <div className="student-result-detail-score"><span>Score</span><strong>{absent ? "Did not take" : notEntered ? "Not entered" : `${formatScoreValue(Number(openResult.score))} points out of ${formatScoreValue(openResult.total)}`}</strong></div>
+            {hasScore && <ScoreDistribution row={openResult} compact />}
+            <div className="student-result-detail-grid"><div><span>Result</span><strong>{absent ? "Did not take" : notEntered ? "Not entered" : hasPass ? (passed ? "Passed" : "Below passing score") : "Recorded"}</strong></div><div><span>Passing score</span><strong>{openResult.passing == null ? "Not set" : `${formatScoreValue(Number(openResult.passing))} out of ${formatScoreValue(openResult.total)}`}</strong></div></div>
           </div>
           <div className="modal-actions"><button type="button" className="button button-primary" onClick={() => setOpenResult(null)}>Done</button></div>
         </div>

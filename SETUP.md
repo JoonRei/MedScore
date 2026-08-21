@@ -1,10 +1,21 @@
-# MedScores V4.7 Update
+# MedScores V4.11 Update
 
-1. Copy the contents of this folder over the current MedScores V4.6 project.
-2. Keep your existing `public/logo.png`; V4.7 points the installed PWA to that canonical logo.
-3. Run `npm install` only if dependencies are missing, then run `npm run dev`.
-4. Test Student sign-in on desktop and a phone-sized viewport.
+1. Copy the V4.11 update files over the current MedScores project.
+2. Run `npm install` if dependencies are not already installed.
+3. Run `npm run dev`.
+4. Check Student Home → Achievement Board and confirm **Max score** is restored and no rotating edge line appears.
+5. Check Student → Results and confirm scored results show Low, Mean, and High class statistics.
 
-No new database migration is required.
+No new database migration or environment change is required for V4.11.
 
-If the V4.6 semester-roster repair was never run, run `database/v4.6_student_roster_repair.sql` once before testing semester rosters.
+# MedScores V4.6 Update
+
+1. Copy the V4.6 update files over the current MedScores project.
+2. Run `database/v4.6_student_roster_repair.sql` once in the project database console.
+3. Run `npm install` if dependencies are not already installed.
+4. Run `npm run dev`.
+5. Open Admin → Settings and select **1st Semester**.
+6. Open Admin → Students and confirm the original student roster is visible again.
+7. Switch to a later semester and use **Copy** only for students continuing into that semester.
+
+The repair does not copy old subjects or scores into another semester. No environment-variable changes are required.
