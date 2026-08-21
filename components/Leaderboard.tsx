@@ -31,7 +31,7 @@ type GestureState = {
 };
 
 const AUTO_ADVANCE_MS = 6500;
-const CARD_STEP_PERCENT = 74;
+const TRANSITION_MS = 300;
 
 function initials(codeName: string) {
   const compact = codeName.replace(/[^A-Za-z0-9]/g, "");
@@ -50,15 +50,6 @@ function groupRanks(entries: Entry[]): RankGroup[] {
     else grouped.set(entry.rank, { rank: entry.rank, score: entry.score, entries: [entry] });
   }
   return Array.from(grouped.values()).sort((a, b) => a.rank - b.rank);
-}
-
-function relativePosition(index: number, activeIndex: number, total: number) {
-  if (total <= 1) return 0;
-  let delta = index - activeIndex;
-  const half = total / 2;
-  if (delta > half) delta -= total;
-  if (delta < -half) delta += total;
-  return delta;
 }
 
 function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: number }) {
@@ -143,11 +134,12 @@ export function Leaderboard() {
   const [cycle, setCycle] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
-  const [viewportWidth, setViewportWidth] = useState(0);
+  const [phase, setPhase] = useState<"idle" | "exit">("idle");
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [pendingDirection, setPendingDirection] = useState<1 | -1>(1);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const transitionTimerRef = useRef<number | null>(null);
   const gestureRef = useRef<GestureState>({ pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false });
 
   useEffect(() => {
@@ -187,49 +179,20 @@ export function Leaderboard() {
   }, []);
 
   useEffect(() => {
-    if (boards.length <= 1 || dragging) return;
+    if (boards.length <= 1 || dragging || phase !== "idle") return;
     const timer = window.setTimeout(() => {
-      setActiveIndex((index) => (index + 1) % boards.length);
-      setCycle((value) => value + 1);
+      void animateTo(activeIndex + 1, 1);
     }, AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
-  }, [activeIndex, boards.length, cycle, dragging]);
+  }, [activeIndex, boards.length, cycle, dragging, phase]);
 
   useEffect(() => {
     if (activeIndex >= boards.length && boards.length) setActiveIndex(0);
   }, [activeIndex, boards.length]);
 
-  useEffect(() => {
-    const slide = slideRefs.current[activeIndex];
-    if (!slide) return;
-
-    const updateHeight = () => setViewportHeight(slide.offsetHeight + 12);
-    updateHeight();
-
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateHeight) : null;
-    observer?.observe(slide);
-    window.addEventListener("resize", updateHeight);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", updateHeight);
-    };
-  }, [activeIndex, boards]);
-
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-
-    const updateWidth = () => setViewportWidth(viewport.clientWidth);
-    updateWidth();
-
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateWidth) : null;
-    observer?.observe(viewport);
-    window.addEventListener("resize", updateWidth);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", updateWidth);
-    };
-  }, [boards.length]);
+  useEffect(() => () => {
+    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
+  }, []);
 
   const activeBoard = boards[activeIndex] || null;
 
@@ -239,21 +202,53 @@ export function Leaderboard() {
     return Array.from({ length: 12 }, (_, offset) => start + offset);
   }, [activeIndex, boards]);
 
-  function changeBoard(nextIndex: number) {
-    if (!boards.length) return;
-    const normalized = ((nextIndex % boards.length) + boards.length) % boards.length;
-    setActiveIndex(normalized);
-    setCycle((value) => value + 1);
-    setDragX(0);
+  function normalizedIndex(index: number) {
+    if (!boards.length) return 0;
+    return ((index % boards.length) + boards.length) % boards.length;
+  }
+
+  function clearTransitionTimer() {
+    if (transitionTimerRef.current) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+  }
+
+  function animateTo(nextIndex: number, direction: 1 | -1) {
+    if (!boards.length || phase !== "idle") return;
+    const normalized = normalizedIndex(nextIndex);
+    if (normalized === activeIndex && boards.length > 1) return;
+
+    const width = viewportRef.current?.clientWidth || 360;
+    clearTransitionTimer();
+    setPendingIndex(normalized);
+    setPendingDirection(direction);
+    setPhase("exit");
+    setDragging(false);
+    setDragX(direction > 0 ? -width * 0.56 : width * 0.56);
+
+    transitionTimerRef.current = window.setTimeout(() => {
+      // The preview underneath has already reached the exact final visual state.
+      // Swap it into the active slot in the same React commit: no second enter
+      // animation, opacity reset, or one-frame flash.
+      setActiveIndex(normalized);
+      setCycle((value) => value + 1);
+      setDragX(0);
+      setPendingIndex(null);
+      setPhase("idle");
+      transitionTimerRef.current = null;
+    }, TRANSITION_MS);
   }
 
   function resetGesture() {
     gestureRef.current = { pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false };
     setDragX(0);
     setDragging(false);
+    if (phase === "idle") setPendingIndex(null);
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (phase !== "idle") return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     gestureRef.current = {
       pointerId: event.pointerId,
@@ -268,7 +263,7 @@ export function Leaderboard() {
 
   function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const gesture = gestureRef.current;
-    if (gesture.pointerId !== event.pointerId) return;
+    if (gesture.pointerId !== event.pointerId || phase !== "idle") return;
 
     gesture.latestX = event.clientX;
     gesture.latestY = event.clientY;
@@ -282,39 +277,61 @@ export function Leaderboard() {
 
     if (gesture.moved) {
       const width = viewportRef.current?.clientWidth || 320;
-      const limited = Math.max(-width * 0.48, Math.min(width * 0.48, dx));
+      const limited = Math.max(-width * 0.42, Math.min(width * 0.42, dx));
       setDragX(limited);
     }
   }
 
   function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
     const gesture = gestureRef.current;
-    if (gesture.pointerId !== event.pointerId) return;
+    if (gesture.pointerId !== event.pointerId || phase !== "idle") return;
 
     const dx = event.clientX - gesture.startX;
     const width = viewportRef.current?.clientWidth || 320;
     const threshold = Math.min(92, Math.max(48, width * 0.14));
 
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* no-op */ }
+
     if (gesture.moved && Math.abs(dx) >= threshold && boards.length > 1) {
-      changeBoard(activeIndex + (dx < 0 ? 1 : -1));
+      gestureRef.current = { pointerId: null, startX: 0, startY: 0, latestX: 0, latestY: 0, moved: false };
+      setDragging(false);
+      animateTo(activeIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+      return;
     }
 
-    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* no-op */ }
     resetGesture();
   }
 
   function handleCarouselKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (boards.length <= 1) return;
+    if (boards.length <= 1 || phase !== "idle") return;
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      changeBoard(activeIndex + 1);
+      animateTo(activeIndex + 1, 1);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
-      changeBoard(activeIndex - 1);
+      animateTo(activeIndex - 1, -1);
     }
   }
 
-  const viewportStyle: CSSProperties | undefined = viewportHeight ? { height: viewportHeight } : undefined;
+  const width = viewportRef.current?.clientWidth || 360;
+  const dragProgress = Math.min(1, Math.abs(dragX) / Math.max(1, width * 0.42));
+  const dragScale = 1 - dragProgress * 0.035;
+  const dragOpacity = 1 - dragProgress * 0.14;
+  const dragDirection: 1 | -1 = dragX < 0 ? 1 : -1;
+  const previewIndex = boards.length > 1 && Math.abs(dragX) > 2
+    ? normalizedIndex(activeIndex + dragDirection)
+    : pendingIndex;
+  const previewBoard = previewIndex !== null && previewIndex !== activeIndex ? boards[previewIndex] : null;
+  const previewDirection = pendingIndex !== null ? pendingDirection : dragDirection;
+  const previewProgress = phase === "exit" ? 1 : dragProgress;
+  const previewStyle = {
+    transform: `translate3d(${previewDirection > 0 ? (1 - previewProgress) * 3.5 : -(1 - previewProgress) * 3.5}%, 0, 0) scale(${0.99 + previewProgress * 0.01})`,
+    opacity: phase === "exit" ? 1 : Math.min(0.96, 0.18 + previewProgress * 0.78),
+  } as CSSProperties;
+  const cardStyle = {
+    transform: `translate3d(${dragX}px, 0, 0) scale(${phase === "exit" ? 0.975 : dragScale})`,
+    opacity: phase === "exit" ? 0.10 : dragOpacity,
+  } as CSSProperties;
 
   return (
     <section className="leaderboard-section leaderboard-showcase section-gap">
@@ -337,8 +354,7 @@ export function Leaderboard() {
         <div className="leaderboard-ad-carousel" aria-live="polite">
           <div
             ref={viewportRef}
-            className={`leaderboard-swipe-viewport leaderboard-deck-viewport${dragging ? " is-dragging" : ""}`}
-            style={viewportStyle}
+            className={`leaderboard-swipe-viewport leaderboard-single-viewport${dragging ? " is-dragging" : ""}${phase === "exit" ? " is-exiting" : ""}`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -349,54 +365,22 @@ export function Leaderboard() {
             tabIndex={0}
             aria-label={`Assessment leaderboard ${activeIndex + 1} of ${boards.length}. Swipe or use the arrow keys to change assessment.`}
           >
-            {boards.map((board, index) => {
-              const relative = relativePosition(index, activeIndex, boards.length);
-              const distance = Math.abs(relative);
-              const isActive = relative === 0;
-              const isNeighbor = distance === 1;
-              const isFar = distance > 1;
-
-              const stepPixels = Math.max(1, viewportWidth * (CARD_STEP_PERCENT / 100));
-              const liveRelative = relative + dragX / stepPixels;
-              const liveDistance = Math.abs(liveRelative);
-              const nearDistance = Math.min(1, liveDistance);
-              const overflowDistance = Math.max(0, liveDistance - 1);
-              const scale = Math.max(0.76, 1 - nearDistance * 0.17 - overflowDistance * 0.06);
-              const blur = Math.min(5.5, nearDistance * 3.2 + overflowDistance * 2.2);
-              const saturation = Math.max(0.62, 1 - nearDistance * 0.27 - overflowDistance * 0.08);
-              const brightness = Math.max(0.84, 1 - nearDistance * 0.08 - overflowDistance * 0.03);
-              const opacity = Math.max(0, 1 - nearDistance * 0.62 - overflowDistance * 0.72);
-              const lift = Math.min(13, liveDistance * 10);
-              const tilt = Math.max(-3.2, Math.min(3.2, liveRelative * -2.6));
-              const focus = Math.max(0, 1 - nearDistance);
-              const slideStyle = {
-                left: `calc(50% + ${relative * CARD_STEP_PERCENT}% + ${dragX}px)`,
-                transform: `translateX(-50%) translateY(${lift}px) scale(${scale}) rotateY(${tilt}deg)`,
-                opacity,
-                filter: `blur(${blur}px) saturate(${saturation}) brightness(${brightness})`,
-                zIndex: Math.max(0, 10 - Math.round(liveDistance * 5)),
-                "--deck-focus": focus,
-              } as CSSProperties;
-
-              return (
-                <div
-                  className={`leaderboard-swipe-slide leaderboard-deck-slide${isActive ? " is-active" : ""}${isNeighbor ? " is-neighbor" : ""}${isFar ? " is-far" : ""}`}
-                  key={board.id}
-                  ref={(element) => { slideRefs.current[index] = element; }}
-                  style={slideStyle}
-                  aria-hidden={!isActive}
-                >
-                  <LeaderboardCard board={board} index={index} totalBoards={boards.length} />
-                </div>
-              );
-            })}
-          </div>
-
-          {boards.length > 1 && (
-            <div className="leaderboard-ad-timeline" aria-hidden="true">
-              <div className="leaderboard-ad-progress" key={`progress-${activeBoard.id}-${cycle}`} />
+            {previewBoard && (dragging || phase === "exit") && (
+              <div
+                className="leaderboard-single-underlay"
+                style={previewStyle}
+                aria-hidden="true"
+              >
+                <LeaderboardCard board={previewBoard} index={previewIndex ?? 0} totalBoards={boards.length} />
+              </div>
+            )}
+            <div
+              className="leaderboard-single-slide"
+              style={cardStyle}
+            >
+              <LeaderboardCard board={activeBoard} index={activeIndex} totalBoards={boards.length} />
             </div>
-          )}
+          </div>
 
           {boards.length > 1 && (
             <div className="leaderboard-ad-markers leaderboard-swipe-markers" aria-label={`${boards.length} assessment leaderboards in rotation`}>
@@ -407,7 +391,15 @@ export function Leaderboard() {
                   key={boards[index].id}
                   aria-label={`Show ${boards[index].title}`}
                   aria-current={index === activeIndex ? "true" : undefined}
-                  onClick={() => changeBoard(index)}
+                  onClick={() => {
+                    if (index === activeIndex || phase !== "idle") return;
+                    const directDistance = index - activeIndex;
+                    const wrappedDistance = directDistance > 0 ? directDistance - boards.length : directDistance + boards.length;
+                    const direction: 1 | -1 = Math.abs(directDistance) <= Math.abs(wrappedDistance)
+                      ? (directDistance > 0 ? 1 : -1)
+                      : (wrappedDistance > 0 ? 1 : -1);
+                    animateTo(index, direction);
+                  }}
                 />
               ))}
             </div>

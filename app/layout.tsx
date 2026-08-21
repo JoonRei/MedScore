@@ -8,15 +8,22 @@ export const metadata: Metadata = {
   description: "Academic performance portal for the College of Medicine.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.png?v=414",
+    shortcut: "/logo.png?v=414",
+    apple: "/logo.png?v=414",
   },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "MedScores" },
   robots: { index: false, follow: false, noarchive: true, nocache: true },
 };
 
-export const viewport: Viewport = { themeColor: "#74108f" };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#74108f",
+};
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

@@ -1,3 +1,13 @@
+# V4.16 Update
+
+No database update is required. Copy the V4.16 update files over the current project, then run `npm run dev`.
+
+Check Student Home → Achievement Board and confirm manual swipe and timed rotation settle without a blink. Navigate between Admin and Student pages on desktop and phone and confirm the loading skeletons stay aligned, compact, and responsive.
+
+# V4.12 Update
+
+No database update is required. Run `npm install` if dependencies are not installed, then `npm run dev`.
+
 # MedScores V4.11 Update
 
 1. Copy the V4.11 update files over the current MedScores project.
