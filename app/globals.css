@@ -9497,3 +9497,248 @@ body[data-smart-student-names="true"] input[placeholder*="student" i][placeholde
     scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom));
   }
 }
+
+/* MedScores V4.22 — live score refresh, interruption recovery, and unified Student empty states. */
+
+/* When a release-triggered refresh briefly hits the generic error boundary, keep
+   the false interruption out of view while the root PWA layer retries the data. */
+body[data-student-live-refresh="true"] .app-problem-page,
+body[data-student-live-refresh="true"] .app-problem {
+  display: none !important;
+}
+
+.student-live-update-v422 {
+  position: fixed;
+  z-index: 2200;
+  top: max(18px, calc(env(safe-area-inset-top) + 12px));
+  left: 50%;
+  width: min(390px, calc(100vw - 28px));
+  min-width: 0;
+  padding: 11px 13px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(116,16,143,.13);
+  border-radius: 14px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 14px 38px rgba(45,28,50,.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: student-live-update-in-v422 .2s cubic-bezier(.22,.78,.24,1) both;
+}
+.student-live-update-icon-v422 {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.student-live-update-icon-v422::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(116,16,143,.22);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: student-live-update-spin-v422 .72s linear infinite;
+}
+.student-live-update-v422.is-updated .student-live-update-icon-v422 {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.student-live-update-v422.is-updated .student-live-update-icon-v422::before {
+  width: 14px;
+  height: 8px;
+  border: 0;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-radius: 0;
+  transform: rotate(-45deg) translate(1px, -1px);
+  animation: student-live-check-v422 .2s ease-out both;
+}
+.student-live-update-copy-v422 {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.student-live-update-copy-v422 strong {
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+.student-live-update-copy-v422 small {
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+@keyframes student-live-update-in-v422 {
+  from { opacity: 0; transform: translate(-50%, -8px) scale(.985); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+@keyframes student-live-update-spin-v422 { to { transform: rotate(360deg); } }
+@keyframes student-live-check-v422 {
+  from { opacity: 0; transform: rotate(-45deg) translate(1px, -1px) scale(.65); }
+  to { opacity: 1; transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+}
+
+/* One visual language for every Student Portal empty state: solid surfaces,
+   restrained brand iconography, no action buttons, and gentle motion only. */
+.student-shell .empty-state,
+.student-shell .student-results-empty,
+.student-shell .table-empty,
+.student-shell .leaderboard-empty,
+.student-shell .roster-empty,
+.student-notification-empty,
+.student-notification-page-empty {
+  position: relative;
+  min-height: 170px;
+  padding: 26px 20px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  border: 1px solid rgba(116,16,143,.09);
+  border-radius: 17px;
+  background: #fff;
+  color: var(--muted);
+  text-align: center;
+  animation: student-empty-enter-v422 .3s ease-out both;
+}
+.student-shell .subject-empty-card,
+.student-shell .subject-empty-state {
+  grid-column: 1 / -1;
+}
+.student-shell .subject-empty-state {
+  padding: 0;
+}
+.student-shell .empty-state .empty-dot {
+  display: none !important;
+}
+.student-shell .empty-state::before,
+.student-shell .table-empty::before,
+.student-shell .leaderboard-empty::before,
+.student-shell .roster-empty::before {
+  content: "";
+  width: 42px;
+  height: 42px;
+  margin-bottom: 6px;
+  background: var(--brand);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M5 4h14a2 2 0 0 1 2 2v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2Zm0 2v8h4.17a3 3 0 0 0 5.66 0H19V6H5Zm0 10v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1h-2.76a5 5 0 0 1-8.48 0H5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M5 4h14a2 2 0 0 1 2 2v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2Zm0 2v8h4.17a3 3 0 0 0 5.66 0H19V6H5Zm0 10v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1h-2.76a5 5 0 0 1-8.48 0H5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: .78;
+  animation: student-empty-icon-v422 2.8s ease-in-out infinite;
+}
+/* Subjects use a book mark; opened subjects use an assessment sheet. */
+body[data-student-route="subjects"] .student-shell .empty-state::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 3.5A2.5 2.5 0 0 1 6.5 1H20v18H7a3 3 0 0 0-3 3V3.5ZM6.5 3a.5.5 0 0 0-.5.5v13.67A5 5 0 0 1 7 17h11V3H6.5ZM7 19a1 1 0 0 0 0 2h13v-2H7Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 3.5A2.5 2.5 0 0 1 6.5 1H20v18H7a3 3 0 0 0-3 3V3.5ZM6.5 3a.5.5 0 0 0-.5.5v13.67A5 5 0 0 1 7 17h11V3H6.5ZM7 19a1 1 0 0 0 0 2h13v-2H7Z'/%3E%3C/svg%3E");
+}
+body[data-student-route="subject-detail"] .student-shell .empty-state::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm0 4h6V4H9v2Zm-4 0v13h14V6h-2v2H7V6H5Zm3 5h8v2H8v-2Zm0 4h6v2H8v-2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm0 4h6V4H9v2Zm-4 0v13h14V6h-2v2H7V6H5Zm3 5h8v2H8v-2Zm0 4h6v2H8v-2Z'/%3E%3C/svg%3E");
+}
+/* Results/home empty states use a simple score chart. */
+body[data-student-route="results"] .student-shell .empty-state::before,
+body[data-student-route="home"] .student-shell .empty-state::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 20V10h4v10H4Zm6 0V4h4v16h-4Zm6 0v-7h4v7h-4ZM2 22h20v-2H2v2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 20V10h4v10H4Zm6 0V4h4v16h-4Zm6 0v-7h4v7h-4ZM2 22h20v-2H2v2Z'/%3E%3C/svg%3E");
+}
+.student-shell .empty-state h3,
+.student-shell .table-empty strong,
+.student-shell .leaderboard-empty strong,
+.student-notification-empty strong,
+.student-notification-page-empty strong {
+  margin: 0;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+.student-shell .empty-state p,
+.student-shell .table-empty span,
+.student-shell .leaderboard-empty span,
+.student-notification-empty span,
+.student-notification-page-empty span {
+  max-width: 340px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.student-notification-empty > svg,
+.student-notification-page-empty > svg {
+  width: 42px !important;
+  height: 42px !important;
+  margin-bottom: 6px;
+  padding: 9px;
+  border-radius: 13px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  animation: student-empty-icon-v422 2.8s ease-in-out infinite;
+}
+.student-shell .empty-state .button,
+.student-shell .table-empty .button,
+.student-shell .leaderboard-empty .button,
+.student-shell .roster-empty .button,
+.student-notification-empty .button,
+.student-notification-page-empty .button {
+  display: none !important;
+}
+@keyframes student-empty-enter-v422 {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes student-empty-icon-v422 {
+  0%, 100% { transform: translateY(0); opacity: .72; }
+  50% { transform: translateY(-3px); opacity: .92; }
+}
+
+@media (max-width: 900px) {
+  .student-live-update-v422 {
+    top: calc(64px + env(safe-area-inset-top) + 8px);
+    width: min(380px, calc(100vw - max(24px, env(safe-area-inset-left) + env(safe-area-inset-right) + 18px)));
+  }
+  .student-shell .empty-state,
+  .student-shell .student-results-empty,
+  .student-shell .table-empty,
+  .student-shell .leaderboard-empty,
+  .student-notification-empty,
+  .student-notification-page-empty {
+    min-height: 150px;
+    padding: 22px 16px;
+    border-radius: 15px;
+  }
+}
+@media (max-width: 430px) {
+  .student-live-update-v422 {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px 11px;
+    border-radius: 13px;
+  }
+  .student-live-update-icon-v422 { width: 29px; height: 29px; border-radius: 9px; }
+  .student-live-update-copy-v422 strong { font-size: 11.5px; }
+  .student-live-update-copy-v422 small { font-size: 9.75px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-live-update-v422,
+  .student-live-update-icon-v422::before,
+  .student-shell .empty-state,
+  .student-shell .table-empty,
+  .student-shell .leaderboard-empty,
+  .student-shell .roster-empty,
+  .student-notification-empty,
+  .student-notification-page-empty,
+  .student-shell .empty-state::before,
+  .student-shell .table-empty::before,
+  .student-shell .leaderboard-empty::before,
+  .student-shell .roster-empty::before,
+  .student-notification-empty > svg,
+  .student-notification-page-empty > svg {
+    animation: none !important;
+  }
+}

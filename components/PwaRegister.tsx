@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 const PUSH_PREFERENCE_KEY = "medscores:student-phone-notifications";
 const PUSH_SYNC_AT_KEY = "medscores:student-phone-notifications-synced-at";
@@ -28,18 +28,27 @@ function pushSubscriptionMatchesKey(subscription: PushSubscription, publicKey: s
 
 export function PwaRegister() {
   const pathname = usePathname();
+  const router = useRouter();
   const previousPathname = useRef(pathname);
+  const interruptionRecoveryAttempts = useRef(0);
+  const [liveUpdateState, setLiveUpdateState] = useState<"idle" | "refreshing" | "updated">("idle");
 
   useEffect(() => {
     // Expose a small route hook for page-specific Student Portal polish without
     // coupling shared components to the Subjects implementation.
-    const route = pathname === "/student/subjects"
-      ? "subjects"
-      : pathname.startsWith("/student/subjects/")
-        ? "subject-detail"
-        : pathname === "/student/results"
-          ? "results"
-          : "";
+    const route = pathname === "/student"
+      ? "home"
+      : pathname === "/student/subjects"
+        ? "subjects"
+        : pathname.startsWith("/student/subjects/")
+          ? "subject-detail"
+          : pathname === "/student/results"
+            ? "results"
+            : pathname === "/student/notifications"
+              ? "notifications"
+              : pathname === "/student/settings"
+                ? "settings"
+                : "";
 
     if (route) document.body.dataset.studentRoute = route;
     else delete document.body.dataset.studentRoute;
@@ -234,6 +243,101 @@ export function PwaRegister() {
   }, [pathname]);
 
   useEffect(() => {
+    if (!pathname.startsWith("/student") || !("serviceWorker" in navigator)) return;
+
+    let cancelled = false;
+    let settleTimer = 0;
+    let hideTimer = 0;
+    let retryTimer = 0;
+    const pendingRefreshKey = "medscores:pending-student-live-refresh";
+
+    const clearTimers = () => {
+      window.clearTimeout(settleTimer);
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(retryTimer);
+    };
+
+    const showRefreshing = () => {
+      document.body.dataset.studentLiveRefresh = "true";
+      setLiveUpdateState("refreshing");
+    };
+
+    const finishRefresh = () => {
+      if (cancelled) return;
+      setLiveUpdateState("updated");
+      settleTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setLiveUpdateState("idle");
+        delete document.body.dataset.studentLiveRefresh;
+      }, 1500);
+    };
+
+    const refreshStudentData = (retryOnce = true) => {
+      clearTimers();
+      showRefreshing();
+      router.refresh();
+      if (retryOnce) {
+        retryTimer = window.setTimeout(() => {
+          if (!cancelled) router.refresh();
+        }, 650);
+      }
+      hideTimer = window.setTimeout(finishRefresh, 1050);
+    };
+
+    const handleScoreRelease = (event: MessageEvent) => {
+      if (event.data?.type !== "MEDSCORES_SCORE_RELEASED") return;
+      interruptionRecoveryAttempts.current = 0;
+      if (document.visibilityState !== "visible") {
+        window.sessionStorage.setItem(pendingRefreshKey, "1");
+        return;
+      }
+      refreshStudentData(true);
+    };
+
+    const recoverTemporaryInterruption = () => {
+      if (!navigator.onLine || interruptionRecoveryAttempts.current >= 2) return;
+      const problem = document.querySelector<HTMLElement>(".app-problem, .app-problem-page");
+      if (!problem) return;
+      const text = (problem.textContent || "").replace(/\s+/g, " ").trim();
+      if (!/temporary interruption/i.test(text)) return;
+
+      interruptionRecoveryAttempts.current += 1;
+      refreshStudentData(true);
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      if (window.sessionStorage.getItem(pendingRefreshKey) === "1") {
+        window.sessionStorage.removeItem(pendingRefreshKey);
+        interruptionRecoveryAttempts.current = 0;
+        refreshStudentData(true);
+      }
+      recoverTemporaryInterruption();
+    };
+
+    const observer = new MutationObserver(recoverTemporaryInterruption);
+    observer.observe(document.body, { childList: true, subtree: true });
+    navigator.serviceWorker.addEventListener("message", handleScoreRelease);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    if (window.sessionStorage.getItem(pendingRefreshKey) === "1" && document.visibilityState === "visible") {
+      window.sessionStorage.removeItem(pendingRefreshKey);
+      refreshStudentData(true);
+    } else {
+      recoverTemporaryInterruption();
+    }
+
+    return () => {
+      cancelled = true;
+      clearTimers();
+      observer.disconnect();
+      navigator.serviceWorker.removeEventListener("message", handleScoreRelease);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      delete document.body.dataset.studentLiveRefresh;
+    };
+  }, [pathname, router]);
+
+  useEffect(() => {
     // Web Push cannot select a custom notification sound on the web. When MedScores
     // is visible, the service worker sends this page a message so we can play a
     // gentle in-app chime instead. Background/closed notifications keep the OS sound.
@@ -248,9 +352,46 @@ export function PwaRegister() {
       return audioContext;
     };
 
+    const markSoundReady = async () => {
+      if (!("serviceWorker" in navigator)) return;
+      const readyMessage = { type: "MEDSCORES_SOUND_READY" };
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage(readyMessage);
+        return;
+      }
+      const registration = await navigator.serviceWorker.ready.catch(() => null);
+      registration?.active?.postMessage(readyMessage);
+    };
+
     const primeNotificationSound = () => {
       const context = ensureAudioContext();
-      if (context?.state === "suspended") void context.resume().catch(() => undefined);
+      if (!context) return;
+
+      // iOS/Safari can report a resumed AudioContext but still block later audio
+      // unless sound generation itself happened inside a user gesture. Play an
+      // effectively silent unlock tone once, then tell the service worker it is
+      // safe to silence the OS alert and use the MedScores chime instead.
+      const unlock = () => {
+        try {
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+          gain.gain.setValueAtTime(0.00001, context.currentTime);
+          oscillator.connect(gain);
+          gain.connect(context.destination);
+          oscillator.start();
+          oscillator.stop(context.currentTime + 0.018);
+          void markSoundReady();
+        } catch {
+          // If Web Audio cannot be unlocked, the service worker keeps the normal
+          // device notification sound rather than silencing the notification.
+        }
+      };
+
+      if (context.state === "suspended") {
+        void context.resume().then(unlock).catch(() => undefined);
+      } else {
+        unlock();
+      }
     };
 
     const playNotificationChime = () => {
@@ -262,7 +403,7 @@ export function PwaRegister() {
         const now = context.currentTime;
         const master = context.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.035, now + 0.018);
+        master.gain.exponentialRampToValueAtTime(0.052, now + 0.018);
         master.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
         master.connect(context.destination);
 
@@ -292,13 +433,21 @@ export function PwaRegister() {
     };
 
     const handleWorkerMessage = (event: MessageEvent) => {
-      if (event.data?.type === "MEDSCORES_NOTIFICATION_SOUND") playNotificationChime();
+      if (event.data?.type === "MEDSCORES_NOTIFICATION_SOUND") {
+        playNotificationChime();
+        return;
+      }
+      if (event.data?.type === "MEDSCORES_SOUND_PROBE" && audioContext?.state === "running") {
+        void markSoundReady();
+      }
     };
 
     // Browsers require an interaction before programmatic audio. Prime the tiny
     // audio context on the student's first normal tap/keypress so later foreground
     // notifications can chime without another prompt.
     window.addEventListener("pointerdown", primeNotificationSound, { once: true, passive: true });
+    window.addEventListener("touchend", primeNotificationSound, { once: true, passive: true });
+    window.addEventListener("click", primeNotificationSound, { once: true, passive: true });
     window.addEventListener("keydown", primeNotificationSound, { once: true });
     if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", handleWorkerMessage);
 
@@ -333,6 +482,8 @@ export function PwaRegister() {
     if (!("serviceWorker" in navigator)) {
       return () => {
         window.removeEventListener("pointerdown", primeNotificationSound);
+        window.removeEventListener("touchend", primeNotificationSound);
+        window.removeEventListener("click", primeNotificationSound);
         window.removeEventListener("keydown", primeNotificationSound);
         if (audioContext) void audioContext.close().catch(() => undefined);
         toastObserver.disconnect();
@@ -354,11 +505,26 @@ export function PwaRegister() {
     return () => {
       window.removeEventListener("load", register);
       window.removeEventListener("pointerdown", primeNotificationSound);
+      window.removeEventListener("touchend", primeNotificationSound);
+      window.removeEventListener("click", primeNotificationSound);
       window.removeEventListener("keydown", primeNotificationSound);
       if ("serviceWorker" in navigator) navigator.serviceWorker.removeEventListener("message", handleWorkerMessage);
       if (audioContext) void audioContext.close().catch(() => undefined);
       toastObserver.disconnect();
     };
   }, []);
-  return null;
+  return liveUpdateState === "idle" ? null : (
+    <div
+      className={`student-live-update-v422${liveUpdateState === "updated" ? " is-updated" : ""}`}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span className="student-live-update-icon-v422" aria-hidden="true" />
+      <span className="student-live-update-copy-v422">
+        <strong>{liveUpdateState === "updated" ? "Scores updated" : "Updating latest scores…"}</strong>
+        <small>{liveUpdateState === "updated" ? "You’re viewing the latest released data." : "A new release was detected. Refreshing this page automatically."}</small>
+      </span>
+    </div>
+  );
 }
