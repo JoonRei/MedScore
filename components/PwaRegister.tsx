@@ -56,47 +56,6 @@ export function PwaRegister() {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname !== "/student/results" && !pathname.startsWith("/student/subjects/")) return;
-
-    // Add one useful navigation action to genuinely empty assessment/result states.
-    // This runs after hydration and never rewrites server-rendered copy.
-    const enhanceEmptyStates = () => {
-      const isResults = pathname === "/student/results";
-      const emptySelector = [
-        ".student-shell .student-results-empty",
-        ".student-shell .empty-state",
-        ".student-shell .table-empty",
-        ".student-shell .subject-empty-state",
-        ".student-shell .subject-empty-card"
-      ].join(", ");
-      const candidates = Array.from(document.querySelectorAll<HTMLElement>(emptySelector));
-
-      candidates.forEach((empty) => {
-        if (empty.querySelector(".student-empty-action-v422")) return;
-        const copy = (empty.textContent || "").toLowerCase();
-        if (!/(assessment|result|score|nothing|no data|not available)/.test(copy)) return;
-
-        const link = document.createElement("a");
-        link.className = "student-empty-action-v422";
-        link.href = "/student/subjects";
-        link.textContent = isResults ? "Browse subjects" : "Back to subjects";
-        empty.appendChild(link);
-      });
-    };
-
-    let frame = 0;
-    frame = window.requestAnimationFrame(enhanceEmptyStates);
-    const root = document.querySelector(".student-shell .main-content");
-    const observer = root ? new MutationObserver(enhanceEmptyStates) : null;
-    if (root && observer) observer.observe(root, { childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer?.disconnect();
-    };
-  }, [pathname]);
-
-  useEffect(() => {
     if (pathname !== "/student/subjects") return;
 
     // Do not replace server-rendered subject-code text here. Mutating that text

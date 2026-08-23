@@ -9453,7 +9453,7 @@ body[data-student-route="subject-detail"] .student-shell .student-result-card:ho
   body[data-student-route="subject-detail"] .student-shell .result-score { text-align: left; }
 }
 
-/* MedScores V4.22 — smart student-name display + friendly assessment/result empty states. */
+/* MedScores V4.22 — student-name display polish. */
 body[data-smart-student-names="true"] .student-cell .cell-title strong,
 body[data-smart-student-names="true"] .student-cell strong,
 body[data-smart-student-names="true"] .roster-copy strong,
@@ -9469,102 +9469,4 @@ body[data-smart-student-names="true"] .table-avatar {
 body[data-smart-student-names="true"] input[name*="name" i],
 body[data-smart-student-names="true"] input[placeholder*="student" i][placeholder*="name" i] {
   text-transform: uppercase;
-}
-
-/* Cover the different empty-state containers used by Results and subject detail. */
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card),
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) {
-  min-height: 230px;
-  padding: 34px 24px;
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: #fff;
-  text-align: center;
-}
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before,
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before {
-  content: "";
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 15px;
-  display: block;
-  border-radius: 18px;
-  background-color: var(--brand-soft);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 28px 28px;
-  box-shadow: inset 0 0 0 1px rgba(117, 19, 141, .08);
-}
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2375138d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l3 3v15H6z'/%3E%3Cpath d='M14 3v4h4'/%3E%3Cpath d='M9 12h6M9 16h4'/%3E%3C/svg%3E");
-}
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2375138d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='3'/%3E%3Cpath d='M8 9h8M8 13h5M8 17h3'/%3E%3C/svg%3E");
-}
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) .empty-dot,
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) .empty-dot {
-  display: none;
-}
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) :is(h3, strong),
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) :is(h3, strong) {
-  margin: 0;
-  color: var(--text);
-  font-size: 15px;
-  letter-spacing: -.015em;
-}
-body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) :is(p, span),
-body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) :is(p, span) {
-  max-width: 390px;
-  margin: 7px auto 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.student-empty-action-v422 {
-  min-height: 38px;
-  margin-top: 16px;
-  padding: 9px 13px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #dccde1;
-  border-radius: 10px;
-  background: #fff;
-  color: var(--brand);
-  font-size: 12px;
-  font-weight: 800;
-  text-decoration: none;
-  transition: background .15s ease, border-color .15s ease, transform .15s ease;
-}
-.student-empty-action-v422:hover {
-  border-color: #cdb6d4;
-  background: var(--brand-soft);
-  transform: translateY(-1px);
-}
-.student-empty-action-v422:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
-}
-
-@media (max-width: 600px) {
-  body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card),
-  body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card) {
-    min-height: 210px;
-    padding: 28px 18px;
-    border-radius: 16px;
-  }
-  body[data-student-route="results"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before,
-  body[data-student-route="subject-detail"] .student-shell :is(.student-results-empty, .empty-state, .table-empty, .subject-empty-state, .subject-empty-card)::before {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background-size: 25px 25px;
-  }
-  .student-empty-action-v422 {
-    width: 100%;
-    max-width: 220px;
-  }
 }
