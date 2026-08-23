@@ -1,5 +1,6 @@
 import "server-only";
 import webpush from "web-push";
+import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function pushConfig() {
@@ -100,10 +101,7 @@ export async function sendTestPush(studentId: string, endpoint: string) {
   }
 }
 
-export async function sendAssessmentReleasePush(assessmentId: string, ownerId: string) {
-  // Push is a companion to score release, never a prerequisite for it. Any push,
-  // network, configuration, or subscription failure is contained inside this helper
-  // so the admin's release action can still complete normally.
+async function dispatchAssessmentReleasePush(assessmentId: string, ownerId: string) {
   try {
     const config = pushConfig();
     if (!config) return { sent: 0, skipped: true };
@@ -159,6 +157,25 @@ export async function sendAssessmentReleasePush(assessmentId: string, ownerId: s
     return { sent, skipped: false };
   } catch (error) {
     console.error("student score-release push dispatch failed", error);
+    return { sent: 0, skipped: false };
+  }
+}
+
+export async function sendAssessmentReleasePush(assessmentId: string, ownerId: string) {
+  // Releasing scores is the primary mutation. Push delivery is secondary work and
+  // must not delay the Server Action response or its cache/router refresh. Next.js
+  // `after()` keeps the Vercel invocation alive after the response is sent so the
+  // notification can still be dispatched without sitting in the critical path.
+  try {
+    after(async () => {
+      await dispatchAssessmentReleasePush(assessmentId, ownerId);
+    });
+    return { sent: 0, skipped: false };
+  } catch (error) {
+    // This helper is expected to run inside a Server Action/Route Handler. If it is
+    // ever invoked outside a request context, fail closed rather than letting push
+    // interfere with score release.
+    console.error("student push scheduling failed", error);
     return { sent: 0, skipped: false };
   }
 }
