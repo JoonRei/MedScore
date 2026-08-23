@@ -49,7 +49,11 @@ export async function GET() {
       .digest("base64url")
       .slice(0, 32);
 
-    return NextResponse.json({ signature }, {
+    return NextResponse.json({
+      signature,
+      assessmentIds: assessmentSnapshot.map((row) => row.id),
+      scoreAssessmentIds: scoreSnapshot.map((row) => row.assessmentId),
+    }, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
   } catch (error) {

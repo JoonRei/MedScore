@@ -32,6 +32,8 @@ export function PwaRegister() {
   const previousPathname = useRef(pathname);
   const interruptionRecoveryAttempts = useRef(0);
   const studentSyncSignature = useRef("");
+  const studentSyncAssessmentIds = useRef<string[]>([]);
+  const studentSyncScoreAssessmentIds = useRef<string[]>([]);
   const [liveUpdateState, setLiveUpdateState] = useState<"idle" | "refreshing" | "updated">("idle");
 
   useEffect(() => {
@@ -266,18 +268,51 @@ export function PwaRegister() {
       window.clearTimeout(hardStopTimer);
     };
 
-    const readSyncSignature = async () => {
+    type StudentSyncSnapshot = {
+      signature: string;
+      assessmentIds: string[];
+      scoreAssessmentIds: string[];
+    };
+
+    const emptySyncSnapshot = (): StudentSyncSnapshot => ({
+      signature: "",
+      assessmentIds: [],
+      scoreAssessmentIds: [],
+    });
+
+    const readSyncSignature = async (): Promise<StudentSyncSnapshot> => {
       try {
         const response = await fetch("/api/student/sync", {
           cache: "no-store",
           credentials: "same-origin",
         });
-        if (!response.ok) return "";
-        const body = await response.json().catch(() => ({})) as { signature?: string };
-        return String(body.signature || "");
+        if (!response.ok) return emptySyncSnapshot();
+        const body = await response.json().catch(() => ({})) as {
+          signature?: string;
+          assessmentIds?: string[];
+          scoreAssessmentIds?: string[];
+        };
+        return {
+          signature: String(body.signature || ""),
+          assessmentIds: Array.isArray(body.assessmentIds) ? body.assessmentIds.map(String) : [],
+          scoreAssessmentIds: Array.isArray(body.scoreAssessmentIds) ? body.scoreAssessmentIds.map(String) : [],
+        };
       } catch {
-        return "";
+        return emptySyncSnapshot();
       }
+    };
+
+    const snapshotHasDeletion = (next: StudentSyncSnapshot) => {
+      const nextAssessments = new Set(next.assessmentIds);
+      const nextScores = new Set(next.scoreAssessmentIds);
+      return studentSyncAssessmentIds.current.some((id) => !nextAssessments.has(id))
+        || studentSyncScoreAssessmentIds.current.some((id) => !nextScores.has(id));
+    };
+
+    const rememberSyncSnapshot = (snapshot: StudentSyncSnapshot) => {
+      studentSyncSignature.current = snapshot.signature;
+      studentSyncAssessmentIds.current = snapshot.assessmentIds;
+      studentSyncScoreAssessmentIds.current = snapshot.scoreAssessmentIds;
     };
 
     const endRefresh = (showUpdated = true) => {
@@ -340,20 +375,25 @@ export function PwaRegister() {
       }, 320);
     };
 
-    const startPortalRefresh = (nextSignature?: string) => {
+    const startPortalRefresh = (nextSnapshot?: StudentSyncSnapshot, forceReload = false) => {
       if (cancelled || activeRefresh) return;
       clearRefreshTimers();
       activeRefresh = true;
       recoveryScheduled = false;
       interruptionRecoveryAttempts.current = 0;
-      if (nextSignature) studentSyncSignature.current = nextSignature;
+      if (nextSnapshot?.signature) rememberSyncSnapshot(nextSnapshot);
       document.body.dataset.studentLiveRefresh = "true";
       setLiveUpdateState("refreshing");
 
-      // The sync endpoint has already confirmed that the database reflects the
-      // change. Give the RSC/cache layer a brief settling window, then refresh once.
+      // Deletions need a clean document reload because client-owned widgets such as
+      // the Leaderboard can otherwise keep a now-deleted assessment in local state.
+      // Releases/edits still use the lighter RSC refresh.
       refreshTimer = window.setTimeout(() => {
         if (cancelled || !activeRefresh) return;
+        if (forceReload) {
+          window.location.reload();
+          return;
+        }
         router.refresh();
 
         // Keep the protective overlay alive long enough to catch a late error
@@ -373,14 +413,14 @@ export function PwaRegister() {
       }, 10000);
     };
 
-    const waitForStableSignature = async (firstSignature: string) => {
-      let candidate = firstSignature;
+    const waitForStableSignature = async (firstSnapshot: StudentSyncSnapshot) => {
+      let candidate = firstSnapshot;
       for (let attempt = 0; attempt < 5; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 420));
         if (cancelled || activeRefresh) return candidate;
         const next = await readSyncSignature();
-        if (!next) return candidate;
-        if (next === candidate) return candidate;
+        if (!next.signature) return candidate;
+        if (next.signature === candidate.signature) return next;
         candidate = next;
       }
       return candidate;
@@ -393,19 +433,21 @@ export function PwaRegister() {
         const attempts = source === "push" ? 8 : 1;
         for (let attempt = 0; attempt < attempts; attempt += 1) {
           if (cancelled || activeRefresh) return;
-          const signature = await readSyncSignature();
-          if (!signature) return;
+          const snapshot = await readSyncSignature();
+          if (!snapshot.signature) return;
 
           if (!studentSyncSignature.current) {
-            studentSyncSignature.current = signature;
+            rememberSyncSnapshot(snapshot);
             if (source === "push") {
-              const stableSignature = await waitForStableSignature(signature);
-              if (!cancelled && !activeRefresh) startPortalRefresh(stableSignature);
+              const stableSnapshot = await waitForStableSignature(snapshot);
+              if (!cancelled && !activeRefresh) startPortalRefresh(stableSnapshot);
             }
             return;
-          } else if (signature !== studentSyncSignature.current) {
-            const stableSignature = await waitForStableSignature(signature);
-            if (!cancelled && !activeRefresh) startPortalRefresh(stableSignature);
+          } else if (snapshot.signature !== studentSyncSignature.current) {
+            const deletionDetected = snapshotHasDeletion(snapshot);
+            const stableSnapshot = await waitForStableSignature(snapshot);
+            const stableDeletion = deletionDetected || snapshotHasDeletion(stableSnapshot);
+            if (!cancelled && !activeRefresh) startPortalRefresh(stableSnapshot, stableDeletion);
             return;
           }
 
