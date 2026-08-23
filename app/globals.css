@@ -9855,3 +9855,140 @@ body[data-student-route="home"] .student-shell .empty-state::before {
     animation: none !important;
   }
 }
+
+/* V4.22 final sync polish — true viewport-centred live update surface. */
+.student-live-update-v422 {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(24, 18, 27, .14) !important;
+  backdrop-filter: blur(11px) saturate(.88) !important;
+  -webkit-backdrop-filter: blur(11px) saturate(.88) !important;
+  overflow: hidden;
+}
+.student-live-update-v422::before {
+  background: radial-gradient(circle at center, rgba(255,255,255,.2) 0, rgba(255,255,255,.06) 32%, transparent 62%) !important;
+}
+.student-live-update-center-v422 {
+  width: min(292px, calc(100vw - 40px)) !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  padding: 22px 20px 18px !important;
+  gap: 6px !important;
+  border: 1px solid rgba(255,255,255,.76) !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: 0 18px 48px rgba(34,24,37,.14) !important;
+  transform: none !important;
+  text-align: center !important;
+}
+.student-live-update-mark-v422 {
+  width: 40px !important;
+  height: 40px !important;
+  margin-bottom: 4px !important;
+}
+.student-live-update-center-v422 strong {
+  font-size: 14.5px !important;
+  line-height: 1.35 !important;
+}
+.student-live-update-center-v422 small {
+  max-width: 238px !important;
+  font-size: 10.75px !important;
+  line-height: 1.5 !important;
+}
+.student-live-update-streak-v422 {
+  width: min(210px, 66vw) !important;
+  margin-top: 10px !important;
+}
+@media (max-width: 430px) {
+  .student-live-update-v422 {
+    inset: 0 !important;
+    width: auto !important;
+    grid-template-columns: 1fr !important;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left)) !important;
+    border-radius: 0 !important;
+  }
+  .student-live-update-center-v422 {
+    width: min(276px, calc(100vw - 28px)) !important;
+    padding: 20px 17px 17px !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* Results overview is a real surface at every breakpoint, not transparent on desktop. */
+body[data-student-route="results"] .student-shell .student-v2-results-summary,
+body[data-student-route="results"] .student-shell .student-results-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin-bottom: 18px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+body[data-student-route="results"] .student-shell .student-v2-results-summary > div,
+body[data-student-route="results"] .student-shell .student-results-summary > div {
+  min-width: 0 !important;
+  padding: 16px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+body[data-student-route="results"] .student-shell .student-v2-results-summary > div + div,
+body[data-student-route="results"] .student-shell .student-results-summary > div + div {
+  border-left: 1px solid var(--border) !important;
+}
+@media (max-width: 760px) {
+  body[data-student-route="results"] .student-shell .student-v2-results-summary,
+  body[data-student-route="results"] .student-shell .student-results-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body[data-student-route="results"] .student-shell .student-v2-results-summary > div + div,
+  body[data-student-route="results"] .student-shell .student-results-summary > div + div {
+    border-left: 0 !important;
+  }
+  body[data-student-route="results"] .student-shell .student-v2-results-summary > div:nth-child(even),
+  body[data-student-route="results"] .student-shell .student-results-summary > div:nth-child(even) {
+    border-left: 1px solid var(--border) !important;
+  }
+  body[data-student-route="results"] .student-shell .student-v2-results-summary > div:nth-child(n+3),
+  body[data-student-route="results"] .student-shell .student-results-summary > div:nth-child(n+3) {
+    border-top: 1px solid var(--border) !important;
+  }
+}
+@media (max-width: 380px) {
+  body[data-student-route="results"] .student-shell .student-v2-results-summary,
+  body[data-student-route="results"] .student-shell .student-results-summary {
+    grid-template-columns: 1fr !important;
+  }
+  body[data-student-route="results"] .student-shell .student-v2-results-summary > div,
+  body[data-student-route="results"] .student-shell .student-results-summary > div {
+    border-left: 0 !important;
+  }
+  body[data-student-route="results"] .student-shell .student-v2-results-summary > div + div,
+  body[data-student-route="results"] .student-shell .student-results-summary > div + div {
+    border-top: 1px solid var(--border) !important;
+  }
+}

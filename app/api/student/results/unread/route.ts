@@ -32,7 +32,16 @@ export async function GET() {
     if (scoresError) throw scoresError;
     if (viewsError) throw viewsError;
 
-    const viewMap = new Map<string, string>((views || []).map((view: any) => [String(view.assessment_id), String(view.viewed_at || "")] as [string, string]));
+    const viewMap = new Map<string, string>();
+    for (const view of views || []) {
+      const assessmentId = String((view as any).assessment_id || "");
+      const viewedAt = String((view as any).viewed_at || "");
+      if (!assessmentId || !viewedAt) continue;
+      const previous = viewMap.get(assessmentId);
+      if (!previous || new Date(viewedAt).getTime() > new Date(previous).getTime()) {
+        viewMap.set(assessmentId, viewedAt);
+      }
+    }
     const items = (scores || []).flatMap((row: any) => {
       const assessment = Array.isArray(row.assessments) ? row.assessments[0] : row.assessments;
       const subject = Array.isArray(assessment?.subjects) ? assessment.subjects[0] : assessment?.subjects;

@@ -364,13 +364,26 @@ export function PwaRegister() {
           if (temporaryProblem()) recoverReleaseInterruption();
           else endRefresh(true);
         }, 2200);
-      }, 700);
+      }, 260);
 
       hardStopTimer = window.setTimeout(() => {
         if (cancelled || !activeRefresh) return;
         if (temporaryProblem()) recoverReleaseInterruption();
         else endRefresh(true);
       }, 10000);
+    };
+
+    const waitForStableSignature = async (firstSignature: string) => {
+      let candidate = firstSignature;
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 420));
+        if (cancelled || activeRefresh) return candidate;
+        const next = await readSyncSignature();
+        if (!next) return candidate;
+        if (next === candidate) return candidate;
+        candidate = next;
+      }
+      return candidate;
     };
 
     const checkForServerChanges = async (source: "poll" | "push" | "focus" = "poll") => {
@@ -385,10 +398,14 @@ export function PwaRegister() {
 
           if (!studentSyncSignature.current) {
             studentSyncSignature.current = signature;
-            if (source === "push") startPortalRefresh(signature);
+            if (source === "push") {
+              const stableSignature = await waitForStableSignature(signature);
+              if (!cancelled && !activeRefresh) startPortalRefresh(stableSignature);
+            }
             return;
           } else if (signature !== studentSyncSignature.current) {
-            startPortalRefresh(signature);
+            const stableSignature = await waitForStableSignature(signature);
+            if (!cancelled && !activeRefresh) startPortalRefresh(stableSignature);
             return;
           }
 
@@ -492,8 +509,14 @@ export function PwaRegister() {
         }
         if (cancelled) return;
         card?.querySelector(".new-result-badge")?.remove();
+        unreadItems = unreadItems.filter((item) => item.id !== id);
         updateVisibleNewCount();
         window.dispatchEvent(new CustomEvent("medscores:result-viewed", { detail: { assessmentId: id } }));
+        viewedIds.delete(id);
+        // Refresh the current RSC tree only after the persisted view row succeeds.
+        // The endpoint also revalidates Home/Results/Notifications, so navigating
+        // away cannot resurrect a stale New badge or New-results count.
+        router.refresh();
       } catch {
         viewedIds.delete(id);
       }
@@ -580,7 +603,7 @@ export function PwaRegister() {
       window.removeEventListener("popstate", markFromLocation);
       window.removeEventListener("medscores:portal-updated", loadUnreadItems);
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   useEffect(() => {
     // Browsers cannot attach a custom sound to a Web Push notification itself. For

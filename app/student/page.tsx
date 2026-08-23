@@ -20,7 +20,16 @@ export default async function Page() {
       .order("created_at", { ascending: false }),
     db.from("student_result_views").select("assessment_id,viewed_at").eq("student_id", student.id),
   ]);
-  const viewMap = new Map((views || []).map((view: any) => [view.assessment_id, view.viewed_at]));
+  const viewMap = new Map<string, string>();
+  for (const view of views || []) {
+    const assessmentId = String((view as any).assessment_id || "");
+    const viewedAt = String((view as any).viewed_at || "");
+    if (!assessmentId || !viewedAt) continue;
+    const previous = viewMap.get(assessmentId);
+    if (!previous || new Date(viewedAt).getTime() > new Date(previous).getTime()) {
+      viewMap.set(assessmentId, viewedAt);
+    }
+  }
 
   const rows = (scores || []).map((row: any) => {
     const assessment = Array.isArray(row.assessments) ? row.assessments[0] : row.assessments;
