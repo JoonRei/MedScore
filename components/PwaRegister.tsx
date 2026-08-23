@@ -34,6 +34,8 @@ export function PwaRegister() {
   const studentSyncSignature = useRef("");
   const studentSyncAssessmentIds = useRef<string[]>([]);
   const studentSyncScoreAssessmentIds = useRef<string[]>([]);
+  const studentSyncSubjectIds = useRef<string[]>([]);
+  const studentSyncSubjectsReady = useRef(false);
   const [liveUpdateState, setLiveUpdateState] = useState<"idle" | "refreshing" | "updated">("idle");
 
   useEffect(() => {
@@ -365,6 +367,71 @@ export function PwaRegister() {
         || studentSyncScoreAssessmentIds.current.some((id) => !nextScores.has(id));
     };
 
+    // Read the real server-rendered Subjects list instead of coupling live sync to
+    // a particular assignment-table schema. This makes per-student subject
+    // unassignment detectable even when existing scores for that subject remain.
+    const readAssignedSubjectIds = async (): Promise<string[] | null> => {
+      try {
+        const response = await fetch(`/student/subjects?_medscores_sync=${Date.now()}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: { Accept: "text/html" },
+        });
+        if (!response.ok || response.redirected) return null;
+
+        const html = await response.text();
+        const page = new DOMParser().parseFromString(html, "text/html");
+        const links = Array.from(page.querySelectorAll<HTMLAnchorElement>(
+          'a.subject-card[href*="/student/subjects/"], .subject-list a[href*="/student/subjects/"]'
+        ));
+        const looksLikeSubjectsPage = Boolean(page.querySelector(".subject-list"))
+          || links.length > 0
+          || /select a subject|your subjects|subjects/i.test((page.body.textContent || "").slice(0, 4000));
+        if (!looksLikeSubjectsPage) return null;
+
+        const ids = links
+          .map((link) => {
+            try {
+              const url = new URL(link.getAttribute("href") || "", window.location.origin);
+              const match = url.pathname.match(/^\/student\/subjects\/([^/]+)\/?$/);
+              return match ? decodeURIComponent(match[1]) : "";
+            } catch {
+              return "";
+            }
+          })
+          .filter(Boolean);
+        return Array.from(new Set(ids)).sort();
+      } catch {
+        return null;
+      }
+    };
+
+    const rememberAssignedSubjects = (ids: string[]) => {
+      studentSyncSubjectIds.current = ids;
+      studentSyncSubjectsReady.current = true;
+    };
+
+    const compareAssignedSubjects = (nextIds: string[] | null) => {
+      if (!nextIds) return { changed: false, removedCurrent: false };
+      if (!studentSyncSubjectsReady.current) {
+        rememberAssignedSubjects(nextIds);
+        return { changed: false, removedCurrent: false };
+      }
+
+      const previous = studentSyncSubjectIds.current;
+      const previousSet = new Set(previous);
+      const nextSet = new Set(nextIds);
+      const changed = previous.length !== nextIds.length
+        || previous.some((id) => !nextSet.has(id))
+        || nextIds.some((id) => !previousSet.has(id));
+      const currentSubjectMatch = pathname.match(/^\/student\/subjects\/([^/?#]+)/);
+      const currentSubjectId = currentSubjectMatch ? decodeURIComponent(currentSubjectMatch[1]) : "";
+      const removedCurrent = Boolean(currentSubjectId && previousSet.has(currentSubjectId) && !nextSet.has(currentSubjectId));
+
+      if (changed) rememberAssignedSubjects(nextIds);
+      return { changed, removedCurrent };
+    };
+
     const rememberSyncSnapshot = (snapshot: StudentSyncSnapshot) => {
       studentSyncSignature.current = snapshot.signature;
       studentSyncAssessmentIds.current = snapshot.assessmentIds;
@@ -431,7 +498,7 @@ export function PwaRegister() {
       }, 320);
     };
 
-    const startPortalRefresh = (nextSnapshot?: StudentSyncSnapshot, forceReload = false) => {
+    const startPortalRefresh = (nextSnapshot?: StudentSyncSnapshot, forceReload = false, reloadPath = "") => {
       if (cancelled || activeRefresh) return;
       clearRefreshTimers();
       activeRefresh = true;
@@ -447,7 +514,8 @@ export function PwaRegister() {
       refreshTimer = window.setTimeout(() => {
         if (cancelled || !activeRefresh) return;
         if (forceReload) {
-          window.location.reload();
+          if (reloadPath) window.location.replace(reloadPath);
+          else window.location.reload();
           return;
         }
         router.refresh();
@@ -486,6 +554,22 @@ export function PwaRegister() {
       if (cancelled || syncBusy || activeRefresh || document.visibilityState !== "visible" || !navigator.onLine) return;
       syncBusy = true;
       try {
+        // Subject access can change independently of assessments/scores. Compare
+        // against the actual Subjects page so a per-student unassignment is
+        // detected regardless of how the database models that assignment.
+        const assignedSubjectIds = await readAssignedSubjectIds();
+        const subjectChange = compareAssignedSubjects(assignedSubjectIds);
+        if (subjectChange.changed) {
+          const snapshot = await readSyncSignature();
+          if (snapshot.signature) rememberSyncSnapshot(snapshot);
+          startPortalRefresh(
+            snapshot.signature ? snapshot : undefined,
+            true,
+            subjectChange.removedCurrent ? "/student/subjects" : "",
+          );
+          return;
+        }
+
         const attempts = source === "push" ? 8 : 1;
         for (let attempt = 0; attempt < attempts; attempt += 1) {
           if (cancelled || activeRefresh) return;
@@ -545,9 +629,9 @@ export function PwaRegister() {
     window.addEventListener("online", handleVisibility);
     window.addEventListener("pageshow", handleVisibility);
 
-    // Establish a baseline, then use a tiny signature check while the Student Portal
-    // is visible. This catches deleted assessments/scores (which do not create a
-    // release push) without repeatedly refreshing the entire page.
+    // Establish a baseline, then use lightweight checks while the Student Portal
+    // is visible. This catches released/deleted assessments and scores plus
+    // per-student subject assignment changes without manual refreshes.
     void checkForServerChanges("focus");
     pollTimer = window.setInterval(() => void checkForServerChanges("poll"), 8000);
 
