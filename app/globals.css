@@ -10108,3 +10108,37 @@ body[data-student-route="home"] .student-shell .empty-state::before {
     pointer-events: none !important;
   }
 }
+
+
+/* V4.22 Notifications page — match the thin-line Student empty-state vector system. */
+.student-notification-page-empty > .student-notification-empty-vector-v422 {
+  width: 50px !important;
+  height: 50px !important;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+  overflow: visible;
+  color: var(--brand);
+  opacity: .92;
+  animation: student-empty-vector-float-v422 3.2s ease-in-out infinite !important;
+}
+.student-notification-page-empty > .student-notification-empty-vector-v422 path {
+  fill: none;
+  stroke: #74108f;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.student-notification-page-empty > .student-notification-empty-vector-v422 .is-accent {
+  stroke: #b05ac4;
+  stroke-width: 1.35;
+}
+.student-notification-page-empty > .student-notification-empty-vector-v422 .is-soft {
+  fill: #f1e7f4;
+  stroke: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-notification-page-empty > .student-notification-empty-vector-v422 {
+    animation: none !important;
+  }
+}

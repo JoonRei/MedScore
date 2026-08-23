@@ -58,7 +58,12 @@ export function StudentNotificationsPage({ initialItems }: { initialItems: Stude
         </div>
       ) : (
         <div className="student-notification-page-empty">
-          <NotificationIcon size={24} />
+          <svg className="student-notification-empty-vector-v422" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M14 31.5h20l-2.1-3V20.8c0-4.9-3.2-8.6-7.9-9.4-4.7.8-7.9 4.5-7.9 9.4v7.7l-2.1 3Z" />
+            <path d="M20.5 35.5c.8 2.1 2 3 3.5 3s2.7-.9 3.5-3" />
+            <path className="is-accent" d="M36.5 12v4M34.5 14h4" />
+            <circle className="is-soft" cx="12.5" cy="17" r="2" />
+          </svg>
           <strong>No notifications yet</strong>
           <span>Newly released results will appear here automatically.</span>
         </div>
