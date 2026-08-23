@@ -10088,3 +10088,23 @@ body[data-student-route="home"] .student-shell .empty-state::before {
     animation: none !important;
   }
 }
+
+/* V4.22 device-measured Student bottom-nav clearance.
+   PwaRegister sets --student-mobile-nav-clearance from the nav's real rendered
+   overlap, including iOS safe areas and Android/PWA viewport differences. */
+@media (max-width: 900px) {
+  .student-shell .main-content {
+    padding-bottom: var(--student-mobile-nav-clearance, calc(102px + env(safe-area-inset-bottom))) !important;
+    scroll-padding-bottom: var(--student-mobile-nav-clearance, calc(102px + env(safe-area-inset-bottom))) !important;
+  }
+
+  .student-shell .main-content::after {
+    content: "" !important;
+    display: block !important;
+    width: 100% !important;
+    height: 4px !important;
+    min-height: 4px !important;
+    flex: 0 0 4px !important;
+    pointer-events: none !important;
+  }
+}

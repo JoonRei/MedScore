@@ -165,6 +165,62 @@ export function PwaRegister() {
 
   useEffect(() => {
     if (!pathname.startsWith("/student")) return;
+
+    const media = window.matchMedia("(max-width: 900px)");
+    let resizeObserver: ResizeObserver | null = null;
+    let frame = 0;
+
+    const updateBottomNavClearance = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        if (!media.matches) {
+          document.documentElement.style.removeProperty("--student-mobile-nav-clearance");
+          return;
+        }
+
+        const nav = document.querySelector<HTMLElement>(".student-shell .sidebar");
+        if (!nav) return;
+        const rect = nav.getBoundingClientRect();
+        const visualHeight = window.visualViewport?.height || window.innerHeight;
+        const renderedOverlap = Math.max(rect.height, visualHeight - Math.max(0, rect.top));
+        const clearance = Math.ceil(renderedOverlap + 14);
+        document.documentElement.style.setProperty("--student-mobile-nav-clearance", `${clearance}px`);
+      });
+    };
+
+    const attachObserver = () => {
+      resizeObserver?.disconnect();
+      const nav = document.querySelector<HTMLElement>(".student-shell .sidebar");
+      if (nav && "ResizeObserver" in window) {
+        resizeObserver = new ResizeObserver(updateBottomNavClearance);
+        resizeObserver.observe(nav);
+      }
+      updateBottomNavClearance();
+    };
+
+    attachObserver();
+    const settle = window.setTimeout(attachObserver, 120);
+    media.addEventListener?.("change", updateBottomNavClearance);
+    window.addEventListener("resize", updateBottomNavClearance, { passive: true });
+    window.addEventListener("orientationchange", updateBottomNavClearance, { passive: true });
+    window.visualViewport?.addEventListener("resize", updateBottomNavClearance, { passive: true });
+    window.visualViewport?.addEventListener("scroll", updateBottomNavClearance, { passive: true });
+
+    return () => {
+      window.clearTimeout(settle);
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      media.removeEventListener?.("change", updateBottomNavClearance);
+      window.removeEventListener("resize", updateBottomNavClearance);
+      window.removeEventListener("orientationchange", updateBottomNavClearance);
+      window.visualViewport?.removeEventListener("resize", updateBottomNavClearance);
+      window.visualViewport?.removeEventListener("scroll", updateBottomNavClearance);
+      document.documentElement.style.removeProperty("--student-mobile-nav-clearance");
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/student")) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
 
     let cancelled = false;
