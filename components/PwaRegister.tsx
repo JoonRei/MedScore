@@ -31,6 +31,7 @@ export function PwaRegister() {
   const router = useRouter();
   const previousPathname = useRef(pathname);
   const interruptionRecoveryAttempts = useRef(0);
+  const studentSyncSignature = useRef("");
   const [liveUpdateState, setLiveUpdateState] = useState<"idle" | "refreshing" | "updated">("idle");
 
   useEffect(() => {
@@ -243,19 +244,21 @@ export function PwaRegister() {
   }, [pathname]);
 
   useEffect(() => {
-    if (!pathname.startsWith("/student") || !("serviceWorker" in navigator)) return;
+    if (!pathname.startsWith("/student")) return;
 
     let cancelled = false;
     let activeRefresh = false;
+    let recoveryScheduled = false;
     let refreshTimer = 0;
     let settleTimer = 0;
     let retryTimer = 0;
     let hideTimer = 0;
     let hardStopTimer = 0;
-    let recoveryScheduled = false;
+    let pollTimer = 0;
+    let syncBusy = false;
     const pendingRefreshKey = "medscores:pending-student-live-refresh";
 
-    const clearTimers = () => {
+    const clearRefreshTimers = () => {
       window.clearTimeout(refreshTimer);
       window.clearTimeout(settleTimer);
       window.clearTimeout(retryTimer);
@@ -263,28 +266,47 @@ export function PwaRegister() {
       window.clearTimeout(hardStopTimer);
     };
 
+    const readSyncSignature = async () => {
+      try {
+        const response = await fetch("/api/student/sync", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!response.ok) return "";
+        const body = await response.json().catch(() => ({})) as { signature?: string };
+        return String(body.signature || "");
+      } catch {
+        return "";
+      }
+    };
+
     const endRefresh = (showUpdated = true) => {
       if (cancelled) return;
       activeRefresh = false;
       interruptionRecoveryAttempts.current = 0;
+      recoveryScheduled = false;
       if (!showUpdated) {
         setLiveUpdateState("idle");
         delete document.body.dataset.studentLiveRefresh;
         return;
       }
       setLiveUpdateState("updated");
+      window.dispatchEvent(new CustomEvent("medscores:portal-updated"));
       hideTimer = window.setTimeout(() => {
         if (cancelled) return;
         setLiveUpdateState("idle");
         delete document.body.dataset.studentLiveRefresh;
-      }, 650);
+      }, 520);
     };
 
     const temporaryProblem = () => {
-      const problem = document.querySelector<HTMLElement>(".app-problem, .app-problem-page");
-      if (!problem) return null;
-      const text = (problem.textContent || "").replace(/\s+/g, " ").trim();
-      return /temporary interruption/i.test(text) ? problem : null;
+      const problems = Array.from(document.querySelectorAll<HTMLElement>(
+        ".app-problem, .app-problem-page, [class*='app-problem']"
+      ));
+      return problems.find((problem) => {
+        const text = (problem.textContent || "").replace(/\s+/g, " ").trim();
+        return /temporary interruption/i.test(text);
+      }) || null;
     };
 
     const recoverReleaseInterruption = () => {
@@ -292,9 +314,9 @@ export function PwaRegister() {
       const problem = temporaryProblem();
       if (!problem) return;
 
-      if (interruptionRecoveryAttempts.current >= 3) {
-        // A real persistent failure should eventually be allowed through. Only the
-        // short-lived release/revalidation interruption is kept behind the overlay.
+      if (interruptionRecoveryAttempts.current >= 4) {
+        // If repeated retries cannot recover, reveal the genuine error state rather
+        // than hiding it forever. Normal release-time races should recover earlier.
         endRefresh(false);
         return;
       }
@@ -314,52 +336,87 @@ export function PwaRegister() {
           if (cancelled || !activeRefresh) return;
           if (temporaryProblem()) recoverReleaseInterruption();
           else endRefresh(true);
-        }, 900);
-      }, 260);
+        }, 1350);
+      }, 320);
     };
 
-    const startReleaseRefresh = () => {
-      clearTimers();
+    const startPortalRefresh = (nextSignature?: string) => {
+      if (cancelled || activeRefresh) return;
+      clearRefreshTimers();
       activeRefresh = true;
       recoveryScheduled = false;
       interruptionRecoveryAttempts.current = 0;
+      if (nextSignature) studentSyncSignature.current = nextSignature;
       document.body.dataset.studentLiveRefresh = "true";
       setLiveUpdateState("refreshing");
 
-      // Give the completed release a moment to settle before asking the RSC tree for
-      // fresh data. A single refresh avoids the previous double-refresh race.
+      // The sync endpoint has already confirmed that the database reflects the
+      // change. Give the RSC/cache layer a brief settling window, then refresh once.
       refreshTimer = window.setTimeout(() => {
         if (cancelled || !activeRefresh) return;
         router.refresh();
+
+        // Keep the protective overlay alive long enough to catch a late error
+        // boundary. The old implementation ended too early and exposed the generic
+        // interruption screen even though retrying immediately succeeded.
         settleTimer = window.setTimeout(() => {
           if (cancelled || !activeRefresh) return;
           if (temporaryProblem()) recoverReleaseInterruption();
           else endRefresh(true);
-        }, 1250);
-      }, 520);
+        }, 2200);
+      }, 700);
 
-      // Never hide a genuine long-running failure forever.
       hardStopTimer = window.setTimeout(() => {
         if (cancelled || !activeRefresh) return;
-        if (temporaryProblem()) endRefresh(false);
+        if (temporaryProblem()) recoverReleaseInterruption();
         else endRefresh(true);
-      }, 8500);
+      }, 10000);
     };
 
-    const handleScoreRelease = (event: MessageEvent) => {
-      if (event.data?.type !== "MEDSCORES_SCORE_RELEASED") return;
+    const checkForServerChanges = async (source: "poll" | "push" | "focus" = "poll") => {
+      if (cancelled || syncBusy || activeRefresh || document.visibilityState !== "visible" || !navigator.onLine) return;
+      syncBusy = true;
+      try {
+        const attempts = source === "push" ? 8 : 1;
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          if (cancelled || activeRefresh) return;
+          const signature = await readSyncSignature();
+          if (!signature) return;
+
+          if (!studentSyncSignature.current) {
+            studentSyncSignature.current = signature;
+            if (source === "push") startPortalRefresh(signature);
+            return;
+          } else if (signature !== studentSyncSignature.current) {
+            startPortalRefresh(signature);
+            return;
+          }
+
+          if (source === "push" && attempt < attempts - 1) {
+            await new Promise((resolve) => window.setTimeout(resolve, 320));
+          }
+        }
+      } finally {
+        syncBusy = false;
+      }
+    };
+
+    const handleStudentChange = (event: MessageEvent) => {
+      if (event.data?.type !== "MEDSCORES_SCORE_RELEASED" && event.data?.type !== "MEDSCORES_STUDENT_DATA_CHANGED") return;
       if (document.visibilityState !== "visible") {
         window.sessionStorage.setItem(pendingRefreshKey, "1");
         return;
       }
-      startReleaseRefresh();
+      void checkForServerChanges("push");
     };
 
     const handleVisibility = () => {
       if (document.visibilityState !== "visible") return;
       if (window.sessionStorage.getItem(pendingRefreshKey) === "1") {
         window.sessionStorage.removeItem(pendingRefreshKey);
-        startReleaseRefresh();
+        void checkForServerChanges("push");
+      } else {
+        void checkForServerChanges("focus");
       }
     };
 
@@ -367,20 +424,32 @@ export function PwaRegister() {
       if (activeRefresh && temporaryProblem()) recoverReleaseInterruption();
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    navigator.serviceWorker.addEventListener("message", handleScoreRelease);
+
+    if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", handleStudentChange);
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("online", handleVisibility);
+    window.addEventListener("pageshow", handleVisibility);
+
+    // Establish a baseline, then use a tiny signature check while the Student Portal
+    // is visible. This catches deleted assessments/scores (which do not create a
+    // release push) without repeatedly refreshing the entire page.
+    void checkForServerChanges("focus");
+    pollTimer = window.setInterval(() => void checkForServerChanges("poll"), 8000);
 
     if (window.sessionStorage.getItem(pendingRefreshKey) === "1" && document.visibilityState === "visible") {
       window.sessionStorage.removeItem(pendingRefreshKey);
-      startReleaseRefresh();
+      void checkForServerChanges("push");
     }
 
     return () => {
       cancelled = true;
-      clearTimers();
+      clearRefreshTimers();
+      window.clearInterval(pollTimer);
       observer.disconnect();
-      navigator.serviceWorker.removeEventListener("message", handleScoreRelease);
+      if ("serviceWorker" in navigator) navigator.serviceWorker.removeEventListener("message", handleStudentChange);
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("online", handleVisibility);
+      window.removeEventListener("pageshow", handleVisibility);
       delete document.body.dataset.studentLiveRefresh;
     };
   }, [pathname, router]);
@@ -389,9 +458,26 @@ export function PwaRegister() {
     if (pathname !== "/student/results") return;
 
     let cancelled = false;
+    let unreadItems: Array<{ id: string; title: string; subject: string; type: string }> = [];
     const viewedIds = new Set<string>();
 
-    const markViewed = async (assessmentId: string) => {
+    const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
+
+    const updateVisibleNewCount = () => {
+      const remaining = document.querySelectorAll(".student-shell .new-result-badge").length;
+      document.querySelectorAll<HTMLElement>(
+        ".student-results-summary > div, .student-v2-results-summary > div, .student-metric"
+      ).forEach((metric) => {
+        const label = metric.querySelector<HTMLElement>("span");
+        const value = metric.querySelector<HTMLElement>("strong");
+        if (!label || !value || !/new results?/i.test((label.textContent || "").trim())) return;
+        value.textContent = String(remaining);
+        const detail = metric.querySelector<HTMLElement>("small");
+        if (detail) detail.textContent = remaining ? "not yet opened" : "all caught up";
+      });
+    };
+
+    const markViewed = async (assessmentId: string, card?: HTMLElement | null) => {
       const id = assessmentId.trim();
       if (!id || viewedIds.has(id)) return;
       viewedIds.add(id);
@@ -405,39 +491,96 @@ export function PwaRegister() {
           return;
         }
         if (cancelled) return;
+        card?.querySelector(".new-result-badge")?.remove();
+        updateVisibleNewCount();
         window.dispatchEvent(new CustomEvent("medscores:result-viewed", { detail: { assessmentId: id } }));
-        router.refresh();
       } catch {
         viewedIds.delete(id);
       }
     };
 
+    const mapUnreadCards = () => {
+      const cards = Array.from(document.querySelectorAll<HTMLElement>(".student-result-card-button"));
+      const assignedIds = new Set(cards.map((card) => card.dataset.assessmentId || "").filter(Boolean));
+      for (const card of cards) {
+        if (card.dataset.assessmentId) continue;
+        const title = normalize(card.querySelector<HTMLElement>("h3")?.textContent || "");
+        const meta = Array.from(card.querySelectorAll<HTMLElement>(".student-result-card-meta span"))
+          .map((node) => normalize(node.textContent || ""));
+        if (!title) continue;
+
+        let match = unreadItems.find((item) => !assignedIds.has(item.id)
+          && normalize(item.title) === title
+          && meta.includes(normalize(item.subject)));
+        if (!match) {
+          const sameTitle = unreadItems.filter((item) => !assignedIds.has(item.id) && normalize(item.title) === title);
+          if (sameTitle.length === 1) match = sameTitle[0];
+        }
+        if (match) {
+          card.dataset.assessmentId = match.id;
+          assignedIds.add(match.id);
+        }
+      }
+    };
+
+    const loadUnreadItems = async () => {
+      try {
+        const response = await fetch("/api/student/results/unread", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!response.ok) return;
+        const body = await response.json().catch(() => ({})) as {
+          items?: Array<{ id?: string; title?: string; subject?: string; type?: string }>;
+        };
+        if (cancelled) return;
+        unreadItems = (body.items || []).map((item) => ({
+          id: String(item.id || ""),
+          title: String(item.title || ""),
+          subject: String(item.subject || ""),
+          type: String(item.type || ""),
+        })).filter((item) => item.id);
+        mapUnreadCards();
+      } catch {
+        // Viewing a result must never be blocked by read-state bookkeeping.
+      }
+    };
+
     const markFromLocation = () => {
       const id = new URLSearchParams(window.location.search).get("assessment");
-      if (id) void markViewed(id);
+      if (id) void markViewed(id, document.querySelector<HTMLElement>(`.student-result-card-button[data-assessment-id="${CSS.escape(id)}"]`));
     };
 
     const handleResultClick = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target : null;
+      const card = target?.closest<HTMLElement>(".student-result-card-button");
+      if (card?.dataset.assessmentId) void markViewed(card.dataset.assessmentId, card);
+
       const anchor = target?.closest<HTMLAnchorElement>('a[href*="assessment="]');
       if (anchor) {
         try {
           const id = new URL(anchor.href, window.location.href).searchParams.get("assessment");
-          if (id) void markViewed(id);
+          if (id) void markViewed(id, card);
         } catch { /* ignore malformed href */ }
       }
-      window.setTimeout(markFromLocation, 80);
     };
 
-    markFromLocation();
+    const observer = new MutationObserver(mapUnreadCards);
+    observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener("click", handleResultClick, true);
     window.addEventListener("popstate", markFromLocation);
+    window.addEventListener("medscores:portal-updated", loadUnreadItems);
+
+    void loadUnreadItems().then(markFromLocation);
+
     return () => {
       cancelled = true;
+      observer.disconnect();
       document.removeEventListener("click", handleResultClick, true);
       window.removeEventListener("popstate", markFromLocation);
+      window.removeEventListener("medscores:portal-updated", loadUnreadItems);
     };
-  }, [pathname, router]);
+  }, [pathname]);
 
   useEffect(() => {
     // Browsers cannot attach a custom sound to a Web Push notification itself. For
@@ -586,8 +729,8 @@ export function PwaRegister() {
     >
       <div className="student-live-update-center-v422">
         <span className="student-live-update-mark-v422" aria-hidden="true" />
-        <strong>{liveUpdateState === "updated" ? "Scores updated" : "Updating latest scores…"}</strong>
-        <small>{liveUpdateState === "updated" ? "You’re viewing the latest released data." : "Getting the newest results ready for you."}</small>
+        <strong>{liveUpdateState === "updated" ? "Portal updated" : "Syncing your portal"}</strong>
+        <small>{liveUpdateState === "updated" ? "Everything now reflects the latest changes." : "Applying the newest assessment and score changes."}</small>
         <span className="student-live-update-streak-v422" aria-hidden="true"><i /></span>
       </div>
     </div>

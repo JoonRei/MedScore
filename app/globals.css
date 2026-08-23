@@ -9498,13 +9498,15 @@ body[data-smart-student-names="true"] input[placeholder*="student" i][placeholde
   }
 }
 
-/* MedScores V4.22 — live score refresh, interruption recovery, and unified Student empty states. */
+/* MedScores V4.22 — live portal sync, interruption recovery, and unified Student empty states. */
 
-/* When a release-triggered refresh briefly hits the generic error boundary, keep
-   the false interruption out of view while the root PWA layer retries the data. */
+/* A release/update refresh is a normal sync, not an error. Keep the generic
+   interruption boundary behind the sync layer while the bounded retry completes. */
 body[data-student-live-refresh="true"] .app-problem-page,
-body[data-student-live-refresh="true"] .app-problem {
-  display: none !important;
+body[data-student-live-refresh="true"] .app-problem,
+body[data-student-live-refresh="true"] [class*="app-problem"] {
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .student-live-update-v422 {
@@ -9513,41 +9515,71 @@ body[data-student-live-refresh="true"] .app-problem {
   z-index: 4200;
   display: grid;
   place-items: center;
-  padding: max(24px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
-  background: rgba(249,247,250,.58);
-  backdrop-filter: blur(13px) saturate(.92);
-  -webkit-backdrop-filter: blur(13px) saturate(.92);
-  animation: student-live-overlay-in-v422 .2s ease-out both;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: rgba(36, 27, 39, .16);
+  backdrop-filter: blur(8px) saturate(.9);
+  -webkit-backdrop-filter: blur(8px) saturate(.9);
+  animation: student-live-overlay-in-v422 .18s ease-out both;
 }
 .student-live-update-v422::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 43%, rgba(116,16,143,.07), transparent 31%),
-    linear-gradient(115deg, transparent 38%, rgba(255,255,255,.62) 49%, transparent 60%);
-  background-size: 100% 100%, 240% 100%;
-  animation: student-live-screen-streak-v422 1.65s ease-in-out infinite;
+  background: radial-gradient(circle at 50% 48%, rgba(255,255,255,.18), transparent 42%);
 }
 .student-live-update-center-v422 {
   position: relative;
-  width: min(370px, 88vw);
+  width: min(338px, calc(100vw - 34px));
+  min-width: 0;
+  overflow: hidden;
   display: grid;
   justify-items: center;
   gap: 7px;
+  padding: 24px 22px 20px;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 22px;
+  background: rgba(255,255,255,.91);
+  box-shadow: 0 22px 60px rgba(34,24,37,.18), 0 2px 8px rgba(34,24,37,.06);
   text-align: center;
   color: var(--text);
+  isolation: isolate;
+}
+.student-live-update-center-v422::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 2;
+  background: linear-gradient(90deg,
+    rgba(116,16,143,.08) 0%,
+    rgba(183,89,202,.62) 28%,
+    var(--brand) 50%,
+    rgba(208,139,220,.62) 72%,
+    rgba(116,16,143,.08) 100%);
+  background-size: 220% 100%;
+  animation: student-live-top-streak-v422 1.35s ease-in-out infinite;
+}
+.student-live-update-center-v422::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 96px;
+  left: 50%;
+  top: -56px;
+  z-index: -1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(116,16,143,.055);
+  filter: blur(18px);
 }
 .student-live-update-mark-v422 {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 5px;
-  border: 1px solid rgba(116,16,143,.12);
-  border-radius: 15px;
-  background: rgba(255,255,255,.72);
-  box-shadow: 0 12px 34px rgba(50,31,54,.09);
+  width: 43px;
+  height: 43px;
+  margin: 1px 0 5px;
   position: relative;
+  border-radius: 50%;
+  background: rgba(116,16,143,.075);
 }
 .student-live-update-mark-v422::before,
 .student-live-update-mark-v422::after {
@@ -9557,52 +9589,62 @@ body[data-student-live-refresh="true"] .app-problem {
   transform: translate(-50%, -50%);
 }
 .student-live-update-mark-v422::before {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(116,16,143,.18);
+  width: 19px;
+  height: 19px;
+  border: 2px solid rgba(116,16,143,.16);
   border-top-color: var(--brand);
-  border-right-color: rgba(116,16,143,.55);
+  border-right-color: rgba(116,16,143,.58);
   border-radius: 50%;
-  animation: student-live-update-spin-v422 .72s linear infinite;
+  animation: student-live-update-spin-v422 .78s linear infinite;
 }
 .student-live-update-mark-v422::after {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--brand);
-  opacity: .82;
+  box-shadow: 0 0 0 5px rgba(116,16,143,.07);
+  animation: student-live-dot-v422 1.2s ease-in-out infinite;
 }
 .student-live-update-center-v422 strong {
-  font-size: clamp(15px, 3.8vw, 18px);
+  margin-top: 1px;
+  font-size: 15.5px;
+  font-weight: 800;
   line-height: 1.35;
-  letter-spacing: -.02em;
+  letter-spacing: -.018em;
 }
 .student-live-update-center-v422 small {
-  max-width: 310px;
+  max-width: 270px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 11.25px;
   line-height: 1.55;
 }
 .student-live-update-streak-v422 {
   position: relative;
-  width: min(270px, 72vw);
-  height: 4px;
-  margin-top: 13px;
+  width: min(238px, 72vw);
+  height: 3px;
+  margin-top: 12px;
   overflow: hidden;
-  border-radius: 99px;
-  background: rgba(116,16,143,.08);
+  border-radius: 999px;
+  background: rgba(116,16,143,.075);
 }
 .student-live-update-streak-v422 i {
   position: absolute;
-  inset: 0 auto 0 -42%;
-  width: 42%;
+  inset: 0 auto 0 -34%;
+  width: 34%;
   border-radius: inherit;
-  background: linear-gradient(90deg, transparent, rgba(116,16,143,.38), var(--brand), rgba(183,89,202,.42), transparent);
-  animation: student-live-streak-v422 1.05s cubic-bezier(.42,0,.2,1) infinite;
+  background: linear-gradient(90deg, transparent, rgba(183,89,202,.5), var(--brand), transparent);
+  animation: student-live-streak-v422 1.08s cubic-bezier(.4,0,.2,1) infinite;
+}
+.student-live-update-v422.is-updated .student-live-update-center-v422::before {
+  animation: none;
+  background: linear-gradient(90deg, rgba(38,147,92,.08), rgba(38,147,92,.68), rgba(38,147,92,.08));
+}
+.student-live-update-v422.is-updated .student-live-update-mark-v422 {
+  background: var(--success-soft);
 }
 .student-live-update-v422.is-updated .student-live-update-mark-v422::before {
-  width: 18px;
-  height: 10px;
+  width: 17px;
+  height: 9px;
   border: 0;
   border-left: 2px solid var(--success);
   border-bottom: 2px solid var(--success);
@@ -9611,32 +9653,46 @@ body[data-student-live-refresh="true"] .app-problem {
   animation: student-live-check-v422 .22s ease-out both;
 }
 .student-live-update-v422.is-updated .student-live-update-mark-v422::after { display: none; }
-.student-live-update-v422.is-updated .student-live-update-streak-v422 i {
-  animation-duration: .7s;
-  opacity: .45;
-}
+.student-live-update-v422.is-updated .student-live-update-streak-v422 { opacity: .45; }
+.student-live-update-v422.is-updated .student-live-update-streak-v422 i { animation: none; left: 66%; }
+
 @keyframes student-live-overlay-in-v422 {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes student-live-screen-streak-v422 {
-  0%, 18% { background-position: 0 0, 115% 0; }
-  72%, 100% { background-position: 0 0, -115% 0; }
+@keyframes student-live-top-streak-v422 {
+  0%, 12% { background-position: 100% 0; }
+  78%, 100% { background-position: -100% 0; }
 }
 @keyframes student-live-update-spin-v422 { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes student-live-dot-v422 {
+  0%, 100% { opacity: .55; transform: translate(-50%, -50%) scale(.84); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
 @keyframes student-live-streak-v422 {
-  0% { left: -42%; }
+  0% { left: -34%; }
   100% { left: 100%; }
 }
 @keyframes student-live-check-v422 {
-  from { opacity: 0; transform: translate(-50%, -60%) rotate(-45deg) scale(.7); }
+  from { opacity: 0; transform: translate(-50%, -60%) rotate(-45deg) scale(.72); }
   to { opacity: 1; transform: translate(-50%, -60%) rotate(-45deg) scale(1); }
+}
+
+@media (max-width: 430px) {
+  .student-live-update-v422 { padding-inline: 16px; }
+  .student-live-update-center-v422 {
+    width: min(320px, calc(100vw - 32px));
+    padding: 22px 18px 18px;
+    border-radius: 20px;
+  }
+  .student-live-update-center-v422 small { max-width: 245px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .student-live-update-v422,
-  .student-live-update-v422::before,
+  .student-live-update-center-v422::before,
   .student-live-update-mark-v422::before,
+  .student-live-update-mark-v422::after,
   .student-live-update-streak-v422 i {
     animation: none !important;
   }

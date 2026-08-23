@@ -76,10 +76,20 @@ async function ensureWorker() {
 }
 
 async function readConfig(): Promise<PushConfig> {
-  const response = await fetch("/api/student/push", { cache: "no-store", credentials: "same-origin" });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error("Unable to check phone notifications.");
-  return body as PushConfig;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 4500);
+  try {
+    const response = await fetch("/api/student/push", {
+      cache: "no-store",
+      credentials: "same-origin",
+      signal: controller.signal,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error("Unable to check phone notifications.");
+    return body as PushConfig;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 async function saveSubscription(subscription: PushSubscription) {
@@ -103,6 +113,22 @@ export function StudentDeviceNotifications() {
 
   useEffect(() => {
     let active = true;
+    let checkingFallback = 0;
+
+    const rememberedEnabled = window.localStorage.getItem(PUSH_PREFERENCE_KEY) === "enabled";
+    const permission = "Notification" in window ? Notification.permission : "default";
+
+    // Do not make an already-enabled student watch "Checking…" every time Settings
+    // opens. Show the remembered healthy state immediately, then verify/repair the
+    // subscription quietly in the background.
+    if (permission === "granted" && rememberedEnabled) setState("enabled");
+
+    checkingFallback = window.setTimeout(() => {
+      if (!active) return;
+      setState((current) => current === "checking"
+        ? (Notification.permission === "denied" ? "blocked" : "disabled")
+        : current);
+    }, 2200);
 
     void (async () => {
       if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
@@ -130,34 +156,42 @@ export function StudentDeviceNotifications() {
           return;
         }
 
-        // Keep a student's opt-in persistent on this device. Existing subscriptions
-        // are treated as already enabled for users upgrading from earlier versions.
         const registration = await ensureWorker();
         const existingSubscription = await registration.pushManager.getSubscription();
-        const rememberedEnabled = window.localStorage.getItem(PUSH_PREFERENCE_KEY) === "enabled";
-        if (!existingSubscription && !rememberedEnabled) {
+        const remembered = window.localStorage.getItem(PUSH_PREFERENCE_KEY) === "enabled";
+        if (!existingSubscription && !remembered) {
           setState("disabled");
           return;
         }
+
         const subscription = await ensureCurrentSubscription(
           registration,
           String(config.publicKey),
-          Boolean(existingSubscription || rememberedEnabled),
+          Boolean(existingSubscription || remembered),
         );
         if (!subscription) {
-          setState("disabled");
+          if (!remembered && active) setState("disabled");
           return;
         }
+
         await saveSubscription(subscription);
         window.localStorage.setItem(PUSH_PREFERENCE_KEY, "enabled");
         currentEndpoint.current = subscription.endpoint;
         if (active) setState("enabled");
       } catch {
-        if (active) setState(Notification.permission === "granted" ? "disabled" : "disabled");
+        // Keep a remembered, permission-granted device visually On during a
+        // transient network/service-worker check. PwaRegister separately repairs
+        // stale subscriptions in the background.
+        if (active && !(Notification.permission === "granted" && rememberedEnabled)) {
+          setState(Notification.permission === "denied" ? "blocked" : "disabled");
+        }
       }
     })();
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+      window.clearTimeout(checkingFallback);
+    };
   }, []);
 
   async function enable() {
