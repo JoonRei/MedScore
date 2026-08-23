@@ -9461,14 +9461,14 @@ body[data-smart-student-names="true"] .carry-student-main strong,
 body[data-smart-student-names="true"] [data-label="Student"] strong,
 body[data-smart-student-names="true"] .student-name,
 body[data-smart-student-names="true"] [class*="student-name"] {
-  text-transform: capitalize !important;
+  text-transform: uppercase !important;
 }
 body[data-smart-student-names="true"] .table-avatar {
   text-transform: uppercase;
 }
 body[data-smart-student-names="true"] input[name*="name" i],
 body[data-smart-student-names="true"] input[placeholder*="student" i][placeholder*="name" i] {
-  text-transform: capitalize;
+  text-transform: uppercase;
 }
 
 /* Cover the different empty-state containers used by Results and subject detail. */
