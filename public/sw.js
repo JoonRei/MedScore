@@ -26,7 +26,17 @@ self.addEventListener("push", (event) => {
   };
 
   event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const visibleWindows = windows.filter((client) => client.visibilityState === "visible");
+    const soundClient = visibleWindows.find((client) => client.focused) || visibleWindows[0];
+
+    // The Web Notifications API has no custom sound option. If MedScores is open,
+    // silence the system alert and ask one visible page to play our gentle chime.
+    // If it is backgrounded or closed, keep the normal OS/browser notification sound.
+    options.silent = Boolean(soundClient);
     await self.registration.showNotification(title, options);
+    if (soundClient) soundClient.postMessage({ type: "MEDSCORES_NOTIFICATION_SOUND" });
+
     // Keep the installed PWA badge useful when the platform supports it.
     if (self.navigator && "setAppBadge" in self.navigator) {
       try { await self.navigator.setAppBadge(); } catch { /* optional platform feature */ }

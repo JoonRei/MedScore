@@ -14,13 +14,85 @@ export function PwaRegister() {
       ? "subjects"
       : pathname.startsWith("/student/subjects/")
         ? "subject-detail"
-        : "";
+        : pathname === "/student/results"
+          ? "results"
+          : "";
 
     if (route) document.body.dataset.studentRoute = route;
     else delete document.body.dataset.studentRoute;
 
     return () => {
       if (document.body.dataset.studentRoute === route) delete document.body.dataset.studentRoute;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    // The admin can expose Students as a route or as an in-page view. Detect both
+    // and only use a body data marker for CSS presentation; stored names and React
+    // text remain untouched, so this cannot create a hydration mismatch.
+    const routeLooksLikeStudents = /(^|\/)students(?:\/|$)/.test(pathname) && !pathname.startsWith("/student/");
+
+    const updateStudentsMarker = () => {
+      const headings = Array.from(document.querySelectorAll<HTMLElement>(
+        "main h1, main h2, .page-header h1, .page-header h2, .content-header h1, .content-header h2"
+      ));
+      const headingLooksLikeStudents = headings.some((heading) =>
+        /\bstudents\b/i.test((heading.textContent || "").trim())
+      );
+      const shouldEnable = routeLooksLikeStudents || (!pathname.startsWith("/student/") && headingLooksLikeStudents);
+
+      if (shouldEnable) document.body.dataset.smartStudentNames = "true";
+      else delete document.body.dataset.smartStudentNames;
+    };
+
+    updateStudentsMarker();
+    const observer = new MutationObserver(updateStudentsMarker);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      if (document.body.dataset.smartStudentNames === "true") delete document.body.dataset.smartStudentNames;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/student/results" && !pathname.startsWith("/student/subjects/")) return;
+
+    // Add one useful navigation action to genuinely empty assessment/result states.
+    // This runs after hydration and never rewrites server-rendered copy.
+    const enhanceEmptyStates = () => {
+      const isResults = pathname === "/student/results";
+      const emptySelector = [
+        ".student-shell .student-results-empty",
+        ".student-shell .empty-state",
+        ".student-shell .table-empty",
+        ".student-shell .subject-empty-state",
+        ".student-shell .subject-empty-card"
+      ].join(", ");
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>(emptySelector));
+
+      candidates.forEach((empty) => {
+        if (empty.querySelector(".student-empty-action-v422")) return;
+        const copy = (empty.textContent || "").toLowerCase();
+        if (!/(assessment|result|score|nothing|no data|not available)/.test(copy)) return;
+
+        const link = document.createElement("a");
+        link.className = "student-empty-action-v422";
+        link.href = "/student/subjects";
+        link.textContent = isResults ? "Browse subjects" : "Back to subjects";
+        empty.appendChild(link);
+      });
+    };
+
+    let frame = 0;
+    frame = window.requestAnimationFrame(enhanceEmptyStates);
+    const root = document.querySelector(".student-shell .main-content");
+    const observer = root ? new MutationObserver(enhanceEmptyStates) : null;
+    if (root && observer) observer.observe(root, { childList: true, subtree: true });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
     };
   }, [pathname]);
 
@@ -98,6 +170,74 @@ export function PwaRegister() {
   }, [pathname]);
 
   useEffect(() => {
+    // Web Push cannot select a custom notification sound on the web. When MedScores
+    // is visible, the service worker sends this page a message so we can play a
+    // gentle in-app chime instead. Background/closed notifications keep the OS sound.
+    type AudioContextConstructor = typeof AudioContext;
+    const AudioContextClass = window.AudioContext
+      || (window as typeof window & { webkitAudioContext?: AudioContextConstructor }).webkitAudioContext;
+    let audioContext: AudioContext | null = null;
+
+    const ensureAudioContext = () => {
+      if (!AudioContextClass) return null;
+      if (!audioContext) audioContext = new AudioContextClass();
+      return audioContext;
+    };
+
+    const primeNotificationSound = () => {
+      const context = ensureAudioContext();
+      if (context?.state === "suspended") void context.resume().catch(() => undefined);
+    };
+
+    const playNotificationChime = () => {
+      if (document.visibilityState !== "visible") return;
+      const context = ensureAudioContext();
+      if (!context) return;
+
+      const play = () => {
+        const now = context.currentTime;
+        const master = context.createGain();
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(0.035, now + 0.018);
+        master.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+        master.connect(context.destination);
+
+        const addTone = (frequency: number, start: number, duration: number, level: number) => {
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(frequency, now + start);
+          gain.gain.setValueAtTime(0.0001, now + start);
+          gain.gain.exponentialRampToValueAtTime(level, now + start + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
+          oscillator.connect(gain);
+          gain.connect(master);
+          oscillator.start(now + start);
+          oscillator.stop(now + start + duration + 0.02);
+        };
+
+        addTone(659.25, 0, 0.26, 0.55);
+        addTone(880, 0.13, 0.34, 0.42);
+      };
+
+      if (context.state === "suspended") {
+        void context.resume().then(play).catch(() => undefined);
+      } else {
+        play();
+      }
+    };
+
+    const handleWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === "MEDSCORES_NOTIFICATION_SOUND") playNotificationChime();
+    };
+
+    // Browsers require an interaction before programmatic audio. Prime the tiny
+    // audio context on the student's first normal tap/keypress so later foreground
+    // notifications can chime without another prompt.
+    window.addEventListener("pointerdown", primeNotificationSound, { once: true, passive: true });
+    window.addEventListener("keydown", primeNotificationSound, { once: true });
+    if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", handleWorkerMessage);
+
     // Score-release updates are already delivered through Web Push. Suppress only
     // the duplicate in-app DOM toast while leaving all normal action/error toasts intact.
     const isScoreReleaseToast = (node: Element) => {
@@ -127,7 +267,12 @@ export function PwaRegister() {
     toastObserver.observe(document.body, { childList: true, subtree: true });
 
     if (!("serviceWorker" in navigator)) {
-      return () => toastObserver.disconnect();
+      return () => {
+        window.removeEventListener("pointerdown", primeNotificationSound);
+        window.removeEventListener("keydown", primeNotificationSound);
+        if (audioContext) void audioContext.close().catch(() => undefined);
+        toastObserver.disconnect();
+      };
     }
     const register = async () => {
       try {
@@ -144,6 +289,10 @@ export function PwaRegister() {
     else window.addEventListener("load", register, { once: true });
     return () => {
       window.removeEventListener("load", register);
+      window.removeEventListener("pointerdown", primeNotificationSound);
+      window.removeEventListener("keydown", primeNotificationSound);
+      if ("serviceWorker" in navigator) navigator.serviceWorker.removeEventListener("message", handleWorkerMessage);
+      if (audioContext) void audioContext.close().catch(() => undefined);
       toastObserver.disconnect();
     };
   }, []);
