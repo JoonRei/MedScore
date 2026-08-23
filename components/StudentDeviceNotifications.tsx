@@ -28,6 +28,35 @@ function base64ToUint8Array(value: string) {
   return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
+function subscriptionUsesKey(subscription: PushSubscription, publicKey: string) {
+  const currentKey = subscription.options.applicationServerKey;
+  // Some browsers do not expose the key back to the page. In that case keep the
+  // existing subscription rather than forcing a needless unsubscribe/resubscribe.
+  if (!currentKey) return true;
+  const actual = new Uint8Array(currentKey as ArrayBuffer);
+  const expected = base64ToUint8Array(publicKey);
+  if (actual.byteLength !== expected.byteLength) return false;
+  for (let index = 0; index < actual.byteLength; index += 1) {
+    if (actual[index] !== expected[index]) return false;
+  }
+  return true;
+}
+
+async function ensureCurrentSubscription(registration: ServiceWorkerRegistration, publicKey: string, mayCreate: boolean) {
+  let subscription = await registration.pushManager.getSubscription();
+  if (subscription && !subscriptionUsesKey(subscription, publicKey)) {
+    await subscription.unsubscribe().catch(() => false);
+    subscription = null;
+  }
+  if (!subscription && mayCreate) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: base64ToUint8Array(publicKey),
+    });
+  }
+  return subscription;
+}
+
 function isStandalone() {
   return window.matchMedia?.("(display-mode: standalone)").matches
     || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
@@ -104,17 +133,20 @@ export function StudentDeviceNotifications() {
         // Keep a student's opt-in persistent on this device. Existing subscriptions
         // are treated as already enabled for users upgrading from earlier versions.
         const registration = await ensureWorker();
-        let subscription = await registration.pushManager.getSubscription();
+        const existingSubscription = await registration.pushManager.getSubscription();
         const rememberedEnabled = window.localStorage.getItem(PUSH_PREFERENCE_KEY) === "enabled";
-        if (!subscription && !rememberedEnabled) {
+        if (!existingSubscription && !rememberedEnabled) {
           setState("disabled");
           return;
         }
+        const subscription = await ensureCurrentSubscription(
+          registration,
+          String(config.publicKey),
+          Boolean(existingSubscription || rememberedEnabled),
+        );
         if (!subscription) {
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: base64ToUint8Array(String(config.publicKey)),
-          });
+          setState("disabled");
+          return;
         }
         await saveSubscription(subscription);
         window.localStorage.setItem(PUSH_PREFERENCE_KEY, "enabled");
@@ -155,13 +187,8 @@ export function StudentDeviceNotifications() {
       }
 
       const registration = await ensureWorker();
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: base64ToUint8Array(String(config.publicKey)),
-        });
-      }
+      const subscription = await ensureCurrentSubscription(registration, String(config.publicKey), true);
+      if (!subscription) throw new Error("Unable to create a phone notification subscription.");
       await saveSubscription(subscription);
       window.localStorage.setItem(PUSH_PREFERENCE_KEY, "enabled");
       currentEndpoint.current = subscription.endpoint;

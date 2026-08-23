@@ -3,6 +3,29 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
+const PUSH_PREFERENCE_KEY = "medscores:student-phone-notifications";
+const PUSH_SYNC_AT_KEY = "medscores:student-phone-notifications-synced-at";
+const PUSH_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+function pushKeyBytes(value: string) {
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+}
+
+function pushSubscriptionMatchesKey(subscription: PushSubscription, publicKey: string) {
+  const currentKey = subscription.options.applicationServerKey;
+  if (!currentKey) return true;
+  const actual = new Uint8Array(currentKey as ArrayBuffer);
+  const expected = pushKeyBytes(publicKey);
+  if (actual.byteLength !== expected.byteLength) return false;
+  for (let index = 0; index < actual.byteLength; index += 1) {
+    if (actual[index] !== expected[index]) return false;
+  }
+  return true;
+}
+
 export function PwaRegister() {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
@@ -125,6 +148,88 @@ export function PwaRegister() {
     return () => {
       window.cancelAnimationFrame(frame);
       window.clearTimeout(settle);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/student")) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+
+    let cancelled = false;
+    let syncing = false;
+
+    const syncStudentPush = async (force = false) => {
+      if (cancelled || syncing || Notification.permission !== "granted") return;
+
+      syncing = true;
+      try {
+        const rememberedEnabled = window.localStorage.getItem(PUSH_PREFERENCE_KEY) === "enabled";
+        const lastSync = Number(window.localStorage.getItem(PUSH_SYNC_AT_KEY) || 0);
+        if (!force && lastSync && Date.now() - lastSync < PUSH_SYNC_INTERVAL_MS) return;
+        const configResponse = await fetch("/api/student/push", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!configResponse.ok) return;
+        const config = await configResponse.json().catch(() => ({})) as {
+          configured?: boolean;
+          storageReady?: boolean;
+          publicKey?: string;
+        };
+        if (!config.configured || !config.storageReady || !config.publicKey) return;
+
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        const hadSubscription = Boolean(subscription);
+        if (!subscription && !rememberedEnabled) return;
+
+        if (subscription && !pushSubscriptionMatchesKey(subscription, String(config.publicKey))) {
+          await subscription.unsubscribe().catch(() => false);
+          subscription = null;
+        }
+
+        if (!subscription && (rememberedEnabled || hadSubscription)) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: pushKeyBytes(String(config.publicKey)),
+          });
+        }
+        if (!subscription) return;
+
+        const saveResponse = await fetch("/api/student/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ subscription: subscription.toJSON() }),
+        });
+        if (!saveResponse.ok) return;
+
+        window.localStorage.setItem(PUSH_PREFERENCE_KEY, "enabled");
+        window.localStorage.setItem(PUSH_SYNC_AT_KEY, String(Date.now()));
+      } catch {
+        // Push health repair is deliberately silent. A transient network or push-service
+        // problem must never interrupt the Student Portal or score viewing experience.
+      } finally {
+        syncing = false;
+      }
+    };
+
+    const handleOnline = () => void syncStudentPush(true);
+    const handlePageShow = () => void syncStudentPush(false);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void syncStudentPush(false);
+    };
+
+    void syncStudentPush(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [pathname]);
 

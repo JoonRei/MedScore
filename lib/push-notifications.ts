@@ -3,13 +3,19 @@ import webpush from "web-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function pushConfig() {
-  const publicKey = String(process.env.VAPID_PUBLIC_KEY || "").trim();
-  const privateKey = String(process.env.VAPID_PRIVATE_KEY || "").trim();
-  const adminEmail = String(process.env.ADMIN_EMAIL || "").trim();
-  const subject = String(process.env.VAPID_SUBJECT || (adminEmail ? `mailto:${adminEmail}` : "mailto:admin@example.com")).trim();
-  if (!publicKey || !privateKey) return null;
-  webpush.setVapidDetails(subject, publicKey, privateKey);
-  return { publicKey };
+  try {
+    const publicKey = String(process.env.VAPID_PUBLIC_KEY || "").trim();
+    const privateKey = String(process.env.VAPID_PRIVATE_KEY || "").trim();
+    const adminEmail = String(process.env.ADMIN_EMAIL || "").trim();
+    const subject = String(process.env.VAPID_SUBJECT || (adminEmail ? `mailto:${adminEmail}` : "mailto:admin@example.com")).trim();
+    if (!publicKey || !privateKey) return null;
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+    return { publicKey };
+  } catch (error) {
+    // A push configuration problem must never break score release itself.
+    console.error("student push configuration failed", error);
+    return null;
+  }
 }
 
 export function getPushPublicKey() {
@@ -32,93 +38,127 @@ type PushPayload = {
   releasedAt?: string | null;
 };
 
-async function deliver(subscription: StoredSubscription, payload: PushPayload) {
+type DeliveryResult =
+  | { ok: true }
+  | { ok: false; reason: "unconfigured" | "expired" | "delivery" };
+
+async function deliver(subscription: StoredSubscription, payload: PushPayload): Promise<DeliveryResult> {
   const config = pushConfig();
-  if (!config) return { ok: false, reason: "unconfigured" as const };
+  if (!config) return { ok: false, reason: "unconfigured" };
 
   try {
     await webpush.sendNotification({
       endpoint: String(subscription.endpoint),
       keys: { p256dh: String(subscription.p256dh), auth: String(subscription.auth) },
     }, JSON.stringify(payload), {
+      // A push provider only needs to acknowledge the message here. Do not let a
+      // slow provider keep an assessment-release request open indefinitely.
+      timeout: 5000,
       TTL: 60 * 60 * 24,
       urgency: "high",
     });
-    return { ok: true as const };
+    return { ok: true };
   } catch (error: any) {
     const status = Number(error?.statusCode || 0);
-    if (status === 404 || status === 410) return { ok: false as const, reason: "expired" as const };
-    console.error("student push delivery failed", error);
-    return { ok: false as const, reason: "delivery" as const };
+    if (status === 404 || status === 410) return { ok: false, reason: "expired" };
+    console.error("student push delivery failed", {
+      status: status || null,
+      endpointHost: (() => {
+        try { return new URL(String(subscription.endpoint)).host; } catch { return "unknown"; }
+      })(),
+      message: error instanceof Error ? error.message : String(error || "Unknown push error"),
+    });
+    return { ok: false, reason: "delivery" };
   }
 }
 
 export async function sendTestPush(studentId: string, endpoint: string) {
   if (!pushConfig()) return { sent: false, reason: "unconfigured" };
-  const db = createAdminClient();
-  const { data, error } = await db
-    .from("student_push_subscriptions")
-    .select("id,endpoint,p256dh,auth")
-    .eq("student_id", studentId)
-    .eq("endpoint", endpoint)
-    .maybeSingle();
-  if (error || !data) return { sent: false, reason: "missing" };
+  try {
+    const db = createAdminClient();
+    const { data, error } = await db
+      .from("student_push_subscriptions")
+      .select("id,endpoint,p256dh,auth")
+      .eq("student_id", studentId)
+      .eq("endpoint", endpoint)
+      .maybeSingle();
+    if (error || !data) return { sent: false, reason: "missing" };
 
-  const result = await deliver(data as StoredSubscription, {
-    title: "MedScores notifications are ready",
-    body: "This is a phone notification test. New score releases will appear here automatically.",
-    url: "/student/notifications",
-    tag: "medscores-notification-test",
-  });
-  if (!result.ok && result.reason === "expired") {
-    await db.from("student_push_subscriptions").delete().eq("id", data.id);
+    const result = await deliver(data as StoredSubscription, {
+      title: "MedScores notifications are ready",
+      body: "This is a phone notification test. New score releases will appear here automatically.",
+      url: "/student/notifications",
+      tag: "medscores-notification-test",
+    });
+    if (!result.ok && result.reason === "expired") {
+      await db.from("student_push_subscriptions").delete().eq("id", data.id);
+    }
+    return { sent: result.ok, reason: result.ok ? null : result.reason };
+  } catch (error) {
+    console.error("student push test dispatch failed", error);
+    return { sent: false, reason: "delivery" };
   }
-  return { sent: result.ok, reason: result.ok ? null : result.reason };
 }
 
 export async function sendAssessmentReleasePush(assessmentId: string, ownerId: string) {
-  const config = pushConfig();
-  if (!config) return { sent: 0, skipped: true };
+  // Push is a companion to score release, never a prerequisite for it. Any push,
+  // network, configuration, or subscription failure is contained inside this helper
+  // so the admin's release action can still complete normally.
+  try {
+    const config = pushConfig();
+    if (!config) return { sent: 0, skipped: true };
 
-  const db = createAdminClient();
-  const { data: assessment, error: assessmentError } = await db
-    .from("assessments")
-    .select("id,title,assessment_type,released_at,subject_id,subjects!inner(name,owner_id),scores(student_id,result_status)")
-    .eq("id", assessmentId)
-    .eq("subjects.owner_id", ownerId)
-    .maybeSingle();
-  if (assessmentError || !assessment) return { sent: 0, skipped: false };
+    const db = createAdminClient();
+    const { data: assessment, error: assessmentError } = await db
+      .from("assessments")
+      .select("id,title,assessment_type,released_at,subject_id,subjects!inner(name,owner_id),scores(student_id,result_status)")
+      .eq("id", assessmentId)
+      .eq("subjects.owner_id", ownerId)
+      .maybeSingle();
+    if (assessmentError || !assessment) return { sent: 0, skipped: false };
 
-  const subject = Array.isArray((assessment as any).subjects) ? (assessment as any).subjects[0] : (assessment as any).subjects;
-  const scores = Array.isArray((assessment as any).scores) ? (assessment as any).scores : [];
-  const studentIds = Array.from(new Set(scores.map((row: any) => String(row.student_id || "")).filter(Boolean)));
-  if (!studentIds.length) return { sent: 0, skipped: false };
+    const subject = Array.isArray((assessment as any).subjects) ? (assessment as any).subjects[0] : (assessment as any).subjects;
+    const scores = Array.isArray((assessment as any).scores) ? (assessment as any).scores : [];
+    const studentIds = Array.from(new Set(scores.map((row: any) => String(row.student_id || "")).filter(Boolean)));
+    if (!studentIds.length) return { sent: 0, skipped: false };
 
-  const { data: subscriptions } = await db
-    .from("student_push_subscriptions")
-    .select("id,student_id,endpoint,p256dh,auth")
-    .eq("owner_id", ownerId)
-    .in("student_id", studentIds);
-  if (!subscriptions?.length) return { sent: 0, skipped: false };
+    const { data: subscriptions, error: subscriptionsError } = await db
+      .from("student_push_subscriptions")
+      .select("id,student_id,endpoint,p256dh,auth")
+      .eq("owner_id", ownerId)
+      .in("student_id", studentIds);
+    if (subscriptionsError || !subscriptions?.length) {
+      if (subscriptionsError) console.error("student push subscription lookup failed", subscriptionsError);
+      return { sent: 0, skipped: false };
+    }
 
-  const subjectName = String(subject?.name || "Subject");
-  const assessmentTitle = String((assessment as any).title || "Assessment");
-  const releasedAt = String((assessment as any).released_at || new Date().toISOString());
-  const payload: PushPayload = {
-    title: "New score released",
-    body: `${subjectName} · ${assessmentTitle}\nYour result is ready to view.`,
-    url: `/student/results?assessment=${encodeURIComponent(String((assessment as any).id))}`,
-    tag: `medscores-result-${String((assessment as any).id)}-${releasedAt}`,
-    assessmentId: String((assessment as any).id),
-    releasedAt,
-  };
+    const subjectName = String(subject?.name || "Subject");
+    const assessmentTitle = String((assessment as any).title || "Assessment");
+    const releasedAt = String((assessment as any).released_at || new Date().toISOString());
+    const payload: PushPayload = {
+      title: "New score released",
+      body: `${subjectName} · ${assessmentTitle}\nYour result is ready to view.`,
+      url: `/student/results?assessment=${encodeURIComponent(String((assessment as any).id))}`,
+      tag: `medscores-result-${String((assessment as any).id)}-${releasedAt}`,
+      assessmentId: String((assessment as any).id),
+      releasedAt,
+    };
 
-  let sent = 0;
-  await Promise.all(subscriptions.map(async (row: any) => {
-    const result = await deliver(row as StoredSubscription, payload);
-    if (result.ok) sent += 1;
-    else if (result.reason === "expired") await db.from("student_push_subscriptions").delete().eq("id", row.id);
-  }));
+    const outcomes = await Promise.allSettled(subscriptions.map(async (row: any) => {
+      const result = await deliver(row as StoredSubscription, payload);
+      if (!result.ok && result.reason === "expired") {
+        await db.from("student_push_subscriptions").delete().eq("id", row.id);
+      }
+      return result;
+    }));
 
-  return { sent, skipped: false };
+    const sent = outcomes.reduce((count, outcome) => {
+      if (outcome.status === "fulfilled" && outcome.value.ok) return count + 1;
+      return count;
+    }, 0);
+    return { sent, skipped: false };
+  } catch (error) {
+    console.error("student score-release push dispatch failed", error);
+    return { sent: 0, skipped: false };
+  }
 }
