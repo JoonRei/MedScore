@@ -1,13 +1,36 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
-const medscoresSoundReadyClients = new Set();
+const medscoresSoundPlaybackWaiters = new Map();
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type !== "MEDSCORES_SOUND_READY") return;
-  const clientId = event.source && "id" in event.source ? event.source.id : null;
-  if (clientId) medscoresSoundReadyClients.add(clientId);
+  if (event.data?.type !== "MEDSCORES_SOUND_PLAYBACK_RESULT") return;
+  const token = typeof event.data?.token === "string" ? event.data.token : "";
+  const resolve = token ? medscoresSoundPlaybackWaiters.get(token) : null;
+  if (!resolve) return;
+  medscoresSoundPlaybackWaiters.delete(token);
+  resolve(Boolean(event.data?.played));
 });
+
+async function requestForegroundChime(visibleWindows) {
+  if (!visibleWindows.length) return false;
+  const soundClient = visibleWindows.find((client) => client.focused) || visibleWindows[0];
+  if (!soundClient) return false;
+
+  const token = `medscores-sound-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const result = new Promise((resolve) => {
+    medscoresSoundPlaybackWaiters.set(token, resolve);
+    setTimeout(() => {
+      const pending = medscoresSoundPlaybackWaiters.get(token);
+      if (!pending) return;
+      medscoresSoundPlaybackWaiters.delete(token);
+      resolve(false);
+    }, 450);
+  });
+
+  soundClient.postMessage({ type: "MEDSCORES_PLAY_NOTIFICATION_SOUND", token });
+  return result;
+}
 
 // MedScores intentionally does not cache protected academic pages or API responses.
 // The worker is dedicated to installation and opt-in score release notifications.
@@ -37,17 +60,8 @@ self.addEventListener("push", (event) => {
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const visibleWindows = windows.filter((client) => client.visibilityState === "visible");
 
-    // A service worker may be restarted between notifications, so its in-memory
-    // sound-ready set can be empty even though a visible page still has an unlocked
-    // AudioContext. Probe the visible page briefly before deciding which sound path
-    // to use. If it does not confirm readiness, keep the normal OS alert sound.
-    for (const client of visibleWindows) client.postMessage({ type: "MEDSCORES_SOUND_PROBE" });
-    if (visibleWindows.length) await new Promise((resolve) => setTimeout(resolve, 90));
-    const readyVisibleWindows = visibleWindows.filter((client) => medscoresSoundReadyClients.has(client.id));
-    const soundClient = readyVisibleWindows.find((client) => client.focused) || readyVisibleWindows[0] || null;
-
     // Tell every open Student Portal window that fresh score data is available.
-    // The page refreshes its server data in place and shows a compact updating state.
+    // The page refreshes its server data behind a dedicated loading overlay.
     for (const client of windows) {
       client.postMessage({
         type: "MEDSCORES_SCORE_RELEASED",
@@ -56,14 +70,13 @@ self.addEventListener("push", (event) => {
       });
     }
 
-    // Custom Web Notification sounds are not supported. Only silence the OS alert
-    // after a visible page explicitly confirms that Web Audio was unlocked by a
-    // user gesture. Otherwise retain the device/browser notification sound.
-    options.silent = Boolean(soundClient);
+    // Web Push cannot specify a custom OS notification sound. If MedScores is
+    // visibly open, ask the page to play the real bundled chime first. Silence the
+    // OS alert only after playback actually starts; otherwise keep normal device sound.
+    const customSoundPlayed = await requestForegroundChime(visibleWindows);
+    options.silent = customSoundPlayed;
     await self.registration.showNotification(title, options);
-    if (soundClient) soundClient.postMessage({ type: "MEDSCORES_NOTIFICATION_SOUND" });
 
-    // Keep the installed PWA badge useful when the platform supports it.
     if (self.navigator && "setAppBadge" in self.navigator) {
       try { await self.navigator.setAppBadge(); } catch { /* optional platform feature */ }
     }

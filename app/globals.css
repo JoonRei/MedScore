@@ -9509,80 +9509,137 @@ body[data-student-live-refresh="true"] .app-problem {
 
 .student-live-update-v422 {
   position: fixed;
-  z-index: 2200;
-  top: max(18px, calc(env(safe-area-inset-top) + 12px));
-  left: 50%;
-  width: min(390px, calc(100vw - 28px));
-  min-width: 0;
-  padding: 11px 13px;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  transform: translateX(-50%);
-  border: 1px solid rgba(116,16,143,.13);
-  border-radius: 14px;
-  background: rgba(255,255,255,.98);
-  box-shadow: 0 14px 38px rgba(45,28,50,.14);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: student-live-update-in-v422 .2s cubic-bezier(.22,.78,.24,1) both;
-}
-.student-live-update-icon-v422 {
-  width: 32px;
-  height: 32px;
+  inset: 0;
+  z-index: 4200;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  background: var(--brand-soft);
-  color: var(--brand);
+  padding: max(24px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+  background: rgba(249,247,250,.58);
+  backdrop-filter: blur(13px) saturate(.92);
+  -webkit-backdrop-filter: blur(13px) saturate(.92);
+  animation: student-live-overlay-in-v422 .2s ease-out both;
 }
-.student-live-update-icon-v422::before {
+.student-live-update-v422::before {
   content: "";
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(116,16,143,.22);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(116,16,143,.07), transparent 31%),
+    linear-gradient(115deg, transparent 38%, rgba(255,255,255,.62) 49%, transparent 60%);
+  background-size: 100% 100%, 240% 100%;
+  animation: student-live-screen-streak-v422 1.65s ease-in-out infinite;
+}
+.student-live-update-center-v422 {
+  position: relative;
+  width: min(370px, 88vw);
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  text-align: center;
+  color: var(--text);
+}
+.student-live-update-mark-v422 {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 5px;
+  border: 1px solid rgba(116,16,143,.12);
+  border-radius: 15px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 12px 34px rgba(50,31,54,.09);
+  position: relative;
+}
+.student-live-update-mark-v422::before,
+.student-live-update-mark-v422::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+}
+.student-live-update-mark-v422::before {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(116,16,143,.18);
   border-top-color: var(--brand);
+  border-right-color: rgba(116,16,143,.55);
   border-radius: 50%;
   animation: student-live-update-spin-v422 .72s linear infinite;
 }
-.student-live-update-v422.is-updated .student-live-update-icon-v422 {
-  background: var(--success-soft);
-  color: var(--success);
+.student-live-update-mark-v422::after {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: .82;
 }
-.student-live-update-v422.is-updated .student-live-update-icon-v422::before {
-  width: 14px;
-  height: 8px;
-  border: 0;
-  border-left: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  border-radius: 0;
-  transform: rotate(-45deg) translate(1px, -1px);
-  animation: student-live-check-v422 .2s ease-out both;
+.student-live-update-center-v422 strong {
+  font-size: clamp(15px, 3.8vw, 18px);
+  line-height: 1.35;
+  letter-spacing: -.02em;
 }
-.student-live-update-copy-v422 {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-.student-live-update-copy-v422 strong {
-  color: var(--text);
-  font-size: 12.5px;
-  line-height: 1.3;
-}
-.student-live-update-copy-v422 small {
+.student-live-update-center-v422 small {
+  max-width: 310px;
   color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.4;
+  font-size: 11.5px;
+  line-height: 1.55;
 }
-@keyframes student-live-update-in-v422 {
-  from { opacity: 0; transform: translate(-50%, -8px) scale(.985); }
-  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.student-live-update-streak-v422 {
+  position: relative;
+  width: min(270px, 72vw);
+  height: 4px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(116,16,143,.08);
 }
-@keyframes student-live-update-spin-v422 { to { transform: rotate(360deg); } }
+.student-live-update-streak-v422 i {
+  position: absolute;
+  inset: 0 auto 0 -42%;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(116,16,143,.38), var(--brand), rgba(183,89,202,.42), transparent);
+  animation: student-live-streak-v422 1.05s cubic-bezier(.42,0,.2,1) infinite;
+}
+.student-live-update-v422.is-updated .student-live-update-mark-v422::before {
+  width: 18px;
+  height: 10px;
+  border: 0;
+  border-left: 2px solid var(--success);
+  border-bottom: 2px solid var(--success);
+  border-radius: 0;
+  transform: translate(-50%, -60%) rotate(-45deg);
+  animation: student-live-check-v422 .22s ease-out both;
+}
+.student-live-update-v422.is-updated .student-live-update-mark-v422::after { display: none; }
+.student-live-update-v422.is-updated .student-live-update-streak-v422 i {
+  animation-duration: .7s;
+  opacity: .45;
+}
+@keyframes student-live-overlay-in-v422 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes student-live-screen-streak-v422 {
+  0%, 18% { background-position: 0 0, 115% 0; }
+  72%, 100% { background-position: 0 0, -115% 0; }
+}
+@keyframes student-live-update-spin-v422 { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes student-live-streak-v422 {
+  0% { left: -42%; }
+  100% { left: 100%; }
+}
 @keyframes student-live-check-v422 {
-  from { opacity: 0; transform: rotate(-45deg) translate(1px, -1px) scale(.65); }
-  to { opacity: 1; transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+  from { opacity: 0; transform: translate(-50%, -60%) rotate(-45deg) scale(.7); }
+  to { opacity: 1; transform: translate(-50%, -60%) rotate(-45deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-live-update-v422,
+  .student-live-update-v422::before,
+  .student-live-update-mark-v422::before,
+  .student-live-update-streak-v422 i {
+    animation: none !important;
+  }
 }
 
 /* One visual language for every Student Portal empty state: solid surfaces,
