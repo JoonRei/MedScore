@@ -129,14 +129,31 @@ export function PwaRegister() {
       });
     };
 
-    if (document.readyState === "complete") schedule();
-    else window.addEventListener("load", schedule, { once: true });
+    let subjectsObserver: MutationObserver | null = null;
+    let watchTimer = 0;
+    const startWatchingSubjectCards = () => {
+      applySubjectInitials();
+      subjectsObserver?.disconnect();
+      subjectsObserver = new MutationObserver(() => applySubjectInitials());
+      const list = document.querySelector<HTMLElement>(".student-shell .subject-list") || document.querySelector<HTMLElement>(".student-shell");
+      if (list) subjectsObserver.observe(list, { childList: true, subtree: true });
+    };
+
+    const scheduleAndWatch = () => {
+      schedule();
+      watchTimer = window.setTimeout(startWatchingSubjectCards, 180);
+    };
+
+    if (document.readyState === "complete") scheduleAndWatch();
+    else window.addEventListener("load", scheduleAndWatch, { once: true });
 
     return () => {
-      window.removeEventListener("load", schedule);
+      window.removeEventListener("load", scheduleAndWatch);
+      subjectsObserver?.disconnect();
       window.cancelAnimationFrame(frameOne);
       window.cancelAnimationFrame(frameTwo);
       window.clearTimeout(settle);
+      window.clearTimeout(watchTimer);
     };
   }, [pathname]);
 
@@ -786,6 +803,177 @@ export function PwaRegister() {
       window.removeEventListener("medscores:portal-updated", loadUnreadItems);
     };
   }, [pathname, router]);
+
+  useEffect(() => {
+    // Assessment forms keep the passing score synchronized with Total Score.
+    // Scope this enhancer to the assessment admin screen only. This avoids
+    // scanning unrelated forms and, importantly, prevents form decoration from
+    // creating observer feedback loops elsewhere in the app.
+    if (!pathname.startsWith("/admin/assessments")) return;
+    // This is intentionally attached to the existing fields so the current
+    // server action/database shape does not need to change.
+    const totalSelectors = [
+      'input[name="total_score"]',
+      'input[name="totalScore"]',
+      'input[id="total_score"]',
+      'input[id="totalScore"]',
+    ];
+    const passingSelectors = [
+      'input[name="passing_score"]',
+      'input[name="passingScore"]',
+      'input[id="passing_score"]',
+      'input[id="passingScore"]',
+    ];
+
+    const findLabeledInput = (form: HTMLFormElement, matcher: RegExp) => {
+      for (const label of Array.from(form.querySelectorAll<HTMLLabelElement>("label"))) {
+        const labelText = (label.textContent || "").replace(/\s+/g, " ").trim();
+        if (!matcher.test(labelText)) continue;
+        if (label.htmlFor) {
+          const linked = document.getElementById(label.htmlFor);
+          if (linked instanceof HTMLInputElement) return linked;
+        }
+        const nested = label.querySelector<HTMLInputElement>('input[type="number"], input[inputmode="numeric"], input');
+        if (nested) return nested;
+        const field = label.closest<HTMLElement>(".field, .form-field, .input-group, .form-group");
+        const nearby = field?.querySelector<HTMLInputElement>('input[type="number"], input[inputmode="numeric"], input');
+        if (nearby) return nearby;
+      }
+      return null;
+    };
+
+    const findField = (form: HTMLFormElement, selectors: string[], labelMatcher: RegExp) => {
+      for (const selector of selectors) {
+        const field = form.querySelector<HTMLInputElement>(selector);
+        if (field) return field;
+      }
+      return findLabeledInput(form, labelMatcher);
+    };
+
+    const setNativeValue = (input: HTMLInputElement, value: string) => {
+      if (input.value === value) return;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      if (setter) setter.call(input, value);
+      else input.value = value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    const calculatedPassingScore = (rawTotal: string) => {
+      const total = Number(rawTotal);
+      if (!Number.isFinite(total) || total <= 0) return "";
+      // Minimum whole-number raw score that reaches the app's passing mark.
+      return String(Math.max(1, Math.ceil((total * 7) / 12 - 1e-9)));
+    };
+
+    const enhanceAssessmentForm = (form: HTMLFormElement) => {
+      const totalInput = findField(form, totalSelectors, /^total\s*(score|points?)\b/i);
+      const passingInput = findField(form, passingSelectors, /^passing\s*(score|points?)\b/i);
+      if (!totalInput || !passingInput || totalInput === passingInput) return;
+
+      if (totalInput.dataset.medscoresPassingSource !== "true") {
+        totalInput.dataset.medscoresPassingSource = "true";
+      }
+      if (passingInput.dataset.medscoresAutoPassing !== "true") {
+        passingInput.dataset.medscoresAutoPassing = "true";
+      }
+      if (!passingInput.readOnly) passingInput.readOnly = true;
+      if (passingInput.getAttribute("aria-readonly") !== "true") {
+        passingInput.setAttribute("aria-readonly", "true");
+      }
+      if (!passingInput.classList.contains("medscores-auto-passing-input-v423")) {
+        passingInput.classList.add("medscores-auto-passing-input-v423");
+      }
+      if (passingInput.title !== "Calculated automatically from Total Score") {
+        passingInput.title = "Calculated automatically from Total Score";
+      }
+
+      const nextValue = calculatedPassingScore(totalInput.value);
+      setNativeValue(passingInput, nextValue);
+
+      if (!form.querySelector(".medscores-auto-passing-note-v423")) {
+        const note = document.createElement("span");
+        note.className = "medscores-auto-passing-note-v423";
+        note.textContent = "Updates automatically with Total Score.";
+        note.setAttribute("aria-live", "polite");
+        passingInput.insertAdjacentElement("afterend", note);
+      }
+    };
+
+    const enhanceAllAssessmentForms = () => {
+      document.querySelectorAll<HTMLFormElement>("form").forEach(enhanceAssessmentForm);
+    };
+
+    const handleAssessmentInput = (event: Event) => {
+      const input = event.target instanceof HTMLInputElement ? event.target : null;
+      if (!input?.form) return;
+      if (input.dataset.medscoresPassingSource === "true") enhanceAssessmentForm(input.form);
+    };
+    const handleAssessmentSubmit = (event: Event) => {
+      const form = event.target instanceof HTMLFormElement ? event.target : null;
+      if (form) enhanceAssessmentForm(form);
+    };
+
+    enhanceAllAssessmentForms();
+    // Only watch for newly mounted forms/modals. Do NOT observe attributes here:
+    // this enhancer sets `readOnly` itself, and observing that same attribute can
+    // recursively trigger the observer and lock the page.
+    const observer = new MutationObserver((mutations) => {
+      if (!mutations.some((mutation) => mutation.addedNodes.length > 0)) return;
+      enhanceAllAssessmentForms();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("input", handleAssessmentInput, true);
+    document.addEventListener("change", handleAssessmentInput, true);
+    document.addEventListener("submit", handleAssessmentSubmit, true);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("input", handleAssessmentInput, true);
+      document.removeEventListener("change", handleAssessmentInput, true);
+      document.removeEventListener("submit", handleAssessmentSubmit, true);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/student")) return;
+
+    // Keep a real zero in data and accessibility, but give student-facing score
+    // surfaces a calmer, more intentional label instead of a stark numeric 0.
+    const zeroScoreSelectors = [
+      ".student-shell .performance-hero .big",
+      ".student-shell .student-v2-category-card strong",
+      ".student-shell .student-home-result-score-v422 strong",
+      ".student-shell .student-result-card-score strong",
+      ".student-shell .student-result-detail-score strong",
+      ".student-shell .student-result-performance-score > strong",
+      ".student-shell .student-result-score strong",
+      ".student-shell .result-score strong",
+    ].join(",");
+
+    const decorateZeroScores = () => {
+      document.querySelectorAll<HTMLElement>(zeroScoreSelectors).forEach((node) => {
+        const text = (node.textContent || "").replace(/\s+/g, " ").trim();
+        const match = text.match(/^0(?:\.0+)?(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?))?$/);
+        if (!match) {
+          node.classList.remove("student-zero-score-v423");
+          node.removeAttribute("data-zero-score-display");
+          return;
+        }
+        const hasSeparateTotal = Boolean(node.querySelector("small"));
+        const denominator = match[1];
+        node.classList.add("student-zero-score-v423");
+        node.dataset.zeroScoreDisplay = !hasSeparateTotal && denominator
+          ? `No points / ${denominator}`
+          : "No points";
+      });
+    };
+
+    decorateZeroScores();
+    const observer = new MutationObserver(decorateZeroScores);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [pathname]);
 
   useEffect(() => {
     // Browsers cannot attach a custom sound to a Web Push notification itself. For

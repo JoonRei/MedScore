@@ -6108,7 +6108,7 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
   box-sizing: border-box;
   transform: translateX(-50%) scale(.9);
   transform-origin: center center;
-  opacity: .28;
+  opacity: .18;
   filter: blur(2px) saturate(.72);
   pointer-events: none;
   will-change: left, transform, opacity, filter;
@@ -6236,7 +6236,7 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
 @keyframes leaderboard-edge-shine {
   0%, 18% { background-position: 170% 0; opacity: .32; }
   42% { opacity: .9; }
-  60%, 100% { background-position: -85% 0; opacity: .34; }
+  60%, 100% { background-position: -85% 0; opacity: .24; }
 }
 
 @media (max-width: 700px) {
@@ -9201,6 +9201,11 @@ body[data-student-route="subjects"] .student-shell .subject-code {
   letter-spacing: 0;
   text-transform: none;
 }
+body[data-student-route="subjects"] .student-shell .subject-code:not([data-subject-initial]) {
+  color: var(--brand) !important;
+  font-size: 11px !important;
+  font-weight: 800;
+}
 body[data-student-route="subjects"] .student-shell .subject-code::after {
   content: attr(data-subject-initial);
   position: absolute;
@@ -9466,9 +9471,17 @@ body[data-smart-student-names="true"] [class*="student-name"] {
 body[data-smart-student-names="true"] .table-avatar {
   text-transform: uppercase;
 }
-body[data-smart-student-names="true"] input[name*="name" i],
-body[data-smart-student-names="true"] input[placeholder*="student" i][placeholder*="name" i] {
+body[data-smart-student-names="true"] input[name*="name" i]:not([name*="code" i]):not([name*="preferred" i]),
+body[data-smart-student-names="true"] input[placeholder*="student" i][placeholder*="name" i]:not([placeholder*="code" i]):not([placeholder*="preferred" i]) {
   text-transform: uppercase;
+}
+
+/* Preferred/code-name values are identifiers, not person names: preserve typed casing. */
+body[data-smart-student-names="true"] input[name*="code" i],
+body[data-smart-student-names="true"] input[name*="preferred" i],
+body[data-smart-student-names="true"] input[placeholder*="preferred code" i],
+body[data-smart-student-names="true"] input[placeholder*="code name" i] {
+  text-transform: none !important;
 }
 
 /* V4.22 mobile bottom-nav clearance — keep the final Student Portal content fully visible. */
@@ -10141,4 +10154,134 @@ body[data-student-route="home"] .student-shell .empty-state::before {
   .student-notification-page-empty > .student-notification-empty-vector-v422 {
     animation: none !important;
   }
+}
+
+/* MedScores V4.23 — smart passing score, zero-score treatment, and dashboard code-name privacy */
+.medscores-auto-passing-input-v423[readonly] {
+  cursor: default;
+  background: #fbf8fc;
+  color: var(--brand-strong);
+  font-weight: 820;
+  font-variant-numeric: tabular-nums;
+}
+.medscores-auto-passing-input-v423[readonly]:focus {
+  border-color: #b987c5;
+  box-shadow: 0 0 0 3px rgba(116,16,143,.08);
+}
+.medscores-auto-passing-note-v423 {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.student-shell .student-zero-score-v423 {
+  position: relative;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+.student-shell .student-zero-score-v423::before {
+  content: attr(data-zero-score-display);
+  position: absolute;
+  inset: 50% auto auto 0;
+  transform: translateY(-50%);
+  color: var(--text-soft);
+  font-size: max(11px, .72em);
+  font-weight: 790;
+  line-height: 1.1;
+  letter-spacing: -.018em;
+  white-space: nowrap;
+}
+.student-shell .student-zero-score-v423 > small {
+  position: relative;
+  color: var(--muted) !important;
+  text-shadow: none;
+}
+
+.student-codename-privacy-v423 {
+  --codename-blur: 18px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  margin: 0 0 0 .08em;
+  padding: .02em .14em .07em;
+  border: 0;
+  border-radius: .42em;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+  isolation: isolate;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.student-codename-value-v423 {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  filter: blur(var(--codename-blur)) !important;
+  -webkit-filter: blur(var(--codename-blur)) !important;
+  opacity: .16;
+  transform: translateZ(0) scale(.96);
+  transition: filter .32s cubic-bezier(.2,.75,.2,1), opacity .26s ease, transform .32s cubic-bezier(.2,.75,.2,1);
+  user-select: none;
+  pointer-events: none;
+  will-change: filter, opacity, transform;
+}
+/* Privacy veil makes the hidden code name unreadable even on browsers that render text blur weakly. */
+.student-codename-privacy-v423::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: .01em .03em .06em;
+  border-radius: .36em;
+  background: rgba(247, 241, 249, .72);
+  -webkit-backdrop-filter: blur(10px) saturate(.82);
+  backdrop-filter: blur(10px) saturate(.82);
+  box-shadow: inset 0 0 0 1px rgba(116, 16, 143, .035);
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity .24s ease, transform .3s cubic-bezier(.2,.75,.2,1);
+}
+/* No decorative sweep while hidden. */
+.student-codename-privacy-v423::after { content: none; }
+.student-codename-privacy-v423:hover .student-codename-value-v423,
+.student-codename-privacy-v423:focus-visible .student-codename-value-v423 {
+  filter: blur(var(--codename-blur)) !important;
+  -webkit-filter: blur(var(--codename-blur)) !important;
+  opacity: .16;
+}
+.student-codename-privacy-v423:focus-visible {
+  outline: 3px solid rgba(116,16,143,.14);
+  outline-offset: 3px;
+}
+.student-codename-privacy-v423.is-revealed::before {
+  opacity: 0;
+  transform: scaleX(.985);
+}
+.student-codename-privacy-v423.is-revealed .student-codename-value-v423 {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  opacity: 1;
+  transform: translateZ(0) scale(1);
+  letter-spacing: inherit;
+  user-select: text;
+  pointer-events: auto;
+}
+@media (max-width: 560px) {
+  .student-codename-privacy-v423 { --codename-blur: 17px; padding-inline: .08em; }
+  .medscores-auto-passing-note-v423 { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-codename-value-v423,
+  .student-codename-privacy-v423::before { transition-duration: .01ms; }
 }
