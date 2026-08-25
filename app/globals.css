@@ -10312,3 +10312,225 @@ body[data-student-route="home"] .student-shell .empty-state::before {
 @media (prefers-reduced-motion: reduce) {
   .student-shell .student-codename-privacy-v423:active { transform: none; }
 }
+
+
+/* MedScores V4.23 — hydration-safe, state-driven code-name privacy control.
+   React owns the reveal state; aria-pressed is the only visual state selector. */
+.student-shell .student-codename-privacy-v423 {
+  position: relative !important;
+  z-index: 4 !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  min-width: 2.9em;
+  margin: 0 0 0 .08em !important;
+  padding: .02em .15em .07em !important;
+  border: 0 !important;
+  border-radius: .4em !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  vertical-align: baseline !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  overflow: hidden;
+}
+.student-shell .student-codename-privacy-v423::before,
+.student-shell .student-codename-privacy-v423::after {
+  content: none !important;
+}
+.student-shell .student-codename-value-v423 {
+  position: relative !important;
+  z-index: 1 !important;
+  display: inline-block !important;
+  pointer-events: none !important;
+  transition: filter .28s cubic-bezier(.2,.75,.2,1), opacity .22s ease, transform .28s cubic-bezier(.2,.75,.2,1) !important;
+}
+.student-shell .student-codename-mask-v423 {
+  position: absolute;
+  z-index: 2;
+  inset: .03em .08em .08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .16em;
+  border-radius: .32em;
+  background: rgba(247,241,249,.94);
+  -webkit-backdrop-filter: blur(12px) saturate(.8);
+  backdrop-filter: blur(12px) saturate(.8);
+  pointer-events: none !important;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity .2s ease, transform .25s cubic-bezier(.2,.75,.2,1);
+}
+.student-shell .student-codename-mask-v423 > span {
+  width: .16em;
+  height: .16em;
+  min-width: 3px;
+  min-height: 3px;
+  max-width: 5px;
+  max-height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .28;
+}
+.student-shell .student-codename-privacy-v423[aria-pressed="false"] .student-codename-value-v423 {
+  filter: blur(20px) !important;
+  -webkit-filter: blur(20px) !important;
+  opacity: .04 !important;
+  transform: scale(.95) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.student-shell .student-codename-privacy-v423[aria-pressed="true"] .student-codename-value-v423 {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+.student-shell .student-codename-privacy-v423[aria-pressed="true"] .student-codename-mask-v423 {
+  opacity: 0 !important;
+  transform: scale(.96);
+}
+.student-shell .student-codename-privacy-v423:focus-visible {
+  outline: 3px solid rgba(116,16,143,.14) !important;
+  outline-offset: 3px !important;
+}
+.student-shell .student-codename-privacy-v423:active {
+  transform: scale(.985);
+}
+@media (max-width: 560px) {
+  .student-shell .student-codename-privacy-v423[aria-pressed="false"] .student-codename-value-v423 {
+    filter: blur(22px) !important;
+    -webkit-filter: blur(22px) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-shell .student-codename-value-v423,
+  .student-shell .student-codename-mask-v423 {
+    transition-duration: .01ms !important;
+  }
+  .student-shell .student-codename-privacy-v423:active { transform: none; }
+}
+
+/* MedScores V4.23 — native, hydration-independent code-name privacy toggle.
+   The browser owns the checkbox state, so reveal/hide works even before React hydration. */
+.student-codename-native-v423 {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  min-width: 2.9em;
+  margin-left: .08em !important;
+  padding: .02em .15em .07em !important;
+  border: 0 !important;
+  border-radius: .4em !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  vertical-align: baseline !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  isolation: isolate;
+}
+.student-codename-toggle-v423 {
+  position: absolute !important;
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.student-codename-native-v423 .student-codename-value-v423 {
+  position: relative !important;
+  z-index: 1 !important;
+  display: inline-block !important;
+  filter: blur(20px) !important;
+  -webkit-filter: blur(20px) !important;
+  opacity: .04 !important;
+  transform: scale(.95) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none !important;
+  transition: filter .28s cubic-bezier(.2,.75,.2,1), opacity .22s ease, transform .28s cubic-bezier(.2,.75,.2,1) !important;
+}
+.student-codename-native-v423 .student-codename-mask-v423 {
+  position: absolute !important;
+  z-index: 2 !important;
+  inset: .03em .08em .08em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .16em !important;
+  border-radius: .32em !important;
+  background: rgba(247,241,249,.94) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(.8) !important;
+  backdrop-filter: blur(12px) saturate(.8) !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  transition: opacity .2s ease, transform .25s cubic-bezier(.2,.75,.2,1) !important;
+}
+.student-codename-native-v423 .student-codename-mask-v423 > span {
+  width: .16em;
+  height: .16em;
+  min-width: 3px;
+  min-height: 3px;
+  max-width: 5px;
+  max-height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .28;
+}
+.student-codename-native-v423 .student-codename-toggle-v423:checked ~ .student-codename-value-v423 {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+.student-codename-native-v423 .student-codename-toggle-v423:checked ~ .student-codename-mask-v423 {
+  opacity: 0 !important;
+  transform: scale(.96) !important;
+}
+.student-codename-native-v423:focus-within {
+  outline: 3px solid rgba(116,16,143,.14) !important;
+  outline-offset: 3px !important;
+}
+.student-codename-native-v423:active {
+  transform: scale(.985);
+}
+@media (max-width: 560px) {
+  .student-codename-native-v423 .student-codename-value-v423 {
+    filter: blur(22px) !important;
+    -webkit-filter: blur(22px) !important;
+  }
+  .student-codename-native-v423 .student-codename-toggle-v423:checked ~ .student-codename-value-v423 {
+    filter: blur(0) !important;
+    -webkit-filter: blur(0) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-codename-native-v423 .student-codename-value-v423,
+  .student-codename-native-v423 .student-codename-mask-v423 {
+    transition-duration: .01ms !important;
+  }
+  .student-codename-native-v423:active { transform: none; }
+}
