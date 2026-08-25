@@ -10285,3 +10285,30 @@ body[data-student-route="home"] .student-shell .empty-state::before {
   .student-codename-value-v423,
   .student-codename-privacy-v423::before { transition-duration: .01ms; }
 }
+
+/* MedScores V4.23 — reliable touch/click ownership for the dashboard privacy control. */
+.student-shell .student-codename-privacy-v423 {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.student-shell .student-codename-privacy-v423::before,
+.student-shell .student-codename-privacy-v423::after,
+.student-shell .student-codename-privacy-v423 .student-codename-value-v423 {
+  pointer-events: none !important;
+}
+.student-shell .student-codename-privacy-v423.is-revealed .student-codename-value-v423 {
+  pointer-events: none !important;
+}
+.student-shell .student-codename-privacy-v423:active {
+  transform: scale(.985);
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-shell .student-codename-privacy-v423:active { transform: none; }
+}
