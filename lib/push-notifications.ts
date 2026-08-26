@@ -179,3 +179,52 @@ export async function sendAssessmentReleasePush(assessmentId: string, ownerId: s
     return { sent: 0, skipped: false };
   }
 }
+
+async function dispatchTermGradeReleasePush(studentIds: string[], ownerId: string, subjectName: string, schemeId: string, releasedAt: string) {
+  try {
+    const config = pushConfig();
+    if (!config || !studentIds.length) return { sent: 0, skipped: true };
+    const db = createAdminClient();
+    const { data: subscriptions, error } = await db
+      .from("student_push_subscriptions")
+      .select("id,student_id,endpoint,p256dh,auth")
+      .eq("owner_id", ownerId)
+      .in("student_id", Array.from(new Set(studentIds)));
+    if (error || !subscriptions?.length) {
+      if (error) console.error("term grade push subscription lookup failed", error);
+      return { sent: 0, skipped: false };
+    }
+
+    const payload: PushPayload = {
+      title: "Term grade released",
+      body: `${subjectName}\nYour term grade is ready to view.`,
+      url: "/student/grades",
+      tag: `medscores-term-grade-${schemeId}-${releasedAt}`,
+      releasedAt,
+    };
+    const outcomes = await Promise.allSettled(subscriptions.map(async (row: any) => {
+      const result = await deliver(row as StoredSubscription, payload);
+      if (!result.ok && result.reason === "expired") {
+        await db.from("student_push_subscriptions").delete().eq("id", row.id);
+      }
+      return result;
+    }));
+    const sent = outcomes.reduce((count, outcome) => outcome.status === "fulfilled" && outcome.value.ok ? count + 1 : count, 0);
+    return { sent, skipped: false };
+  } catch (error) {
+    console.error("student term-grade push dispatch failed", error);
+    return { sent: 0, skipped: false };
+  }
+}
+
+export async function sendTermGradeReleasePush(studentIds: string[], ownerId: string, subjectName: string, schemeId: string, releasedAt: string) {
+  try {
+    after(async () => {
+      await dispatchTermGradeReleasePush(studentIds, ownerId, subjectName, schemeId, releasedAt);
+    });
+    return { sent: 0, skipped: false };
+  } catch (error) {
+    console.error("student term-grade push scheduling failed", error);
+    return { sent: 0, skipped: false };
+  }
+}

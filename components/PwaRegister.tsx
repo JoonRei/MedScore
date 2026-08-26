@@ -51,7 +51,9 @@ export function PwaRegister() {
             ? "results"
             : pathname === "/student/notifications"
               ? "notifications"
-              : pathname === "/student/settings"
+              : pathname === "/student/grades"
+                ? "grades"
+                : pathname === "/student/settings"
                 ? "settings"
                 : "";
 
@@ -805,6 +807,31 @@ export function PwaRegister() {
   }, [pathname, router]);
 
   useEffect(() => {
+    if (pathname !== "/admin/assessments") return;
+
+    // Add a lightweight post-hydration shortcut into the Assessments header. The
+    // Term Grades workspace is intentionally a separate route so raw assessment
+    // score editing and final grade release remain distinct workflows.
+    let link: HTMLAnchorElement | null = null;
+    const timer = window.setTimeout(() => {
+      if (document.querySelector('[data-medscores-term-grades-link="true"]')) return;
+      const header = document.querySelector<HTMLElement>("main .page-header, .main-content .page-header, .page-header");
+      if (!header) return;
+      link = document.createElement("a");
+      link.href = "/admin/grades";
+      link.className = "button button-secondary button-sm grades-admin-shortcut-v423";
+      link.textContent = "Term Grades";
+      link.dataset.medscoresTermGradesLink = "true";
+      header.appendChild(link);
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timer);
+      link?.remove();
+    };
+  }, [pathname]);
+
+  useEffect(() => {
     // Assessment forms keep the passing score synchronized with Total Score.
     // Scope this enhancer to the assessment admin screen only. This avoids
     // scanning unrelated forms and, importantly, prevents form decoration from
@@ -1123,7 +1150,7 @@ export function PwaRegister() {
       <div className="student-live-update-center-v422">
         <span className="student-live-update-mark-v422" aria-hidden="true" />
         <strong>{liveUpdateState === "updated" ? "Portal updated" : "Syncing your portal"}</strong>
-        <small>{liveUpdateState === "updated" ? "Everything now reflects the latest changes." : "Applying the newest assessment and score changes."}</small>
+        <small>{liveUpdateState === "updated" ? "Everything now reflects the latest changes." : "Applying the newest academic updates."}</small>
         <span className="student-live-update-streak-v422" aria-hidden="true"><i /></span>
       </div>
     </div>

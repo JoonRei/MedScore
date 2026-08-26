@@ -1,8 +1,0 @@
-V4.19 uses public/logo.png directly for all branding metadata.
-
-If these old V4.18 files still exist in your project, they are no longer referenced and can be deleted:
-- public/pwa-icon-192.png
-- public/pwa-icon-512.png
-- public/apple-touch-icon.png
-
-Do not replace public/logo.png. V4.19 Update Only does not include it.

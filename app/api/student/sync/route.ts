@@ -13,17 +13,22 @@ export async function GET() {
 
   try {
     const db = createAdminClient();
-    const [{ data: assessments, error: assessmentsError }, { data: scores, error: scoresError }] = await Promise.all([
+    const [{ data: assessments, error: assessmentsError }, { data: scores, error: scoresError }, { data: termGrades, error: termGradesError }] = await Promise.all([
       db.from("assessments")
         .select("id,status,released_at,subject_id,subjects!inner(owner_id)")
         .eq("subjects.owner_id", session.student.owner_id),
       db.from("scores")
         .select("assessment_id,score,result_status,assessments!inner(id,status,released_at)")
         .eq("student_id", session.student.id),
+      db.from("released_term_grades")
+        .select("id,subject_id,raw_percentage,term_grade,released_at,updated_at")
+        .eq("student_id", session.student.id)
+        .eq("owner_id", session.student.owner_id),
     ]);
 
     if (assessmentsError) throw assessmentsError;
     if (scoresError) throw scoresError;
+    if (termGradesError) throw termGradesError;
 
     const assessmentSnapshot = (assessments || [])
       .map((row: any) => ({
@@ -44,8 +49,20 @@ export async function GET() {
       }))
       .sort((a, b) => a.assessmentId.localeCompare(b.assessmentId));
 
+
+    const termGradeSnapshot = (termGrades || [])
+      .map((row: any) => ({
+        id: String(row.id || ""),
+        subjectId: String(row.subject_id || ""),
+        rawPercentage: row.raw_percentage ?? null,
+        termGrade: row.term_grade ?? null,
+        releasedAt: String(row.released_at || ""),
+        updatedAt: String(row.updated_at || ""),
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
     const signature = createHash("sha256")
-      .update(JSON.stringify({ assessments: assessmentSnapshot, scores: scoreSnapshot }))
+      .update(JSON.stringify({ assessments: assessmentSnapshot, scores: scoreSnapshot, termGrades: termGradeSnapshot }))
       .digest("base64url")
       .slice(0, 32);
 

@@ -1,0 +1,14 @@
+MEDSCORES TERM GRADES — IMPORTANT
+
+1. In Supabase SQL Editor, run:
+   database/v4.23_term_grades.sql
+
+2. Then copy/deploy this update package.
+
+3. Admin: open /admin/assessments and use the new Term Grades shortcut,
+   or open /admin/grades directly.
+
+4. Student: released grades are available from Student Home → View term grades,
+   or /student/grades.
+
+Do not deploy the code before running the migration.

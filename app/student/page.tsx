@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { Leaderboard } from "@/components/Leaderboard";
+import { StudentWelcomeHeader } from "@/components/StudentWelcomeHeader";
 import { requireStudent } from "@/lib/student-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatDate, scoreFill } from "@/lib/utils";
@@ -12,13 +12,14 @@ export default async function Page() {
   const { student } = await requireStudent();
   const db = createAdminClient();
   const { data: activePeriod } = await db.from("academic_periods").select("academic_year,term").eq("owner_id", student.owner_id).eq("is_active", true).maybeSingle();
-  const [{ data: scores }, { data: views }] = await Promise.all([
+  const [{ data: scores }, { data: views }, { count: releasedGradeCount }] = await Promise.all([
     db.from("scores")
       .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,released_at,subjects(id,name,code,term,academic_year))")
       .eq("student_id", student.id)
       .eq("assessments.status", "published")
       .order("created_at", { ascending: false }),
     db.from("student_result_views").select("assessment_id,viewed_at").eq("student_id", student.id),
+    db.from("released_term_grades").select("id", { count: "exact", head: true }).eq("student_id", student.id).eq("owner_id", student.owner_id),
   ]);
   const viewMap = new Map<string, string>();
   for (const view of views || []) {
@@ -48,7 +49,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageHeader eyebrow="Student Portal" title={`Welcome, ${student.code_name}`} description="Your latest scores and assessment activity in one place." />
+      <StudentWelcomeHeader codeName={student.code_name} />
 
       <div className="student-dashboard-top student-v2-home-top">
         <section className="performance-hero compact-performance-hero student-v2-hero">
@@ -76,6 +77,15 @@ export default async function Page() {
           <div className="student-metric"><span>Did not take</span><strong>{absentCount}</strong><small>{rows.length} total recorded entr{rows.length === 1 ? "y" : "ies"}</small></div>
         </div>
       </div>
+
+      <section className="student-grade-entry-v423">
+        <div>
+          <span>Released academic grades</span>
+          <strong>{releasedGradeCount || 0} term grade{releasedGradeCount === 1 ? "" : "s"}</strong>
+          <p>Term grades use your subject’s configured weighted components and are separate from individual assessment scores.</p>
+        </div>
+        <Link href="/student/grades" className="button button-secondary button-sm">View term grades</Link>
+      </section>
 
       <Leaderboard />
 
