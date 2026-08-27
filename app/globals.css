@@ -12434,3 +12434,2804 @@ body[data-student-route="home"] .student-shell .empty-state::before {
     font-size: 11px;
   }
 }
+
+/* MedScores V4.27 — grading periods, optional grade tracks, and optional subcomponents */
+.grades-hierarchy-workspace-v427 {
+  --grades-control-height-v427: 48px;
+  display: grid;
+  gap: 18px;
+}
+
+.grades-hierarchy-context-v427 {
+  display: block;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.grades-hierarchy-context-grid-v427 {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.25fr) minmax(190px, .8fr) minmax(250px, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.grades-hierarchy-field-v427 {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.grades-hierarchy-field-v427 > span,
+.grades-text-field-v427 > span,
+.grades-track-create-v427 label > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: .015em;
+}
+
+.grades-hierarchy-context-v427 .grades-select-v425,
+.grades-structure-settings-v427 .grades-select-v425,
+.grades-hierarchy-workspace-v427 .grades-assessment-select-v424 .grades-select-v425 {
+  width: 100%;
+  min-width: 0;
+}
+
+.grades-hierarchy-context-v427 .grades-select-trigger-v425,
+.grades-structure-settings-v427 .grades-select-trigger-v425,
+.grades-hierarchy-workspace-v427 .grades-assessment-select-v424 .grades-select-trigger-v425 {
+  min-height: var(--grades-control-height-v427);
+  border-radius: 12px;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 strong {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 small,
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 small {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.grades-track-control-v427 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.grades-hierarchy-context-meta-v427 {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.grades-hierarchy-context-meta-v427 strong { color: var(--text); font-weight: 750; }
+
+.grades-track-create-v427 {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.grades-track-create-v427 label,
+.grades-text-field-v427 {
+  display: grid;
+  gap: 7px;
+}
+
+.grades-track-create-v427 input,
+.grades-text-field-v427 input,
+.grades-hierarchy-component-v427 input,
+.grades-subcomponent-row-v427 input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  padding: 9px 11px;
+  outline: none;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.grades-track-create-v427 input:focus,
+.grades-text-field-v427 input:focus,
+.grades-hierarchy-component-v427 input:focus,
+.grades-subcomponent-row-v427 input:focus {
+  border-color: color-mix(in srgb, var(--brand) 58%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 11%, transparent);
+}
+
+.grades-track-create-v427 > div {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.grades-hierarchy-panel-v427 {
+  overflow: visible;
+}
+
+.grades-structure-settings-v427 {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-subtle) 62%, #fff);
+}
+
+.grades-delete-track-v427 { align-self: end; }
+
+.grades-hierarchy-component-list-v427 {
+  display: grid;
+}
+
+.grades-hierarchy-component-v427 {
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+}
+
+.grades-hierarchy-component-main-v427 {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.grades-hierarchy-component-v427 .grades-component-fields-v424 {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(130px, 170px) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.grades-hierarchy-component-v427 .grades-component-fields-v424 label {
+  min-width: 0;
+}
+
+.grades-hierarchy-component-v427 .grades-component-fields-v424 label > span,
+.grades-subcomponent-row-v427 label > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.grades-hierarchy-component-v427 .grades-weight-field-v424 > div,
+.grades-subcomponent-weight-v427 {
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.grades-hierarchy-component-v427 .grades-weight-field-v424 > div input,
+.grades-subcomponent-weight-v427 input {
+  min-height: 42px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.grades-hierarchy-component-v427 .grades-weight-field-v424 > div b,
+.grades-subcomponent-weight-v427 b {
+  padding: 0 11px 0 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.grades-subcomponents-v427 {
+  margin-left: 2px;
+  border-left: 2px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  padding: 2px 0 2px 14px;
+  display: grid;
+  gap: 9px;
+}
+
+.grades-subcomponents-head-v427 {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 0 0 2px;
+}
+
+.grades-subcomponents-head-v427 > div {
+  display: grid;
+  gap: 2px;
+}
+
+.grades-subcomponents-head-v427 strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.grades-subcomponents-head-v427 > div span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.grades-subcomponents-head-v427 > span {
+  flex: 0 0 auto;
+  color: var(--danger, #b42318);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.grades-subcomponents-head-v427 > span.is-valid { color: var(--success, #177245); }
+
+.grades-subcomponent-row-v427 {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(130px, 170px) auto;
+  gap: 9px;
+  align-items: end;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.grades-subcomponent-row-v427 > button,
+.grades-add-subcomponent-v427 {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  min-height: 38px;
+  padding: 0 7px;
+}
+
+.grades-subcomponent-row-v427 > button { color: var(--text-muted); }
+.grades-subcomponent-row-v427 > button:hover { color: var(--danger, #b42318); }
+
+.grades-add-subcomponent-v427 {
+  justify-self: start;
+  min-height: 34px;
+  padding: 0;
+}
+
+.grades-assessment-location-v427 {
+  display: block;
+  max-width: 620px;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.grades-hierarchy-preview-row-v427 summary::after,
+.grades-hierarchy-preview-row-v427[open] summary::after {
+  content: none !important;
+  display: none !important;
+}
+
+.grades-hierarchy-preview-row-v427 summary {
+  padding-right: 16px;
+}
+
+.grades-preview-subcomponents-v427 {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-subtle) 60%, #fff);
+}
+
+.grades-preview-subcomponent-v427,
+.grades-preview-parent-raw-v427 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+}
+
+.grades-preview-subcomponent-v427 + .grades-preview-subcomponent-v427,
+.grades-preview-parent-raw-v427 {
+  border-top: 1px solid var(--border);
+}
+
+.grades-preview-subcomponent-v427 > div,
+.grades-preview-subcomponent-v427 > span {
+  display: grid;
+  gap: 2px;
+}
+
+.grades-preview-subcomponent-v427 > span { text-align: right; }
+.grades-preview-subcomponent-v427 strong,
+.grades-preview-parent-raw-v427 strong { font-size: 13px; line-height: 1.35; }
+.grades-preview-subcomponent-v427 small { color: var(--text-muted); font-size: 12px; line-height: 1.4; }
+.grades-preview-parent-raw-v427 span { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+
+.grades-hierarchy-parent-metrics-v427 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 9px;
+}
+
+.grades-hierarchy-skeleton-toolbar-v427 {
+  display: grid;
+  grid-template-columns: 1.25fr .8fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.student-period-grade-card-v427 summary::-webkit-details-marker { display: none; }
+.student-period-grade-card-v427 summary::marker { content: ""; }
+
+.student-subcomponents-v427 {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-subtle) 62%, #fff);
+  padding: 9px 11px;
+  display: grid;
+}
+
+.student-subcomponent-v427,
+.student-parent-performance-v427 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.student-subcomponent-v427 + .student-subcomponent-v427,
+.student-parent-performance-v427 { border-top: 1px solid var(--border); }
+.student-subcomponent-v427 > div,
+.student-subcomponent-v427 > span { display: grid; gap: 2px; }
+.student-subcomponent-v427 > span { text-align: right; }
+.student-subcomponent-v427 strong,
+.student-parent-performance-v427 strong { font-size: 13px; line-height: 1.35; }
+.student-subcomponent-v427 small { color: var(--text-muted); font-size: 12px; line-height: 1.4; }
+.student-parent-performance-v427 span { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.student-parent-metrics-v427 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 9px; }
+
+@media (max-width: 980px) {
+  .grades-hierarchy-context-grid-v427 { grid-template-columns: 1fr 1fr; }
+  .grades-hierarchy-field-v427:last-child { grid-column: 1 / -1; }
+  .grades-structure-settings-v427 { grid-template-columns: 1fr 220px; }
+  .grades-delete-track-v427 { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (max-width: 720px) {
+  .grades-hierarchy-workspace-v427 { gap: 14px; }
+  .grades-hierarchy-context-v427 { padding: 14px; border-radius: 15px; }
+  .grades-hierarchy-context-grid-v427,
+  .grades-structure-settings-v427,
+  .grades-track-create-v427,
+  .grades-hierarchy-skeleton-toolbar-v427 { grid-template-columns: 1fr; }
+  .grades-hierarchy-field-v427:last-child { grid-column: auto; }
+  .grades-track-control-v427 { grid-template-columns: minmax(0, 1fr) auto; }
+  .grades-hierarchy-context-meta-v427 { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .grades-track-create-v427 > div { justify-content: stretch; }
+  .grades-track-create-v427 > div .button { flex: 1; }
+  .grades-structure-settings-v427 { padding: 13px 14px; }
+  .grades-hierarchy-component-v427 { grid-template-columns: 26px minmax(0, 1fr); gap: 8px; padding: 14px; }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 { grid-template-columns: minmax(0, 1fr) 118px; }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424 .grades-remove-component-v424,
+  .grades-subcomponent-row-v427 > button { grid-column: 1 / -1; justify-self: start; min-height: 28px; padding: 0; }
+  .grades-subcomponents-v427 { padding-left: 10px; }
+  .grades-preview-subcomponent-v427,
+  .student-subcomponent-v427 { align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+  .grades-track-control-v427 { grid-template-columns: 1fr; }
+  .grades-track-control-v427 .button { width: 100%; }
+  .grades-hierarchy-component-v427 { grid-template-columns: 1fr; }
+  .grades-hierarchy-component-v427 .grades-component-index-v424 { display: none; }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 { grid-template-columns: 1fr; }
+  .grades-hierarchy-parent-metrics-v427,
+  .student-parent-metrics-v427 { grid-template-columns: 1fr 1fr 1fr; }
+  .grades-preview-subcomponent-v427,
+  .grades-preview-parent-raw-v427,
+  .student-subcomponent-v427,
+  .student-parent-performance-v427 { gap: 8px; }
+}
+
+/* MedScores V4.28 — simplified, balanced Term Grades workspace */
+.grades-hierarchy-workspace-v427 {
+  gap: 16px;
+}
+
+.grades-hierarchy-context-v427 {
+  padding: 18px 20px;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.grades-hierarchy-context-grid-v427 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grades-hierarchy-field-v427 > span,
+.grades-text-field-v427 > span,
+.grades-track-create-v427 label > span,
+.grades-hierarchy-component-v427 .grades-component-fields-v424 label > span,
+.grades-subcomponent-row-v427 label > span,
+.grades-assessment-select-v424 > span {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.grades-hierarchy-context-meta-v427 {
+  display: none;
+}
+
+.grades-hierarchy-context-v427 .grades-select-trigger-v425,
+.grades-structure-settings-v427 .grades-select-trigger-v425,
+.grades-hierarchy-workspace-v427 .grades-assessment-select-v424 .grades-select-trigger-v425 {
+  min-height: 46px;
+  border-radius: 11px;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 strong,
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 strong {
+  font-size: 14.25px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 small,
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 small {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.grades-select-option-v425 {
+  min-height: 44px;
+  padding: 9px 10px;
+}
+
+.grades-summary-grid-v424 {
+  gap: 12px;
+}
+
+.grades-summary-card-v424 {
+  min-height: 88px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.grades-summary-card-v424 small {
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.grades-summary-card-v424 > div strong {
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+.grades-panel-v424.grades-hierarchy-panel-v427 {
+  padding: 0;
+  border-radius: 17px;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.grades-hierarchy-panel-v427 > .grades-panel-heading-v424 {
+  min-height: 82px;
+  margin: 0;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.grades-heading-main-v424 {
+  gap: 0;
+}
+
+.grades-heading-main-v424 h2 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 760;
+}
+
+.grades-heading-main-v424 p {
+  margin-top: 4px;
+  max-width: 680px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.grades-step-v424 {
+  display: none;
+}
+
+.grades-weight-total-v424,
+.grades-panel-count-v424,
+.grades-ready-cluster-v424 > span {
+  font-size: 12.5px;
+}
+
+.grades-structure-settings-v427 {
+  grid-template-columns: minmax(240px, 1fr) minmax(180px, 230px) auto;
+  gap: 12px;
+  padding: 15px 20px;
+  border-top: 0;
+  background: color-mix(in srgb, var(--surface-subtle) 46%, #fff);
+}
+
+.grades-track-create-v427 {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.grades-track-create-v427 input,
+.grades-text-field-v427 input,
+.grades-hierarchy-component-v427 input,
+.grades-subcomponent-row-v427 input {
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.grades-hierarchy-component-v427 {
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  padding: 17px 20px;
+  background: #fff;
+}
+
+.grades-hierarchy-component-v427 + .grades-hierarchy-component-v427 {
+  border-top: 1px solid var(--border);
+}
+
+.grades-component-index-v424 {
+  width: 30px;
+  height: 30px;
+  font-size: 12.5px;
+}
+
+.grades-hierarchy-component-v427 .grades-component-fields-v424 {
+  grid-template-columns: minmax(240px, 1fr) 150px auto;
+  gap: 12px;
+}
+
+.grades-hierarchy-component-v427 .grades-weight-field-v424 > div,
+.grades-subcomponent-weight-v427 {
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+.grades-remove-component-v424,
+.grades-subcomponent-row-v427 > button,
+.grades-add-subcomponent-v427,
+.grades-add-component-v424 {
+  font-size: 13px;
+}
+
+.grades-subcomponents-v427 {
+  margin-top: 2px;
+  margin-left: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-subtle) 52%, #fff);
+  gap: 10px;
+}
+
+.grades-subcomponents-head-v427 strong {
+  font-size: 13.5px;
+}
+
+.grades-subcomponents-head-v427 strong small {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.grades-subcomponents-head-v427 > div span,
+.grades-subcomponents-head-v427 > span {
+  font-size: 12.5px;
+}
+
+.grades-subcomponent-row-v427 {
+  grid-template-columns: minmax(220px, 1fr) 150px auto;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 11px;
+}
+
+.grades-add-component-v424 {
+  margin: 14px 20px 18px;
+}
+
+.grades-assessment-list-v424 {
+  border: 0;
+  border-radius: 0;
+}
+
+.grades-assessment-row-v424 {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  gap: 20px;
+  min-height: 76px;
+  padding: 14px 20px;
+}
+
+.grades-assessment-title-v424 strong {
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+
+.grades-assessment-copy-v424 > span,
+.grades-assessment-location-v427 {
+  font-size: 12.75px;
+  line-height: 1.45;
+}
+
+.grades-assessment-select-v424 > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+}
+
+.grades-save-bar-v424,
+.grades-release-bar-v424 {
+  min-height: 74px;
+  padding: 14px 20px;
+}
+
+.grades-save-bar-v424 > div strong,
+.grades-release-copy-v424 strong {
+  font-size: 14px;
+}
+
+.grades-save-bar-v424 > div span,
+.grades-release-copy-v424 span {
+  font-size: 12.75px;
+  line-height: 1.45;
+}
+
+.grades-preview-head-v424 {
+  min-height: 44px;
+  padding-inline: 20px;
+  font-size: 11.75px;
+  letter-spacing: .01em;
+}
+
+.grades-preview-row-v424 summary {
+  min-height: 66px;
+  padding: 12px 20px;
+}
+
+.grades-student-cell-v424 strong {
+  font-size: 14px;
+}
+
+.grades-student-cell-v424 small {
+  font-size: 12px;
+}
+
+.grades-data-cell-v424 {
+  font-size: 13.5px;
+}
+
+.grades-final-value-v424 {
+  font-size: 19px;
+}
+
+.grades-status-v424 {
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: 11.75px;
+}
+
+.grades-breakdown-v424.grades-hierarchy-breakdown-v427 {
+  padding: 16px 20px 18px;
+}
+
+.grades-breakdown-title-v424 strong {
+  font-size: 14px;
+}
+
+.grades-breakdown-title-v424 span {
+  font-size: 12.75px;
+  line-height: 1.45;
+}
+
+.grades-base40-component-v426.grades-hierarchy-breakdown-component-v427 {
+  padding: 14px 0;
+}
+
+.grades-base40-component-head-v426 > strong {
+  font-size: 14px;
+}
+
+.grades-base40-component-head-v426 > span {
+  font-size: 12.5px;
+}
+
+.grades-base40-metrics-v426 {
+  gap: 8px;
+}
+
+.grades-base40-metrics-v426 > span {
+  min-height: 58px;
+  padding: 10px 11px;
+  border-radius: 10px;
+}
+
+.grades-base40-metrics-v426 small {
+  font-size: 12px;
+}
+
+.grades-base40-metrics-v426 strong {
+  font-size: 14px;
+}
+
+.grades-base40-equation-v426 {
+  display: none !important;
+}
+
+.grades-preview-subcomponents-v427 {
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.grades-preview-subcomponent-v427 strong,
+.grades-preview-parent-raw-v427 strong {
+  font-size: 13.5px;
+}
+
+.grades-preview-subcomponent-v427 small,
+.grades-preview-parent-raw-v427 span {
+  font-size: 12px;
+}
+
+.grades-base40-total-v426 {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.grades-base40-total-v426 > span:first-child > strong {
+  font-size: 14px;
+}
+
+.grades-base40-total-v426 > span:first-child > small {
+  font-size: 12.5px;
+}
+
+.grades-base40-total-values-v426 strong {
+  font-size: 24px;
+}
+
+/* Student grade details use the same simple labels and readable sizing. */
+.student-term-grade-breakdown-v423 .student-base40-heading-v426 {
+  display: none;
+}
+
+.student-term-grade-breakdown-v423 .student-base40-metrics-v426 small,
+.student-subcomponent-v427 small,
+.student-parent-performance-v427 span {
+  font-size: 12px;
+}
+
+.student-term-grade-breakdown-v423 .student-base40-metrics-v426 strong,
+.student-subcomponent-v427 strong,
+.student-parent-performance-v427 strong {
+  font-size: 13.5px;
+}
+
+@media (max-width: 980px) {
+  .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grades-hierarchy-field-v427:last-child {
+    grid-column: 1 / -1;
+  }
+  .grades-structure-settings-v427 {
+    grid-template-columns: minmax(0, 1fr) 220px;
+  }
+  .grades-delete-track-v427 {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .grades-hierarchy-context-v427 {
+    padding: 15px;
+  }
+  .grades-hierarchy-context-grid-v427,
+  .grades-structure-settings-v427,
+  .grades-track-create-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-hierarchy-field-v427:last-child {
+    grid-column: auto;
+  }
+  .grades-summary-grid-v424 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grades-summary-card-v424 {
+    min-height: 82px;
+  }
+  .grades-hierarchy-panel-v427 > .grades-panel-heading-v424 {
+    min-height: 0;
+    padding: 16px;
+  }
+  .grades-structure-settings-v427 {
+    padding: 14px 16px;
+  }
+  .grades-hierarchy-component-v427 {
+    padding: 15px 16px;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 {
+    grid-template-columns: minmax(0, 1fr) 120px;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424 .grades-remove-component-v424,
+  .grades-subcomponent-row-v427 > button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .grades-add-component-v424 {
+    margin: 12px 16px 16px;
+  }
+  .grades-assessment-row-v424 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .grades-save-bar-v424,
+  .grades-release-bar-v424 {
+    padding: 14px 16px;
+  }
+  .grades-breakdown-v424.grades-hierarchy-breakdown-v427 {
+    padding: 14px 16px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grades-summary-grid-v424 {
+    gap: 9px;
+  }
+  .grades-summary-card-v424 {
+    min-height: 78px;
+    padding: 12px;
+  }
+  .grades-summary-card-v424 > div strong {
+    font-size: 21px;
+  }
+  .grades-track-control-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-track-control-v427 .button {
+    width: 100%;
+  }
+  .grades-hierarchy-component-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-hierarchy-component-v427 .grades-component-index-v424 {
+    display: none;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427,
+  .grades-hierarchy-parent-metrics-v427,
+  .student-parent-metrics-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-base40-metrics-v426 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* MedScores V4.29 — balanced Term Grades layout and informative controls */
+.grades-hierarchy-workspace-v427 {
+  --grades-control-height-v429: 54px;
+  gap: 20px;
+}
+
+/* Give the workspace clear structure without stacking unnecessary cards. */
+.grades-hierarchy-context-v427 {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.grades-hierarchy-context-grid-v427 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.grades-hierarchy-field-v427,
+.grades-text-field-v427 {
+  gap: 7px;
+}
+
+.grades-hierarchy-field-v427 > span,
+.grades-text-field-v427 > span,
+.grades-track-create-v427 label > span,
+.grades-hierarchy-component-v427 .grades-component-fields-v424 label > span,
+.grades-subcomponent-row-v427 label > span,
+.grades-assessment-select-v424 > span {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 750;
+}
+
+/* Informative MedScores dropdowns: same height and visual weight everywhere. */
+.grades-hierarchy-workspace-v427 .grades-select-trigger-v425 {
+  min-height: var(--grades-control-height-v429);
+  padding: 8px 13px 8px 14px;
+  border-color: var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(35, 26, 37, .025);
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-trigger-v425:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--border-strong));
+  background: #fff;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 {
+  gap: 2px;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 strong {
+  font-size: 14.5px;
+  line-height: 1.28;
+  font-weight: 750;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-value-v425 small {
+  color: var(--text-muted);
+  font-size: 12.25px;
+  line-height: 1.35;
+  font-weight: 550;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-menu-v425 {
+  top: calc(100% + 8px);
+  padding: 7px;
+  border-radius: 13px;
+  box-shadow: 0 16px 36px rgba(39, 25, 42, .13), 0 4px 12px rgba(39, 25, 42, .06);
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 {
+  min-height: 50px;
+  padding: 8px 10px;
+  border-radius: 9px;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 > span {
+  gap: 2px;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 strong {
+  font-size: 13.75px;
+  line-height: 1.32;
+  font-weight: 700;
+}
+
+.grades-hierarchy-workspace-v427 .grades-select-option-v425 small {
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.grades-track-control-v427 {
+  grid-template-columns: minmax(0, 1fr) 106px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.grades-control-button-v429 {
+  min-height: var(--grades-control-height-v429) !important;
+  height: var(--grades-control-height-v429);
+  padding: 0 15px !important;
+  border-radius: 12px !important;
+  font-size: 13.25px !important;
+  font-weight: 750 !important;
+  white-space: nowrap;
+}
+
+.grades-track-create-v427 {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+}
+
+.grades-track-create-v427 input,
+.grades-text-field-v427 input {
+  min-height: var(--grades-control-height-v429);
+  border-color: var(--border-strong);
+  border-radius: 12px;
+  font-size: 14px;
+  padding-inline: 13px;
+}
+
+/* Equal summary cards with comfortable text size. */
+.grades-summary-grid-v424 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grades-summary-card-v424 {
+  min-height: 100px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.grades-summary-card-v424 small {
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.grades-summary-card-v424 > div strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+/* Restore fair panel spacing. */
+.grades-panel-v424.grades-hierarchy-panel-v427 {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  overflow: visible;
+}
+
+.grades-hierarchy-panel-v427 > .grades-panel-heading-v424 {
+  min-height: 0;
+  margin: 0 0 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.grades-heading-main-v424 h2 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 760;
+}
+
+.grades-heading-main-v424 p {
+  margin-top: 4px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.grades-weight-total-v424,
+.grades-panel-count-v424,
+.grades-ready-cluster-v424 > span {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 9px;
+  font-size: 12.25px;
+  font-weight: 750;
+}
+
+/* Grade name and rounding belong to one balanced settings row. */
+.grades-structure-settings-v427 {
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, .65fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-subtle) 48%, #fff);
+}
+
+.grades-structure-settings-v427 .grades-select-trigger-v425,
+.grades-structure-settings-v427 .grades-text-field-v427 input {
+  min-height: var(--grades-control-height-v429);
+}
+
+/* Components stay grouped in one clean container with equal row padding. */
+.grades-hierarchy-component-list-v427 {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.grades-hierarchy-component-v427 {
+  padding: 16px;
+  background: #fff;
+}
+
+.grades-hierarchy-component-v427 + .grades-hierarchy-component-v427 {
+  border-top: 1px solid var(--border);
+}
+
+.grades-hierarchy-component-v427 .grades-component-fields-v424 {
+  grid-template-columns: minmax(250px, 1fr) 150px 86px;
+  gap: 12px;
+  align-items: end;
+}
+
+.grades-hierarchy-component-v427 input,
+.grades-subcomponent-row-v427 input,
+.grades-hierarchy-component-v427 .grades-weight-field-v424 > div,
+.grades-subcomponent-weight-v427 {
+  min-height: 46px;
+  border-radius: 11px;
+}
+
+.grades-hierarchy-component-v427 input,
+.grades-subcomponent-row-v427 input {
+  font-size: 14px;
+}
+
+.grades-remove-component-v424,
+.grades-subcomponent-row-v427 > button {
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12.75px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.grades-remove-component-v424:hover:not(:disabled),
+.grades-subcomponent-row-v427 > button:hover {
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.grades-remove-component-v424:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.grades-subcomponents-v427 {
+  margin-top: 2px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-subtle) 48%, #fff);
+  gap: 10px;
+}
+
+.grades-subcomponent-row-v427 {
+  grid-template-columns: minmax(220px, 1fr) 150px 86px;
+  gap: 10px;
+  padding: 11px;
+  border-radius: 11px;
+}
+
+.grades-add-subcomponent-v427,
+.grades-add-component-v424 {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border));
+  border-radius: 10px;
+  background: #fff;
+  color: var(--brand);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.grades-add-subcomponent-v427:hover,
+.grades-add-component-v424:hover {
+  background: var(--brand-soft);
+  border-color: color-mix(in srgb, var(--brand) 34%, var(--border));
+}
+
+.grades-add-subcomponent-v427 {
+  justify-self: start;
+  margin-top: 1px;
+}
+
+.grades-add-component-v424 {
+  margin: 14px 0 0;
+}
+
+/* Assessments use equal row containers; dropdowns stay informative. */
+.grades-assessment-list-v424 {
+  display: grid;
+  gap: 9px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+}
+
+.grades-assessment-row-v424,
+.grades-assessment-row-v424:first-child,
+.grades-assessment-row-v424:last-child {
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 36%);
+  gap: 20px;
+  min-height: 82px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.grades-assessment-row-v424.is-assigned {
+  background: #fdfcfd;
+}
+
+.grades-assessment-title-v424 strong {
+  font-size: 14.25px;
+  line-height: 1.35;
+}
+
+.grades-assessment-copy-v424 > span,
+.grades-assessment-location-v427 {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.grades-assessment-select-v424 > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 750;
+}
+
+.grades-hierarchy-workspace-v427 .grades-assessment-select-v424 .grades-select-trigger-v425 {
+  min-height: var(--grades-control-height-v429);
+}
+
+/* Save and release bars get consistent spacing and buttons. */
+.grades-save-bar-v424,
+.grades-release-bar-v424 {
+  min-height: 78px;
+  margin-top: 16px;
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-subtle) 44%, #fff);
+}
+
+.grades-save-bar-v424 .button,
+.grades-release-bar-v424 .button {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 11px;
+  font-size: 13.25px;
+  font-weight: 750;
+}
+
+.grades-save-bar-v424 > div strong,
+.grades-release-copy-v424 strong {
+  font-size: 13.75px;
+}
+
+.grades-save-bar-v424 > div span,
+.grades-release-copy-v424 span {
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+/* Student grade table keeps the same card rhythm as the rest of the page. */
+.grades-preview-table-v424 {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.grades-preview-head-v424 {
+  min-height: 45px;
+  padding-inline: 16px;
+  font-size: 11.75px;
+}
+
+.grades-preview-row-v424 summary {
+  min-height: 68px;
+  padding: 12px 16px;
+}
+
+.grades-student-cell-v424 strong { font-size: 14px; }
+.grades-student-cell-v424 small { font-size: 12px; }
+.grades-data-cell-v424 { font-size: 13.5px; }
+.grades-final-value-v424 { font-size: 19px; }
+
+/* Skeleton spacing mirrors the finished workspace. */
+.grades-hierarchy-skeleton-v427 {
+  gap: 20px;
+}
+
+.grades-hierarchy-skeleton-toolbar-v427 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: #fff;
+}
+
+@media (max-width: 980px) {
+  .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grades-hierarchy-field-v427:last-child {
+    grid-column: 1 / -1;
+  }
+  .grades-structure-settings-v427 {
+    grid-template-columns: minmax(0, 1fr) minmax(210px, .7fr);
+  }
+  .grades-delete-track-v427 {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 {
+    grid-template-columns: minmax(0, 1fr) 140px 82px;
+  }
+}
+
+@media (max-width: 720px) {
+  .grades-hierarchy-workspace-v427 {
+    --grades-control-height-v429: 52px;
+    gap: 15px;
+  }
+  .grades-hierarchy-context-v427,
+  .grades-panel-v424.grades-hierarchy-panel-v427 {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  .grades-hierarchy-context-grid-v427,
+  .grades-structure-settings-v427,
+  .grades-track-create-v427,
+  .grades-hierarchy-skeleton-toolbar-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-hierarchy-field-v427:last-child {
+    grid-column: auto;
+  }
+  .grades-track-control-v427 {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+  .grades-summary-grid-v424 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .grades-summary-card-v424 {
+    min-height: 88px;
+    padding: 13px;
+  }
+  .grades-hierarchy-panel-v427 > .grades-panel-heading-v424 {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+  .grades-hierarchy-component-list-v427 {
+    border-radius: 12px;
+  }
+  .grades-hierarchy-component-v427 {
+    padding: 14px;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 {
+    grid-template-columns: minmax(0, 1fr) 120px;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424 .grades-remove-component-v424,
+  .grades-subcomponent-row-v427 > button {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+  .grades-assessment-row-v424 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 13px;
+  }
+  .grades-save-bar-v424,
+  .grades-release-bar-v424 {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 11px;
+  }
+  .grades-save-bar-v424 .button,
+  .grades-release-bar-v424 .button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .grades-track-control-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-track-control-v427 .grades-control-button-v429 {
+    width: 100%;
+    height: 44px;
+    min-height: 44px !important;
+  }
+  .grades-summary-grid-v424 {
+    gap: 9px;
+  }
+  .grades-summary-card-v424 {
+    min-height: 82px;
+  }
+  .grades-hierarchy-component-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-hierarchy-component-v427 .grades-component-index-v424 {
+    display: none;
+  }
+  .grades-hierarchy-component-v427 .grades-component-fields-v424,
+  .grades-subcomponent-row-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-hierarchy-workspace-v427 .grades-select-value-v425 strong {
+    font-size: 14px;
+  }
+  .grades-hierarchy-workspace-v427 .grades-select-value-v425 small {
+    font-size: 11.75px;
+  }
+}
+
+/* MedScores V4.30 — balanced Term Grades rows, light optional splits, and polished student list */
+.grades-consistent-v430 {
+  --grades-row-bg-v430: #fbfafc;
+  --grades-row-border-v430: #e8e2e9;
+  --grades-row-radius-v430: 13px;
+}
+
+/* Numbered headings restore the clear visual sequence without adding extra containers. */
+.grades-consistent-v430 .grades-heading-main-v424 {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.grades-consistent-v430 .grades-step-v424 {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+/* Component rows mirror the clean grouped-row treatment used in the preferred design. */
+.grades-consistent-v430 .grades-hierarchy-component-list-v427 {
+  display: grid;
+  gap: 9px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.grades-consistent-v430 .grades-hierarchy-component-v427,
+.grades-consistent-v430 .grades-hierarchy-component-v427 + .grades-hierarchy-component-v427 {
+  padding: 13px;
+  border: 1px solid var(--grades-row-border-v430);
+  border-radius: var(--grades-row-radius-v430);
+  background: var(--grades-row-bg-v430);
+}
+
+.grades-consistent-v430 .grades-component-index-v424 {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--grades-row-border-v430);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.grades-consistent-v430 .grades-component-fields-v424 label > span,
+.grades-consistent-v430 .grades-subcomponent-row-v427 label > span,
+.grades-consistent-v430 .grades-assessment-select-v424 > span {
+  color: var(--text-soft);
+  font-size: 12.5px;
+  line-height: 1.3;
+  font-weight: 750;
+}
+
+.grades-consistent-v430 .grades-component-fields-v424 input,
+.grades-consistent-v430 .grades-weight-field-v424 > div {
+  min-height: 46px;
+  background: #fff;
+  border-color: #dcd4de;
+}
+
+.grades-consistent-v430 .grades-remove-component-v424 {
+  min-width: 78px;
+  background: #fff;
+}
+
+/* Optional subcomponents stay visibly nested, but are not another boxed card. */
+.grades-consistent-v430 .grades-subcomponents-v427 {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  margin: 12px 0 2px 2px;
+  padding: 12px 0 0 15px;
+  border: 0;
+  border-top: 1px solid var(--grades-row-border-v430);
+  border-radius: 0;
+  background: transparent;
+}
+
+.grades-consistent-v430 .grades-subcomponents-v427::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 20%, var(--grades-row-border-v430));
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 {
+  min-height: 32px;
+  padding: 0;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 strong {
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 strong small {
+  display: none;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.grades-consistent-v430 .grades-subcomponent-row-v427 {
+  grid-template-columns: minmax(220px, 1fr) 150px 78px;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.grades-consistent-v430 .grades-subcomponent-row-v427 input,
+.grades-consistent-v430 .grades-subcomponent-weight-v427 {
+  min-height: 42px;
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-subcomponent-row-v427 > button {
+  min-height: 42px;
+  background: transparent;
+  border-color: transparent;
+}
+
+.grades-consistent-v430 .grades-add-subcomponent-v427 {
+  min-height: 36px;
+  margin-top: 8px;
+  padding-inline: 11px;
+  border-style: dashed;
+  background: transparent;
+  font-size: 12.5px;
+}
+
+/* Assessments use the same row surface, dimensions, and control alignment as components. */
+.grades-consistent-v430 .grades-assessment-list-v424 {
+  gap: 9px;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424,
+.grades-consistent-v430 .grades-assessment-row-v424:first-child,
+.grades-consistent-v430 .grades-assessment-row-v424:last-child {
+  min-height: 84px;
+  padding: 13px;
+  border-color: var(--grades-row-border-v430);
+  border-radius: var(--grades-row-radius-v430);
+  background: var(--grades-row-bg-v430);
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424.is-assigned {
+  background: var(--grades-row-bg-v430);
+  border-color: color-mix(in srgb, var(--brand) 16%, var(--grades-row-border-v430));
+}
+
+.grades-consistent-v430 .grades-assessment-title-v424 strong {
+  font-size: 14.25px;
+  font-weight: 760;
+}
+
+.grades-consistent-v430 .grades-assessment-copy-v424 > span {
+  font-size: 12.5px;
+}
+
+.grades-consistent-v430 .grades-assessment-select-v424 .grades-select-trigger-v425 {
+  min-height: 54px;
+  background: #fff;
+}
+
+/* Student grade list: clearer hierarchy, even rows, and no visual collapse glyphs. */
+.grades-consistent-v430 .grades-preview-table-v424 {
+  border-color: var(--grades-row-border-v430);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.grades-consistent-v430 .grades-preview-head-v424,
+.grades-consistent-v430 .grades-preview-row-v424 > summary {
+  grid-template-columns: minmax(230px, 1.6fr) minmax(115px, .8fr) minmax(110px, .7fr) minmax(130px, .85fr);
+}
+
+.grades-consistent-v430 .grades-preview-head-v424 {
+  min-height: 44px;
+  padding: 0 16px;
+  background: #faf8fb;
+  color: var(--text-soft);
+  border-bottom: 1px solid var(--grades-row-border-v430);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.grades-consistent-v430 .grades-preview-row-v424 {
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-preview-row-v424 + .grades-preview-row-v424 {
+  border-top: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-preview-row-v424 > summary {
+  min-height: 72px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+
+.grades-consistent-v430 .grades-preview-row-v424 > summary::-webkit-details-marker {
+  display: none;
+}
+
+.grades-consistent-v430 .grades-preview-row-v424 > summary:hover {
+  background: #fcfbfd;
+}
+
+.grades-consistent-v430 .grades-preview-row-v424[open] > summary {
+  background: #fbfafc;
+  border-bottom: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-student-cell-v424 {
+  gap: 4px;
+}
+
+.grades-consistent-v430 .grades-student-cell-v424 strong {
+  font-size: 14.5px;
+  line-height: 1.35;
+  font-weight: 780;
+}
+
+.grades-consistent-v430 .grades-student-cell-v424 small {
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f5f1f6;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.grades-consistent-v430 .grades-data-cell-v424 {
+  color: var(--text);
+  font-size: 13.75px;
+  font-weight: 650;
+}
+
+.grades-consistent-v430 .grades-final-value-v424 {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 820;
+}
+
+.grades-consistent-v430 .grades-status-v424 {
+  min-width: 82px;
+  justify-content: center;
+}
+
+.grades-consistent-v430 .grades-hierarchy-breakdown-v427 {
+  padding: 16px;
+  background: #fdfcfd;
+}
+
+@media (max-width: 980px) {
+  .grades-consistent-v430 .grades-preview-head-v424,
+  .grades-consistent-v430 .grades-preview-row-v424 > summary {
+    grid-template-columns: minmax(200px, 1.4fr) minmax(105px, .75fr) minmax(100px, .65fr) minmax(120px, .8fr);
+  }
+  .grades-consistent-v430 .grades-subcomponent-row-v427 {
+    grid-template-columns: minmax(0, 1fr) 135px 76px;
+  }
+}
+
+@media (max-width: 720px) {
+  .grades-consistent-v430 .grades-hierarchy-component-v427,
+  .grades-consistent-v430 .grades-assessment-row-v424 {
+    padding: 12px;
+  }
+  .grades-consistent-v430 .grades-subcomponents-v427 {
+    padding-left: 12px;
+  }
+  .grades-consistent-v430 .grades-subcomponent-row-v427 {
+    grid-template-columns: minmax(0, 1fr) 118px;
+  }
+  .grades-consistent-v430 .grades-subcomponent-row-v427 > button {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+  .grades-consistent-v430 .grades-preview-head-v424 {
+    display: none;
+  }
+  .grades-consistent-v430 .grades-preview-row-v424 > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 14px;
+    min-height: 0;
+    padding: 14px;
+  }
+  .grades-consistent-v430 .grades-student-cell-v424 {
+    grid-column: 1 / -1;
+    padding-bottom: 2px;
+  }
+  .grades-consistent-v430 .grades-data-cell-v424,
+  .grades-consistent-v430 .grades-status-cell-v424 {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+  }
+  .grades-consistent-v430 .grades-data-cell-v424::before,
+  .grades-consistent-v430 .grades-status-cell-v424::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 10.75px;
+    font-weight: 700;
+  }
+  .grades-consistent-v430 .grades-status-cell-v424 {
+    justify-items: end;
+  }
+}
+
+@media (max-width: 480px) {
+  .grades-consistent-v430 .grades-subcomponents-v427 {
+    margin-left: 0;
+  }
+  .grades-consistent-v430 .grades-subcomponent-row-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-consistent-v430 .grades-preview-row-v424 > summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grades-consistent-v430 .grades-status-cell-v424 {
+    justify-items: start;
+  }
+}
+
+.grades-consistent-v430 .grades-heading-actions-v430 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.grades-consistent-v430 .grades-heading-actions-v430 .grades-add-component-v424 {
+  min-height: 38px;
+  margin: 0;
+  padding: 0 13px;
+  background: #fff;
+  color: var(--text);
+  border-color: var(--border-strong);
+  font-size: 12.75px;
+}
+
+.grades-consistent-v430 .grades-heading-actions-v430 .grades-add-component-v424:hover {
+  background: #faf8fb;
+  color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 26%, var(--border-strong));
+}
+
+@media (max-width: 600px) {
+  .grades-consistent-v430 .grades-panel-heading-v424 {
+    align-items: flex-start;
+  }
+  .grades-consistent-v430 .grades-heading-actions-v430 {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* MedScores V4.31 — balanced Term Grades rows, subcomponents, stats and auto-zero */
+.grades-consistent-v430 .grades-summary-card-v424 > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.grades-consistent-v430 .grades-summary-card-v424 > div > span {
+  color: var(--text-muted);
+  font-size: 11.75px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.grades-consistent-v430 .grades-summary-icon-v424 {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* Keep component actions together and aligned: Add subcomponent, then Remove. */
+.grades-consistent-v430 .grades-hierarchy-component-v427 .grades-component-fields-v424 {
+  grid-template-columns: minmax(250px, 1fr) 150px auto;
+}
+
+.grades-consistent-v430 .grades-component-actions-v431 {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  min-height: 46px;
+}
+
+.grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427,
+.grades-consistent-v430 .grades-component-actions-v431 .grades-remove-component-v424 {
+  min-height: 46px;
+  height: 46px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427 {
+  padding-inline: 13px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--brand) 24%, var(--border));
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427:hover {
+  border-color: color-mix(in srgb, var(--brand) 38%, var(--border));
+  background: color-mix(in srgb, var(--brand-soft) 78%, #fff);
+}
+
+.grades-consistent-v430 .grades-heading-actions-v430 .grades-add-component-v424 {
+  margin: 0;
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(91, 28, 111, .12);
+}
+
+.grades-consistent-v430 .grades-heading-actions-v430 .grades-add-component-v424:hover {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 90%, #000);
+  color: #fff;
+}
+
+/* Subcomponents are optional children, not another full card. */
+.grades-consistent-v430 .grades-subcomponents-v427 {
+  margin-top: 12px;
+  padding: 12px 0 0 16px;
+  border: 0;
+  border-top: 1px solid var(--grades-row-border-v430);
+  border-radius: 0;
+  background: transparent;
+}
+
+.grades-consistent-v430 .grades-subcomponents-v427::before {
+  top: 14px;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 {
+  padding-right: 2px;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 strong {
+  font-size: 13.25px;
+}
+
+.grades-consistent-v430 .grades-subcomponents-head-v427 > div > span,
+.grades-consistent-v430 .grades-subcomponents-head-v427 > span {
+  font-size: 11.75px;
+}
+
+.grades-consistent-v430 .grades-subcomponent-row-v427 {
+  padding: 0;
+  background: transparent;
+}
+
+/* Assessments: one clean grouped container, rows separated only by dividers. */
+.grades-consistent-v430 .grades-assessment-list-v424 {
+  display: block;
+  overflow: visible;
+  border: 1px solid var(--grades-row-border-v430);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424,
+.grades-consistent-v430 .grades-assessment-row-v424:first-child,
+.grades-consistent-v430 .grades-assessment-row-v424:last-child {
+  min-height: 78px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424 + .grades-assessment-row-v424 {
+  border-top: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424.is-assigned {
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424:first-child {
+  border-radius: 13px 13px 0 0;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424:last-child {
+  border-radius: 0 0 13px 13px;
+}
+
+.grades-consistent-v430 .grades-assessment-row-v424:only-child {
+  border-radius: 13px;
+}
+
+.grades-consistent-v430 .grades-assessment-title-v424 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grades-consistent-v430 .grades-assessment-included-v431 {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.grades-consistent-v430 .grades-assessment-select-v424 .grades-select-trigger-v425 {
+  min-height: 54px;
+  border-color: var(--grades-row-border-v430);
+}
+
+/* Student list stays clean; missing scores are explained only when details are opened. */
+.grades-consistent-v430 .grades-zero-note-v431 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-soft) 48%, #fff);
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+
+.grades-consistent-v430 .grades-zero-note-v431 svg {
+  flex: 0 0 auto;
+  color: var(--brand);
+}
+
+@media (max-width: 980px) {
+  .grades-consistent-v430 .grades-hierarchy-component-v427 .grades-component-fields-v424 {
+    grid-template-columns: minmax(0, 1fr) 135px;
+  }
+  .grades-consistent-v430 .grades-component-actions-v431 {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 720px) {
+  .grades-consistent-v430 .grades-component-actions-v431 {
+    justify-content: stretch;
+  }
+  .grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427,
+  .grades-consistent-v430 .grades-component-actions-v431 .grades-remove-component-v424 {
+    flex: 1 1 0;
+  }
+  .grades-consistent-v430 .grades-assessment-list-v424 {
+    border-radius: 13px;
+  }
+  .grades-consistent-v430 .grades-assessment-row-v424,
+  .grades-consistent-v430 .grades-assessment-row-v424:first-child,
+  .grades-consistent-v430 .grades-assessment-row-v424:last-child {
+    border-radius: 0;
+  }
+  .grades-consistent-v430 .grades-assessment-row-v424:first-child { border-radius: 12px 12px 0 0; }
+  .grades-consistent-v430 .grades-assessment-row-v424:last-child { border-radius: 0 0 12px 12px; }
+  .grades-consistent-v430 .grades-assessment-row-v424:only-child { border-radius: 12px; }
+}
+
+@media (max-width: 480px) {
+  .grades-consistent-v430 .grades-hierarchy-component-v427 .grades-component-fields-v424 {
+    grid-template-columns: 1fr;
+  }
+  .grades-consistent-v430 .grades-component-actions-v431 {
+    grid-column: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* MedScores V4.32 — Term Grades spacing, compact period and flat grade details */
+.grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+  grid-template-columns: minmax(280px, 1.45fr) minmax(150px, 190px) minmax(320px, 1.15fr);
+  gap: 14px;
+}
+
+.grades-consistent-v430 .grades-period-field-v432 {
+  max-width: 190px;
+}
+
+.grades-consistent-v430 .grades-period-field-v432 .grades-select-value-v425 {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+.grades-consistent-v430 .grades-period-field-v432 .grades-select-trigger-v425 {
+  width: 100%;
+}
+
+/* Stats share one fixed visual hierarchy: label, value, short note. */
+.grades-consistent-v430 .grades-summary-grid-v432 {
+  gap: 12px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 {
+  min-height: 96px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 .grades-summary-icon-v424 {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label value"
+    "meta value";
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 3px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 .grades-stat-label-v432 {
+  grid-area: label;
+  color: var(--text-soft);
+  font-size: 12.5px;
+  line-height: 1.3;
+  font-weight: 760;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div > strong {
+  grid-area: value;
+  align-self: center;
+  margin: 0;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div > small {
+  grid-area: meta;
+  color: var(--text-muted);
+  font-size: 11.75px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Assessment rows stay label-free: the informative dropdown is self-explanatory. */
+.grades-consistent-v430 .grades-assessment-select-v424 {
+  align-self: center;
+}
+
+.grades-consistent-v430 .grades-assessment-select-v424 > span {
+  display: none !important;
+}
+
+/* Keep Add and Remove compact, aligned and visually consistent. */
+.grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427 {
+  min-width: 58px;
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(91, 28, 111, .10);
+}
+
+.grades-consistent-v430 .grades-component-actions-v431 .grades-add-subcomponent-v427:hover {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 90%, #000);
+  color: #fff;
+}
+
+/* No plus/minus or generated collapse glyphs in the student list. */
+.grades-consistent-v430 .grades-preview-row-v424 > summary::after,
+.grades-consistent-v430 .grades-preview-row-v424[open] > summary::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* One flat Grade details surface; components are rows, not nested cards. */
+.grades-consistent-v430 .grades-grade-details-v432 {
+  margin: 0;
+  padding: 0 18px 16px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+.grades-consistent-v430 .grades-grade-details-heading-v432 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 58px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-grade-details-heading-v432 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.grades-consistent-v430 .grades-grade-details-heading-v432 strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.grades-consistent-v430 .grades-grade-details-heading-v432 > div > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.grades-consistent-v430 .grades-zero-inline-v432 {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grades-consistent-v430 .grades-grade-detail-list-v432 {
+  display: grid;
+}
+
+.grades-consistent-v430 .grades-grade-detail-item-v432 {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.15fr) minmax(360px, 1.6fr);
+  gap: 20px;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-grade-detail-main-v432 {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.grades-consistent-v430 .grades-grade-detail-name-v432 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.grades-consistent-v430 .grades-grade-detail-name-v432 strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 780;
+}
+
+.grades-consistent-v430 .grades-grade-detail-name-v432 > span {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 11.75px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.grades-consistent-v430 .grades-grade-detail-subs-v432 {
+  display: grid;
+  gap: 0;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--brand) 18%, var(--grades-row-border-v430));
+}
+
+.grades-consistent-v430 .grades-grade-detail-sub-v432 {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto auto auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 0;
+}
+
+.grades-consistent-v430 .grades-grade-detail-sub-v432 > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-soft);
+  font-size: 11.75px;
+  font-weight: 700;
+}
+
+.grades-consistent-v430 .grades-grade-detail-sub-v432 small {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grades-consistent-v430 .grades-grade-detail-sub-v432 strong {
+  color: var(--text);
+  font-size: 11.75px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  min-width: 0;
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432.has-subcomponents {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432 > span {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  min-height: 48px;
+  padding: 2px 13px;
+  border-left: 1px solid var(--grades-row-border-v430);
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432 > span:first-child {
+  border-left: 0;
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432 small {
+  color: var(--text-muted);
+  font-size: 10.75px;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.grades-consistent-v430 .grades-grade-detail-metrics-v432 strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  font-size: 13.25px;
+  line-height: 1.3;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.grades-consistent-v430 .grades-grade-detail-total-v432 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  min-height: 62px;
+  padding-top: 13px;
+}
+
+.grades-consistent-v430 .grades-grade-detail-total-v432 span {
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 750;
+}
+
+.grades-consistent-v430 .grades-grade-detail-total-v432 strong {
+  min-width: 72px;
+  color: var(--brand);
+  font-size: 24px;
+  line-height: 1;
+  text-align: right;
+  font-weight: 850;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 980px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: minmax(0, 1fr) 170px;
+  }
+  .grades-consistent-v430 .grades-hierarchy-field-v427:last-child {
+    grid-column: 1 / -1;
+  }
+  .grades-consistent-v430 .grades-period-field-v432 {
+    max-width: 170px;
+  }
+  .grades-consistent-v430 .grades-grade-detail-item-v432 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432 > span:first-child {
+    border-left: 1px solid var(--grades-row-border-v430);
+  }
+}
+
+@media (max-width: 720px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: minmax(0, 1fr) 150px;
+  }
+  .grades-consistent-v430 .grades-period-field-v432 {
+    max-width: 150px;
+  }
+  .grades-consistent-v430 .grades-stat-card-v432 {
+    min-height: 86px;
+    padding: 13px;
+  }
+  .grades-consistent-v430 .grades-grade-details-v432 {
+    padding: 0 14px 13px;
+  }
+  .grades-consistent-v430 .grades-grade-details-heading-v432 {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .grades-consistent-v430 .grades-zero-inline-v432 {
+    white-space: normal;
+  }
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432,
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432.has-subcomponents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--grades-row-border-v430);
+  }
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432 > span,
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432 > span:first-child {
+    border-left: 0;
+    border-bottom: 1px solid var(--grades-row-border-v430);
+    padding: 9px 4px;
+  }
+  .grades-consistent-v430 .grades-grade-detail-metrics-v432 > span:nth-child(even) {
+    padding-left: 12px;
+    border-left: 1px solid var(--grades-row-border-v430);
+  }
+}
+
+@media (max-width: 520px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: 1fr;
+  }
+  .grades-consistent-v430 .grades-period-field-v432 {
+    width: min(170px, 100%);
+    max-width: 170px;
+  }
+  .grades-consistent-v430 .grades-hierarchy-field-v427:last-child {
+    grid-column: auto;
+  }
+  .grades-consistent-v430 .grades-stat-card-v432 > div {
+    grid-template-columns: 1fr auto;
+  }
+  .grades-consistent-v430 .grades-grade-detail-sub-v432 {
+    grid-template-columns: minmax(90px, 1fr) auto auto;
+  }
+  .grades-consistent-v430 .grades-grade-detail-sub-v432 small:nth-of-type(2) {
+    display: none;
+  }
+}
+
+/* MedScores V4.33 — Term Grades release state, balanced controls and custom feedback */
+.grades-consistent-v430 .grades-select-chevron-v425 {
+  display: none !important;
+}
+
+/* Give Grade Type the room it needs; keep Subject and Period compact but readable. */
+.grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+  grid-template-columns: minmax(220px, .82fr) minmax(130px, 150px) minmax(390px, 1.65fr);
+  align-items: end;
+  gap: 14px;
+}
+
+.grades-consistent-v430 .grades-subject-field-v433 {
+  min-width: 0;
+}
+
+.grades-consistent-v430 .grades-period-field-v432 {
+  width: 100%;
+  max-width: 150px;
+}
+
+/* Equal stat-card rhythm: same padding, icon, value alignment and note baseline. */
+.grades-consistent-v430 .grades-summary-grid-v432 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 {
+  min-height: 94px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "label value"
+    "meta value";
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 .grades-stat-label-v432 {
+  grid-area: label;
+  align-self: end;
+  font-size: 12.5px;
+  line-height: 1.3;
+  font-weight: 760;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div > strong {
+  grid-area: value;
+  align-self: center;
+  justify-self: end;
+  min-width: 42px;
+  text-align: right;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.grades-consistent-v430 .grades-stat-card-v432 > div > small {
+  grid-area: meta;
+  align-self: start;
+  min-height: 16px;
+  font-size: 11.75px;
+  line-height: 1.35;
+}
+
+/* Released grades are visually distinct from grades that are only ready. */
+.grades-consistent-v430 .grades-status-v424.is-released {
+  border-color: color-mix(in srgb, var(--brand) 18%, transparent);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.grades-consistent-v430 .grades-release-bar-v433.is-released {
+  border-color: color-mix(in srgb, var(--brand) 18%, var(--border));
+  background: color-mix(in srgb, var(--brand-soft) 48%, #fff);
+}
+
+.grades-release-title-v433 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.grades-release-badge-v433 {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, transparent);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand) !important;
+  font-size: 10.75px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+}
+
+/* Term Grades-only feedback toast. */
+.grades-toast-v433 {
+  position: fixed;
+  z-index: 1800;
+  top: 18px;
+  right: 18px;
+  width: min(390px, calc(100vw - 28px));
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 12px 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 16px 42px rgba(36, 19, 43, .14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: gradesToastInV433 .2s ease-out both;
+}
+
+.grades-toast-v433.is-success { border-color: color-mix(in srgb, #16835b 24%, var(--border)); }
+.grades-toast-v433.is-error { border-color: color-mix(in srgb, #b63838 24%, var(--border)); }
+
+.grades-toast-mark-v433 {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 850;
+}
+
+.grades-toast-v433.is-success .grades-toast-mark-v433 { background: #eaf8f2; color: #13704f; }
+.grades-toast-v433.is-error .grades-toast-mark-v433 { background: #fff0f0; color: #a62e2e; }
+
+.grades-toast-v433 > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.grades-toast-v433 > div strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.grades-toast-v433 > div span {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.grades-toast-v433 > button {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.grades-toast-v433 > button:hover { background: var(--surface-soft); color: var(--text); }
+
+@keyframes gradesToastInV433 {
+  from { opacity: 0; transform: translateY(-8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Custom Term Grades confirmation modal: no native browser confirm dialogs. */
+.grades-modal-backdrop-v433 {
+  position: fixed;
+  z-index: 1750;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(31, 22, 35, .32);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.grades-confirm-v433 {
+  width: min(440px, 100%);
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 26px 70px rgba(31, 17, 37, .22);
+  animation: gradesConfirmInV433 .18s ease-out both;
+}
+
+.grades-confirm-icon-v433 {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.grades-confirm-icon-v433.is-delete-track { background: #fff0f0; color: #a42c2c; }
+
+.grades-confirm-copy-v433 {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.grades-confirm-copy-v433 h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 820;
+  letter-spacing: -.015em;
+}
+
+.grades-confirm-copy-v433 p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.grades-confirm-actions-v433 {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 5px;
+}
+
+.grades-confirm-actions-v433 .button {
+  min-width: 118px;
+  min-height: 42px;
+}
+
+.grades-danger-button-v433 {
+  border-color: #aa3434 !important;
+  background: #aa3434 !important;
+  color: #fff !important;
+}
+
+.grades-danger-button-v433:hover { background: #922929 !important; }
+
+@keyframes gradesConfirmInV433 {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 1080px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: minmax(210px, .9fr) 145px minmax(310px, 1.35fr);
+  }
+  .grades-consistent-v430 .grades-summary-grid-v432 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 {
+    grid-template-columns: minmax(0, 1fr) 145px;
+  }
+  .grades-consistent-v430 .grades-hierarchy-field-v427:last-child { grid-column: 1 / -1; }
+  .grades-toast-v433 { top: 10px; right: 10px; width: min(390px, calc(100vw - 20px)); }
+}
+
+@media (max-width: 540px) {
+  .grades-consistent-v430 .grades-hierarchy-context-grid-v427 { grid-template-columns: 1fr; }
+  .grades-consistent-v430 .grades-period-field-v432 { max-width: 145px; }
+  .grades-consistent-v430 .grades-hierarchy-field-v427:last-child { grid-column: auto; }
+  .grades-consistent-v430 .grades-summary-grid-v432 { grid-template-columns: 1fr; }
+  .grades-confirm-v433 { grid-template-columns: 38px minmax(0, 1fr); padding: 17px; }
+  .grades-confirm-icon-v433 { width: 38px; height: 38px; }
+  .grades-confirm-actions-v433 { display: grid; grid-template-columns: 1fr 1fr; }
+  .grades-confirm-actions-v433 .button { width: 100%; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grades-toast-v433,
+  .grades-confirm-v433 { animation: none; }
+}

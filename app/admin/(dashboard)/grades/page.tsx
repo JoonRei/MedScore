@@ -8,9 +8,9 @@ export default function Page() {
     <>
       <header className="page-header grades-page-header-v424">
         <div>
-          <span className="eyebrow">Academic grading</span>
+          <span className="eyebrow">Student grades</span>
           <h1>Term Grades</h1>
-          <p>Configure component weights, review computed term grades, and release them separately from assessment scores.</p>
+          <p>Set components, choose assessments, review student grades, and release them when ready.</p>
         </div>
       </header>
       <AdminTermGradesWorkspace />
