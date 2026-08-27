@@ -15,6 +15,12 @@ function formatScore(value: unknown) {
   return Number.isInteger(number) ? String(number) : number.toFixed(2);
 }
 
+function formatGrade(value: unknown, digits: unknown) {
+  const number = finiteNumber(value);
+  const places = Math.min(2, Math.max(0, Math.trunc(finiteNumber(digits, 0))));
+  return number.toFixed(places);
+}
+
 function formatReleasedDate(value: unknown) {
   const text = String(value ?? "").trim();
   if (!text) return "—";
@@ -99,88 +105,135 @@ export default async function Page() {
 
   return (
     <>
-      <header className="page-header student-grades-header-v423">
+      <header className="page-header student-grades-header-v423 student-grades-header-v435">
         <div>
-          <span className="eyebrow">Released academic grades</span>
+          <span className="eyebrow">Released grades</span>
           <h1>Term Grades</h1>
-          <p>Your released Prelim, Midterm, and Finals grades appear here. Some subjects may show separate lecture or clinical grades.</p>
+          <p>View your released grades by subject and grading period.</p>
         </div>
         <Link href="/student/results" className="button button-secondary button-sm">Assessment results</Link>
       </header>
 
-      <div className="student-term-grades-v423">
-        {(grades || []).map((row: any) => {
+      <div className="student-term-grades-v423 student-term-grades-v435">
+        {grades.map((row: any) => {
           const subject = row.subject;
           const scheme = row.scheme;
           const breakdown = Array.isArray(row.breakdown) ? row.breakdown : [];
           const period = periodLabel(scheme?.grading_period);
           const trackName = String(scheme?.track_name || "Subject grade");
-          const gradeLabel = trackName === "Subject grade" ? `${period} Grade` : `${period} · ${trackName}`;
+          const isMainGrade = trackName === "Subject grade";
+          const gradeLabel = isMainGrade ? `${period} Grade` : trackName;
+          const releaseDate = formatReleasedDate(row.released_at);
+          const roundingDigits = scheme?.rounding_digits ?? 0;
 
           return (
-            <details className="student-term-grade-card-v423 student-period-grade-card-v427" key={row.id}>
-              <summary>
-                <div className="student-term-grade-copy-v423">
-                  <span>{subject?.code || subject?.term || "Academic grade"}</span>
+            <details className="student-term-grade-card-v423 student-period-grade-card-v427 student-term-grade-card-v435" key={row.id}>
+              <summary className="student-term-grade-summary-v435">
+                <div className="student-term-grade-copy-v423 student-term-grade-copy-v435">
+                  <div className="student-term-grade-badges-v435">
+                    <span className="student-term-grade-code-v435">{subject?.code || "Subject"}</span>
+                    <span className="student-term-grade-period-v435">{period}</span>
+                    {!isMainGrade ? <span className="student-term-grade-type-v435">{trackName}</span> : null}
+                  </div>
                   <h2>{subject?.name || "Subject"}</h2>
-                  <p>{[period, trackName !== "Subject grade" ? trackName : null, subject?.academic_year, subject?.term].filter(Boolean).join(" · ")}</p>
+                  <p>{[subject?.academic_year, subject?.term].filter(Boolean).join(" · ") || "Released academic grade"}</p>
                 </div>
-                <div className="student-term-grade-value-v423"><span>{gradeLabel}</span><strong>{Number(row.term_grade)}</strong><small>Released {formatReleasedDate(row.released_at)}</small></div>
+
+                <div className="student-term-grade-value-v423 student-term-grade-value-v435">
+                  <span>{gradeLabel}</span>
+                  <strong>{formatGrade(row.term_grade, roundingDigits)}</strong>
+                  <small>Released {releaseDate}</small>
+                </div>
               </summary>
 
-              <div className="student-term-grade-breakdown-v423 student-base40-breakdown-v426 student-hierarchy-breakdown-v427">
-                <div className="student-term-grade-raw-v423"><span>Overall performance</span><strong>{finiteNumber(row.raw_percentage).toFixed(2)}%</strong></div>
+              <div className="student-term-grade-breakdown-v423 student-base40-breakdown-v426 student-hierarchy-breakdown-v427 student-term-grade-details-v435">
+                <div className="student-term-grade-details-head-v435">
+                  <div>
+                    <span>Grade details</span>
+                    <strong>{breakdown.length} {breakdown.length === 1 ? "component" : "components"}</strong>
+                  </div>
+                  <div>
+                    <span>Overall performance</span>
+                    <strong>{finiteNumber(row.raw_percentage).toFixed(2)}%</strong>
+                  </div>
+                </div>
 
-                {breakdown.map((component: any, index: number) => {
-                  const earned = finiteNumber(component.earned);
-                  const possible = finiteNumber(component.possible);
-                  const percentage = finiteNumber(component.percentage);
-                  const grade = componentGrade(component);
-                  const weight = finiteNumber(component.weight);
-                  const weighted = contribution(component);
-                  const children = Array.isArray(component.subcomponents) ? component.subcomponents : [];
+                <div className="student-term-grade-components-v435">
+                  {breakdown.map((component: any, index: number) => {
+                    const earned = finiteNumber(component.earned);
+                    const possible = finiteNumber(component.possible);
+                    const percentage = finiteNumber(component.percentage);
+                    const grade = componentGrade(component);
+                    const weight = finiteNumber(component.weight);
+                    const weighted = contribution(component);
+                    const children = Array.isArray(component.subcomponents) ? component.subcomponents : [];
 
-                  return (
-                    <div className="student-term-grade-component-v423 student-base40-component-v426 student-hierarchy-component-v427" key={`${row.id}-${component.componentId || index}`}>
-                      <div className="student-base40-component-head-v426"><strong>{component.name || "Component"}</strong><span>{weight}% weight</span></div>
-
-                      {children.length ? (
-                        <div className="student-subcomponents-v427">
-                          {children.map((child: any, childIndex: number) => (
-                            <div className="student-subcomponent-v427" key={`${row.id}-${child.componentId || childIndex}`}>
-                              <div><strong>{child.name || "Subcomponent"}</strong><small>{formatScore(child.earned)} / {formatScore(child.possible)}</small></div>
-                              <span><small>{finiteNumber(child.weight)}% weight</small><strong>{finiteNumber(child.percentage).toFixed(2)}%</strong></span>
-                            </div>
-                          ))}
-                          <div className="student-parent-performance-v427"><span>Performance</span><strong>{percentage.toFixed(2)}%</strong></div>
+                    return (
+                      <section className="student-term-grade-component-v435" key={`${row.id}-${component.componentId || index}`}>
+                        <div className="student-term-grade-component-head-v435">
+                          <strong>{component.name || "Component"}</strong>
+                          <span>{formatScore(weight)}% of grade</span>
                         </div>
-                      ) : (
-                        <div className="student-base40-metrics-v426">
-                          <span><small>Score</small><strong>{formatScore(earned)} / {formatScore(possible)}</strong></span>
-                          <span><small>Performance</small><strong>{percentage.toFixed(2)}%</strong></span>
-                          <span><small>Grade</small><strong>{grade.toFixed(2)}</strong></span>
-                          <span><small>Weighted</small><strong>{weighted.toFixed(2)}</strong></span>
-                        </div>
-                      )}
 
-                      {children.length ? (
-                        <div className="student-base40-metrics-v426 student-parent-metrics-v427">
-                          <span><small>Performance</small><strong>{percentage.toFixed(2)}%</strong></span>
-                          <span><small>Grade</small><strong>{grade.toFixed(2)}</strong></span>
-                          <span><small>Weighted</small><strong>{weighted.toFixed(2)}</strong></span>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
+                        {children.length ? (
+                          <div className="student-term-grade-subcomponents-v435">
+                            {children.map((child: any, childIndex: number) => (
+                              <div className="student-term-grade-subcomponent-v435" key={`${row.id}-${child.componentId || childIndex}`}>
+                                <div>
+                                  <strong>{child.name || "Subcomponent"}</strong>
+                                  <small>{formatScore(child.earned)} / {formatScore(child.possible)}</small>
+                                </div>
+                                <div>
+                                  <span>{formatScore(child.weight)}%</span>
+                                  <strong>{finiteNumber(child.percentage).toFixed(2)}%</strong>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
 
-                <div className="student-base40-final-v426"><span><strong>Released {gradeLabel}</strong><small>{trackName}</small></span><strong>{finiteNumber(row.term_grade).toFixed(Number.isInteger(finiteNumber(row.term_grade)) ? 0 : 2)}</strong></div>
-                <p className="student-term-grade-note-v423">This is your released grade for this period. Assessment scores are shown separately.</p>
+                        <div className="student-term-grade-metrics-v435">
+                          <div>
+                            <span>Score</span>
+                            <strong>{formatScore(earned)} / {formatScore(possible)}</strong>
+                          </div>
+                          <div>
+                            <span>Performance</span>
+                            <strong>{percentage.toFixed(2)}%</strong>
+                          </div>
+                          <div>
+                            <span>Grade</span>
+                            <strong>{grade.toFixed(2)}</strong>
+                          </div>
+                          <div>
+                            <span>Weighted</span>
+                            <strong>{weighted.toFixed(2)}</strong>
+                          </div>
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+
+                <div className="student-term-grade-final-v435">
+                  <div>
+                    <span>Released grade</span>
+                    <strong>{gradeLabel}</strong>
+                  </div>
+                  <strong>{formatGrade(row.term_grade, roundingDigits)}</strong>
+                </div>
+
+                <p className="student-term-grade-note-v423 student-term-grade-note-v435">Assessment scores remain available separately in Results.</p>
               </div>
             </details>
           );
         })}
-        {!grades?.length && <EmptyState title="No released term grades" description="Your Prelim, Midterm, or Finals grades will appear here after your instructor completes and releases them." />}
+
+        {!grades.length && (
+          <div className="student-term-grades-empty-v435">
+            <EmptyState title="No released term grades" description="Your Prelim, Midterm, or Finals grades will appear here after your instructor releases them." />
+          </div>
+        )}
       </div>
     </>
   );
