@@ -38,7 +38,7 @@ function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; co
     return (
       <div className={`student-score-distribution-empty${compact ? " is-compact" : ""}`}>
         <span>Class comparison</span>
-        <strong>Available after more scores are recorded</strong>
+        <strong>Needs at least two saved student scores</strong>
       </div>
     );
   }

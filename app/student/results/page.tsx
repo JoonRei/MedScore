@@ -80,23 +80,34 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const statsByAssessment = new Map<string, ReturnType<typeof buildClassStats>>();
 
   if (assessmentIds.length) {
-    const { data: aggregateRows, error: aggregateError } = await db
-      .from("scores")
-      .select("assessment_id,student_id,score,result_status")
-      .in("assessment_id", assessmentIds);
+    // Read each assessment exactly the same way the Admin score-entry page does.
+    // This keeps every Low / Mean / High calculation isolated to one assessment
+    // and avoids any cross-assessment aggregation ambiguity.
+    const statsResults = await Promise.all(
+      assessmentIds.map(async (assessmentId) => {
+        const { data: scoreRows, error } = await db
+          .from("scores")
+          .select("assessment_id,student_id,score,result_status")
+          .eq("assessment_id", assessmentId);
 
-    if (aggregateError) {
-      console.error("student results: aggregate score query failed", aggregateError);
-    } else {
-      const grouped = new Map<string, AggregateScoreRow[]>();
-      for (const row of (aggregateRows || []) as AggregateScoreRow[]) {
-        const items = grouped.get(row.assessment_id) || [];
-        items.push(row);
-        grouped.set(row.assessment_id, items);
+        return {
+          assessmentId,
+          rows: (scoreRows || []) as AggregateScoreRow[],
+          error,
+        };
+      })
+    );
+
+    for (const result of statsResults) {
+      if (result.error) {
+        console.error(
+          `student results: class score query failed for assessment ${result.assessmentId}`,
+          result.error
+        );
+        continue;
       }
-      for (const [assessmentId, rows] of grouped) {
-        statsByAssessment.set(assessmentId, buildClassStats(rows));
-      }
+
+      statsByAssessment.set(result.assessmentId, buildClassStats(result.rows));
     }
   }
 
