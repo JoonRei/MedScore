@@ -32,8 +32,28 @@ function rangePosition(value: number, low: number, high: number) {
 }
 
 function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; compact?: boolean }) {
-  if (row.score == null || !row.classStats) return null;
-  const { low, mean, high } = row.classStats;
+  if (row.score == null) return null;
+
+  if (!row.classStats || row.classStats.count < 2) {
+    return (
+      <div className={`student-score-distribution-empty${compact ? " is-compact" : ""}`}>
+        <span>Class comparison</span>
+        <strong>Available after more scores are recorded</strong>
+      </div>
+    );
+  }
+
+  const { low, mean, high, count } = row.classStats;
+
+  if (low === high) {
+    return (
+      <div className={`student-score-distribution-equal${compact ? " is-compact" : ""}`}>
+        <span>Class comparison</span>
+        <strong>All {count} recorded scores are {formatScoreValue(low)}</strong>
+      </div>
+    );
+  }
+
   const style = {
     "--student-score-position": `${rangePosition(Number(row.score), low, high)}%`,
     "--student-mean-position": `${rangePosition(mean, low, high)}%`,
@@ -41,6 +61,10 @@ function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; co
 
   return (
     <div className={`student-score-distribution${compact ? " is-compact" : ""}`} style={style}>
+      <div className="student-score-distribution-head">
+        <span>Class comparison</span>
+        <small>{count} scores</small>
+      </div>
       <div className="student-score-range" aria-hidden="true">
         <span className="student-score-range-line" />
         <span className="student-score-mean-marker" />

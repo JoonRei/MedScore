@@ -5,17 +5,30 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 type AggregateScoreRow = {
   assessment_id: string;
+  student_id: string;
   score: number | null;
   result_status: string | null;
 };
 
 function buildClassStats(rows: AggregateScoreRow[]) {
-  const values = rows
-    .filter((row) => row.result_status !== "absent" && row.score != null)
-    .map((row) => Number(row.score))
-    .filter(Number.isFinite);
+  // One student should contribute exactly one score to the class comparison.
+  // This protects the distribution from duplicate score rows for the same
+  // student/assessment while keeping legitimate identical class scores intact.
+  const scoreByStudent = new Map<string, number>();
 
+  for (const row of rows) {
+    if (row.result_status === "absent" || row.score == null) continue;
+    const value = Number(row.score);
+    if (!Number.isFinite(value)) continue;
+
+    const studentId = String(row.student_id || "").trim();
+    if (!studentId) continue;
+    scoreByStudent.set(studentId, value);
+  }
+
+  const values = Array.from(scoreByStudent.values());
   if (!values.length) return null;
+
   const total = values.reduce((sum, value) => sum + value, 0);
   return {
     low: Math.min(...values),
@@ -69,7 +82,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   if (assessmentIds.length) {
     const { data: aggregateRows, error: aggregateError } = await db
       .from("scores")
-      .select("assessment_id,score,result_status")
+      .select("assessment_id,student_id,score,result_status")
       .in("assessment_id", assessmentIds);
 
     if (aggregateError) {
@@ -87,18 +100,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     }
   }
 
-  const rows = baseRows.map((row) => {
-    const classStats = statsByAssessment.get(row.id);
-    const ownScore = row.score == null ? null : Number(row.score);
-    const fallbackStats = row.status === "scored" && ownScore != null && Number.isFinite(ownScore)
-      ? { low: ownScore, mean: ownScore, high: ownScore, count: 1 }
-      : null;
-
-    return {
-      ...row,
-      classStats: classStats ?? fallbackStats,
-    };
-  });
+  const rows = baseRows.map((row) => ({
+    ...row,
+    classStats: statsByAssessment.get(row.id) ?? null,
+  }));
 
   return <>
     <PageHeader eyebrow="Student Portal" title="Results" description="Review your released assessment scores and result status." />

@@ -24332,3 +24332,114 @@ body[data-student-route="notifications"] .student-portal-v444 .student-notificat
     font-size: 12.5px !important;
   }
 }
+/* ================================================================
+   MedScores V4.67 — truthful class score comparison
+   Never fabricates Low / Mean / High from the student's own score.
+   ================================================================ */
+
+.student-portal-v444 .student-score-distribution-head {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-portal-v444 .student-score-distribution-head > span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-score-distribution-head > small {
+  color: #9a929d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.student-portal-v444 .student-score-distribution-empty {
+  min-width: 0;
+  padding: 10px 0 2px;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-score-distribution-empty > span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-score-distribution-empty > strong {
+  color: #817983;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.student-portal-v444 .student-score-distribution-empty.is-compact {
+  margin-top: 4px;
+  padding: 12px 0 2px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 520px) {
+  .student-portal-v444 .student-score-distribution-head > span,
+  .student-portal-v444 .student-score-distribution-empty > span {
+    font-size: 9px;
+  }
+
+  .student-portal-v444 .student-score-distribution-head > small {
+    font-size: 8.5px;
+  }
+
+  .student-portal-v444 .student-score-distribution-empty > strong {
+    font-size: 10px;
+  }
+}
+/* ================================================================
+   MedScores V4.68 — unique-student class statistics
+   ================================================================ */
+
+.student-portal-v444 .student-score-distribution-equal {
+  min-width: 0;
+  padding: 10px 0 2px;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-score-distribution-equal > span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-score-distribution-equal > strong {
+  color: var(--text-soft);
+  font-size: 10.5px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.student-portal-v444 .student-score-distribution-equal.is-compact {
+  margin-top: 4px;
+  padding: 12px 0 2px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 520px) {
+  .student-portal-v444 .student-score-distribution-equal > span {
+    font-size: 9px;
+  }
+
+  .student-portal-v444 .student-score-distribution-equal > strong {
+    font-size: 10px;
+  }
+}
+
