@@ -111,7 +111,6 @@ export default async function Page() {
     });
 
   const pendingRows = allPendingRows.slice(0, 3);
-  const pendingCount = allPendingRows.length;
 
   const scoredRows = rows.filter(
     (row: any) => row.result_status !== "absent" && row.score !== null && row.score !== undefined,
@@ -154,7 +153,6 @@ export default async function Page() {
             <h2 id="coming-up-title-v438">Coming up next</h2>
             <p>Assessments from your subjects that are not released yet.</p>
           </div>
-          {pendingCount > 0 && <span className="student-pending-count-v437">{pendingCount} upcoming</span>}
         </div>
 
         {pendingRows.length ? (
@@ -165,7 +163,7 @@ export default async function Page() {
                 <article className="student-coming-up-card-v437 student-coming-up-card-v438 student-coming-up-card-v439" key={row.assessment.id}>
                   <div className="student-coming-up-card-top-v437">
                     <span>{row.subject?.code || row.subject?.name || "Subject"}</span>
-                    <strong><i aria-hidden="true" /> {draft ? "Upcoming" : "Result pending"}</strong>
+                    <strong className={draft ? "is-upcoming" : "is-pending"}>{draft ? "Upcoming" : "Result pending"}</strong>
                   </div>
                   <h3>{row.assessment.title}</h3>
                   <p>{row.subject?.name || "Subject"}</p>
