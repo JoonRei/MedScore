@@ -4,7 +4,7 @@ import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
 
 export const metadata: Metadata = {
-  title: "MedScores | College of Medicine",
+  title: "MedScores",
   description: "Academic performance portal for the College of Medicine.",
   manifest: "/manifest.webmanifest",
   icons: {
