@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { CloseIcon, SearchIcon } from "@/components/icons";
-import { CustomSelect } from "@/components/ui/CustomSelect";
 import { formatDate } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
+import { StudentFilterMenu } from "@/components/StudentFilterMenu";
 
 export type StudentResultRow = {
   id: string;
@@ -68,18 +68,13 @@ export function StudentResultsClient({ rows, initialOpenId = "" }: { rows: Stude
     if (match) setOpenResult(match);
   }, [initialOpenId, rows]);
 
-  const subjectOptions = useMemo(() => [{ value: "all", label: "All subjects" }, ...Array.from(new Set(rows.map((row) => row.subject))).sort().map((value) => ({ value, label: value }))], [rows]);
+  const subjects = useMemo(() => Array.from(new Set(rows.map((row) => row.subject))).sort(), [rows]);
   const typeOptions = useMemo(() => [{ value: "all", label: "All assessment types" }, ...Array.from(new Set(rows.map((row) => row.type))).sort().map((value) => ({ value, label: value }))], [rows]);
 
   const filtered = useMemo(() => rows.filter((row) => {
     const q = query.trim().toLowerCase();
     return (!q || `${row.title} ${row.subject} ${row.type} ${row.doctor || ""}`.toLowerCase().includes(q)) && (subject === "all" || row.subject === subject) && (type === "all" || row.type === type);
   }), [rows, query, subject, type]);
-
-  const scoredRows = useMemo(() => rows.filter((row) => row.status === "scored" && row.score != null), [rows]);
-  const passingRows = useMemo(() => scoredRows.filter((row) => row.passing != null), [scoredRows]);
-  const passedCount = useMemo(() => passingRows.filter((row) => Number(row.score) >= Number(row.passing)).length, [passingRows]);
-  const absentCount = rows.filter((row) => row.status === "absent").length;
 
   async function viewResult(row: StudentResultRow) {
     setOpenResult(row);
@@ -92,21 +87,24 @@ export function StudentResultsClient({ rows, initialOpenId = "" }: { rows: Stude
   if (!rows.length) return <EmptyState title="No results yet" description="Your recorded scores will appear here when they are ready." />;
 
   return <>
-    <div className="student-results-summary student-v2-results-summary">
-      <div><span>Entries</span><strong>{rows.length}</strong></div>
-      <div><span>Scored results</span><strong>{scoredRows.length}</strong></div>
-      <div><span>Passed</span><strong>{passingRows.length ? `${passedCount}/${passingRows.length}` : "—"}</strong></div>
-      <div><span>Did not take</span><strong>{absentCount}</strong></div>
+    <div className="student-results-tools-v448">
+      <div className="student-results-search-row-v448">
+        <div className="search-box student-results-search-v448">
+          <SearchIcon size={18} />
+          <input className="input" placeholder="Search results" value={query} onChange={(event) => setQuery(event.target.value)} />
+        </div>
+        <StudentFilterMenu value={type} onChange={setType} options={typeOptions} label="Filter assessment type" />
+      </div>
+
+      <div className="student-subject-pill-rail-v448" aria-label="Filter results by subject">
+        <button type="button" className={subject === "all" ? "is-active" : ""} onClick={() => setSubject("all")}>All</button>
+        {subjects.map((name) => (
+          <button type="button" key={name} className={subject === name ? "is-active" : ""} onClick={() => setSubject(name)}>{name}</button>
+        ))}
+      </div>
     </div>
 
-    <div className="student-filterbar student-v2-filterbar">
-      <div className="search-box"><SearchIcon size={17} /><input className="input" placeholder="Search results" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-      <CustomSelect value={subject} onChange={setSubject} options={subjectOptions} searchable />
-      <CustomSelect value={type} onChange={setType} options={typeOptions} searchable />
-      <span className="filter-count">{filtered.length} results</span>
-    </div>
-
-    {filtered.length ? <section className="student-results-card-grid" aria-label="Assessment results">
+    {filtered.length ? <section className="student-results-card-grid student-results-card-grid-v448" aria-label="Assessment results">
       {filtered.map((row) => {
         const absent = row.status === "absent";
         const notEntered = row.status === "not_entered" || (!absent && row.score == null);
@@ -116,7 +114,7 @@ export function StudentResultsClient({ rows, initialOpenId = "" }: { rows: Stude
         const resultLabel = absent ? "Did not take" : notEntered ? "Not entered" : hasPass ? (passed ? "Passed" : "Below passing") : "Recorded";
         const statusClass = absent || notEntered ? "is-neutral" : hasPass ? (passed ? "is-pass" : "is-below") : "is-neutral";
         const isNew = Boolean(row.isNew && !viewedIds.has(row.id));
-        return <button type="button" className={`student-result-card student-result-card-button ${absent ? "is-absent" : ""}`} key={row.id} onClick={() => void viewResult(row)}>
+        return <button type="button" className={`student-result-card student-result-card-button student-result-card-v448 ${absent ? "is-absent" : ""}`} key={row.id} onClick={() => void viewResult(row)}>
           <div className="student-result-card-top">
             <div className="student-result-card-copy">
               <div className="student-result-card-meta"><span>{row.subject}</span><i aria-hidden="true" /><span>{row.type}</span>{isNew && <span className="new-result-badge">New</span>}</div>

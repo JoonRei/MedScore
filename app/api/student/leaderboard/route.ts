@@ -14,6 +14,7 @@ type AssessmentRow = {
   total_score: number;
   assessment_date: string;
   doctor_name: string | null;
+  released_at: string | null;
 };
 type ScoreRow = {
   student_id: string;
@@ -79,6 +80,7 @@ function rankAssessment(
     totalScore: Number(assessment.total_score),
     date: assessment.assessment_date,
     doctorName: assessment.doctor_name,
+    releasedAt: assessment.released_at,
     subjectId: subject.id,
     subjectName: subject.name,
     subjectCode: subject.code,
@@ -127,19 +129,23 @@ export async function GET() {
   let assessmentRows: AssessmentRow[] = [];
   const assessmentQuery = await db
     .from("assessments")
-    .select("id,subject_id,title,assessment_type,total_score,assessment_date,doctor_name")
+    .select("id,subject_id,title,assessment_type,total_score,assessment_date,doctor_name,released_at")
     .in("subject_id", activeSubjectIds)
     .eq("status", "published")
+    .not("released_at", "is", null)
     .in("assessment_type", LEADERBOARD_TYPES)
+    .order("released_at", { ascending: false })
     .order("assessment_date", { ascending: false });
 
   if (assessmentQuery.error) {
     const fallback = await db
       .from("assessments")
-      .select("id,subject_id,title,assessment_type,total_score,assessment_date")
+      .select("id,subject_id,title,assessment_type,total_score,assessment_date,released_at")
       .in("subject_id", activeSubjectIds)
       .eq("status", "published")
+      .not("released_at", "is", null)
       .in("assessment_type", LEADERBOARD_TYPES)
+      .order("released_at", { ascending: false })
       .order("assessment_date", { ascending: false });
 
     if (fallback.error) {
@@ -234,30 +240,15 @@ export async function GET() {
       );
       return board.top.length ? [board] : [];
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || a.title.localeCompare(b.title));
+    .sort((a, b) => {
+      const releasedDelta = new Date(b.releasedAt || 0).getTime() - new Date(a.releasedAt || 0).getTime();
+      if (releasedDelta) return releasedDelta;
+      const assessmentDateDelta = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (assessmentDateDelta) return assessmentDateDelta;
+      return a.title.localeCompare(b.title);
+    });
 
-  // Interleave subjects so the automatic showcase does not spend several slides
-  // on one subject before students see another subject's Long Exams.
-  const queues = new Map<string, typeof rankedBoards>();
-  for (const board of rankedBoards) {
-    const queue = queues.get(board.subjectId) || [];
-    queue.push(board);
-    queues.set(board.subjectId, queue);
-  }
-
-  const boards: typeof rankedBoards = [];
-  const subjectOrder = subjects.map((subject) => subject.id).filter((id) => queues.has(id));
-  let added = true;
-  while (added) {
-    added = false;
-    for (const subjectId of subjectOrder) {
-      const queue = queues.get(subjectId);
-      if (queue?.length) {
-        boards.push(queue.shift()!);
-        added = true;
-      }
-    }
-  }
-
-  return json({ boards });
+  // Keep the sequence deterministic and genuinely recent: newest release first.
+  // Older rankings follow in release order rather than being interleaved by subject.
+  return json({ boards: rankedBoards });
 }

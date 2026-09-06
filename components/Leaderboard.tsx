@@ -12,6 +12,7 @@ type ShowcaseBoard = {
   totalScore: number;
   date: string;
   doctorName: string | null;
+  releasedAt?: string | null;
   subjectId: string;
   subjectName: string;
   subjectCode: string | null;
@@ -52,30 +53,46 @@ function groupRanks(entries: Entry[]): RankGroup[] {
   return Array.from(grouped.values()).sort((a, b) => a.rank - b.rank);
 }
 
-function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: number }) {
-  if (!group) return <div className="leaderboard-podium-stage is-empty" aria-hidden="true" />;
 
-  const tone = group.rank === 1 ? "gold" : group.rank === 2 ? "silver" : "bronze";
-  const featured = group.entries[0];
+function formatMonthYear(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric" }).format(date);
+}
+
+function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: number }) {
+  if (!group) return <div className="leaderboard-v441-podium-slot is-empty" aria-hidden="true" />;
+
+  const visibleAvatars = group.entries.slice(0, 3);
+  const hasCurrentStudent = group.entries.some((entry) => entry.isCurrent);
 
   return (
-    <div className={`leaderboard-podium-stage rank-${group.rank} ${tone}`}>
-      <div className="leaderboard-podium-person">
-        <div className="leaderboard-podium-avatar-wrap" aria-hidden="true">
-          <span className="leaderboard-podium-avatar">{initials(featured.codeName)}</span>
-          <span className="leaderboard-podium-rank-badge">#{group.rank}</span>
+    <div className={`leaderboard-v441-podium-slot leaderboard-v449-podium-slot leaderboard-v450-podium-slot rank-${group.rank}${hasCurrentStudent ? " is-you" : ""}`}>
+      <div className="leaderboard-v441-person leaderboard-v449-person leaderboard-v450-person">
+        <div className="leaderboard-v449-avatar-cluster leaderboard-v450-avatar-cluster" aria-hidden="true">
+          {visibleAvatars.map((entry, avatarIndex) => (
+            <span className={`leaderboard-v441-avatar leaderboard-v449-avatar leaderboard-v450-avatar avatar-${avatarIndex + 1}`} key={`${group.rank}-avatar-${entry.codeName}`}>
+              {initials(entry.codeName)}
+            </span>
+          ))}
+          {group.entries.length > visibleAvatars.length && (
+            <span className="leaderboard-v449-avatar-more leaderboard-v450-avatar-more">+{group.entries.length - visibleAvatars.length}</span>
+          )}
         </div>
-        <strong>{featured.codeName}</strong>
-        {group.entries.length > 1 && (
-          <div className="leaderboard-podium-co-rankers" aria-label={`Also ranked number ${group.rank}`}>
-            {group.entries.slice(1).map((entry) => (
-              <span key={`${group.rank}-${entry.codeName}`}>{entry.codeName}</span>
-            ))}
-          </div>
-        )}
+        <div className="leaderboard-v441-podium-names leaderboard-v449-podium-names leaderboard-v450-podium-names">
+          {group.entries.map((entry) => (
+            <span className="leaderboard-v449-name-row leaderboard-v450-name-row" key={`${group.rank}-${entry.codeName}`}>
+              <strong>{entry.codeName}</strong>
+              {entry.isCurrent && <small>You</small>}
+            </span>
+          ))}
+        </div>
+        <span className="leaderboard-v441-person-score leaderboard-v449-person-score leaderboard-v450-person-score">{formatScore(group.score)} / {formatScore(totalScore)}</span>
       </div>
-      <div className="leaderboard-podium-block" aria-label={`Rank ${group.rank}, score ${group.score} out of ${totalScore}`}>
-        <span className="leaderboard-podium-block-score"><strong>{formatScore(group.score)}</strong><small>/ {formatScore(totalScore)}</small></span>
+      <div className="leaderboard-v441-podium-block leaderboard-v449-podium-block leaderboard-v450-podium-block" aria-label={`Rank ${group.rank}`}>
+        <span className="leaderboard-v450-podium-cap" aria-hidden="true" />
+        <strong>{group.rank}</strong>
       </div>
     </div>
   );
@@ -84,43 +101,41 @@ function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: num
 function LeaderboardCard({ board, index, totalBoards }: { board: ShowcaseBoard; index: number; totalBoards: number }) {
   const groups = groupRanks(board.top || []);
   const podium = new Map(groups.filter((group) => group.rank <= 3).map((group) => [group.rank, group]));
-  const runners = groups.filter((group) => group.rank === 4 || group.rank === 5);
+  const runners = groups
+    .filter((group) => group.rank >= 4 && group.rank <= 5)
+    .flatMap((group) => group.entries.map((entry) => ({ rank: group.rank, score: group.score, entry })));
+  const monthYear = formatMonthYear(board.releasedAt || board.date);
 
   return (
-    <article className="leaderboard-ad-card leaderboard-podium-card leaderboard-swipe-card">
-      <div className="leaderboard-ad-topline">
-        <span className="leaderboard-ad-date">{formatDate(board.date)}</span>
-        <div className="leaderboard-ad-count"><strong>{index + 1}</strong><span>/ {totalBoards}</span></div>
+    <article className="leaderboard-ad-card leaderboard-podium-card leaderboard-swipe-card leaderboard-v441-card leaderboard-v442-card leaderboard-v449-card leaderboard-v450-card">
+      <div className="leaderboard-v441-card-top">
+        <span className="leaderboard-v441-subject">{board.subjectName}</span>
+        <h3>{board.title}</h3>
+        <p>{monthYear || formatDate(board.date)}{board.type ? ` · ${board.type}` : ""}</p>
+        {totalBoards > 1 && (
+          <div className="leaderboard-v441-count" aria-label={`Leaderboard ${index + 1} of ${totalBoards}`}>
+            <strong>{index + 1}</strong><span>/ {totalBoards}</span>
+          </div>
+        )}
       </div>
 
-      <div className="leaderboard-ad-title-row">
-        <div className="leaderboard-ad-title">
-          <h3>{board.title}</h3>
-          <p>{board.subjectName}{board.doctorName ? ` · ${board.doctorName}` : ""}</p>
-        </div>
-        <div className="leaderboard-ad-max"><span>Max score</span><strong>{formatScore(board.totalScore)}</strong></div>
-      </div>
-
-      <div className="leaderboard-real-podium" aria-label="Top three score positions">
+      <div className="leaderboard-v441-podium leaderboard-v449-podium leaderboard-v450-podium" aria-label="Top three score positions">
         <PodiumGroup group={podium.get(2)} totalScore={board.totalScore} />
         <PodiumGroup group={podium.get(1)} totalScore={board.totalScore} />
         <PodiumGroup group={podium.get(3)} totalScore={board.totalScore} />
       </div>
 
       {runners.length > 0 && (
-        <div className="leaderboard-runner-stack-v419">
-          {runners.map((group) => (
-            <div className={`leaderboard-runner-row-v421 rank-${group.rank}`} key={`${board.id}-rank-${group.rank}`}>
-              <div className="leaderboard-runner-rank-v421" aria-hidden="true"><strong>#{group.rank}</strong></div>
-              <div className="leaderboard-runner-students-v421" aria-label={`Rank ${group.rank}`}>
-                {group.entries.map((entry) => (
-                  <div className="leaderboard-runner-student-v421" key={`${group.rank}-${entry.codeName}`}>
-                    <span aria-hidden="true">{initials(entry.codeName)}</span>
-                    <strong>{entry.codeName}</strong>
-                  </div>
-                ))}
+        <div className="leaderboard-v441-runner-list leaderboard-v449-runner-list leaderboard-v450-runner-list" aria-label="Other top rankings">
+          {runners.map(({ rank, score, entry }, runnerIndex) => (
+            <div className={`leaderboard-v441-runner leaderboard-v449-runner leaderboard-v450-runner${entry.isCurrent ? " is-you" : ""}`} key={`${board.id}-${rank}-${entry.codeName}-${runnerIndex}`}>
+              <span className="leaderboard-v441-runner-rank">{rank}</span>
+              <span className="leaderboard-v441-runner-avatar" aria-hidden="true">{initials(entry.codeName)}</span>
+              <div className="leaderboard-v441-runner-copy">
+                <strong>{entry.codeName}</strong>
+                <small>{entry.isCurrent ? "You" : `Rank ${rank}`}</small>
               </div>
-              <div className="leaderboard-runner-score-v421"><strong>{formatScore(group.score)}</strong><small>/ {formatScore(board.totalScore)}</small></div>
+              <div className="leaderboard-v441-runner-score"><strong>{formatScore(score)}</strong><small>/ {formatScore(board.totalScore)}</small></div>
             </div>
           ))}
         </div>
@@ -404,10 +419,12 @@ export function Leaderboard() {
   } as CSSProperties;
 
   return (
-    <section className="leaderboard-section leaderboard-showcase section-gap">
-      <div className="leaderboard-showcase-heading">
-        <h2>Celebrate the top scorers</h2>
-        <p>Congratulations to the students leading each assessment.</p>
+    <section className="leaderboard-section leaderboard-showcase leaderboard-showcase-v441 leaderboard-showcase-v442 section-gap">
+      <div className="leaderboard-showcase-heading leaderboard-showcase-heading-v441 leaderboard-showcase-heading-v442 leaderboard-showcase-heading-v443">
+        <div className="leaderboard-v447-heading-copy">
+          <h2>Leaderboard</h2>
+          <p>Top scorers from your latest released assessments.</p>
+        </div>
       </div>
 
       {loading ? (
