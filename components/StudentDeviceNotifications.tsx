@@ -16,6 +16,8 @@ type PushState =
 type PushConfig = {
   configured?: boolean;
   storageReady?: boolean;
+  ready?: boolean;
+  issue?: string | null;
   publicKey?: string;
 };
 
@@ -143,8 +145,9 @@ export function StudentDeviceNotifications() {
       try {
         const config = await readConfig();
         if (!active) return;
-        if (!config.configured || !config.storageReady || !config.publicKey) {
-          setState("unconfigured");
+        const serverReady = config.ready ?? Boolean(config.configured && config.storageReady && config.publicKey);
+        if (!serverReady || !config.publicKey) {
+          setState("disabled");
           return;
         }
         if (Notification.permission === "denied") {
@@ -204,9 +207,11 @@ export function StudentDeviceNotifications() {
         return;
       }
       const config = await readConfig();
-      if (!config.configured || !config.storageReady || !config.publicKey) {
-        setState("unconfigured");
-        throw new Error("Phone notifications need the one-time notification setup first.");
+      const serverReady = config.ready ?? Boolean(config.configured && config.storageReady && config.publicKey);
+      if (!serverReady || !config.publicKey) {
+        setState("disabled");
+        setToast("Phone notifications are not available on this MedScores deployment yet.");
+        return;
       }
 
       const permission = Notification.permission === "granted"
@@ -272,20 +277,13 @@ export function StudentDeviceNotifications() {
     return "Receive a device notification whenever a new assessment score is released.";
   }, [state]);
 
-  const status = state === "enabled" ? "On"
-    : state === "checking" ? "Checking…"
-      : state === "blocked" ? "Blocked"
-        : state === "needs-install" ? "Install app first"
-          : state === "unsupported" ? "Unavailable"
-            : state === "unconfigured" ? "Needs setup"
-              : "Off";
 
   return (
     <>
       <div className="student-device-settings-v422">
         <div className="student-setting-card-head-v419 student-device-settings-head-v422">
           <div className="student-device-settings-title-v422">
-            <span className="student-device-settings-mark-v422" aria-hidden="true"><NotificationIcon size={22} /></span>
+            <NotificationIcon size={22} />
             <div>
               <span className="student-setting-eyebrow-v419">Notifications</span>
               <h2>Phone notifications</h2>
@@ -293,22 +291,18 @@ export function StudentDeviceNotifications() {
             </div>
           </div>
           <div className="student-device-settings-actions-v422">
-            {state === "enabled" || state === "disabled" ? (
-              <button
-                type="button"
-                className={`student-setting-toggle-v422${state === "enabled" ? " is-on" : ""}`}
-                role="switch"
-                aria-checked={state === "enabled"}
-                aria-label={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
-                title={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
-                disabled={busy}
-                onClick={() => void (state === "enabled" ? disable() : enable())}
-              >
-                <span className="student-setting-toggle-knob-v422" aria-hidden="true" />
-              </button>
-            ) : (
-              <span className="student-setting-status-v419">{status}</span>
-            )}
+            <button
+              type="button"
+              className={`student-setting-toggle-v422${state === "enabled" ? " is-on" : ""}`}
+              role="switch"
+              aria-checked={state === "enabled"}
+              aria-label={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
+              title={state === "enabled" ? "Disable phone notifications" : "Enable phone notifications"}
+              disabled={busy || state === "checking" || state === "blocked" || state === "unsupported" || state === "needs-install"}
+              onClick={() => void (state === "enabled" ? disable() : enable())}
+            >
+              <span className="student-setting-toggle-knob-v422" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </div>

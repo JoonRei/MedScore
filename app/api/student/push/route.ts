@@ -32,9 +32,19 @@ export async function GET() {
     console.error("student push status failed", error);
   }
 
+  const configured = Boolean(publicKey);
+  const ready = configured && storageReady;
+  const issue = !configured
+    ? "push-configuration-unavailable"
+    : !storageReady
+      ? "subscription-storage-unavailable"
+      : null;
+
   return NextResponse.json({
-    configured: Boolean(publicKey),
+    configured,
     storageReady,
+    ready,
+    issue,
     publicKey,
     savedDevices,
   }, { headers: { "Cache-Control": "no-store" } });

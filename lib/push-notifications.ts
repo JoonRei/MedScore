@@ -23,6 +23,10 @@ export function getPushPublicKey() {
   return pushConfig()?.publicKey || "";
 }
 
+export function isPushConfigured() {
+  return Boolean(pushConfig());
+}
+
 type StoredSubscription = {
   id: string;
   endpoint: string;

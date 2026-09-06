@@ -69,7 +69,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
         </aside>
 
         <div className="student-stage-v442 student-stage-v443 student-stage-v444">
-          <header className="student-topbar-v442 student-topbar-v443 student-topbar-v444">
+          <header className="student-topbar-v442 student-topbar-v443 student-topbar-v444 student-topbar-flow-v459">
             <Brand href="/student" />
             <div className="student-topbar-actions-v442 student-topbar-actions-v443 student-topbar-actions-v444">
               <Link href="/student/settings" className="student-topbar-avatar-v442 student-topbar-avatar-v443 student-topbar-avatar-v444" aria-label="Open student settings" title="Student settings">
@@ -88,7 +88,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
               </div>
             )}
             {children}
-            <div className="student-bottom-clearance-v444" aria-hidden="true" />
+            <div className="student-bottom-clearance-v444 student-bottom-clearance-v459" aria-hidden="true" />
           </main>
         </div>
       </div>
