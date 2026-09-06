@@ -23418,3 +23418,73 @@ body[data-student-route="subject-detail"] .student-portal-v444 .result-score str
     transition: none !important;
   }
 }
+/* ================================================================
+   MedScores V4.58 — sticky topbar scroll/repaint repair
+   Prevents page titles from ghosting or freezing beneath the topbar
+   when the user reverses scroll direction on mobile browsers.
+   ================================================================ */
+
+/* Remove the nested compositing/isolation setup that can trap a stale
+   paint of page headings beneath a sticky blurred topbar. */
+.student-portal-v444 .student-stage-v444 {
+  position: relative !important;
+  isolation: auto !important;
+  overflow: visible !important;
+}
+
+.student-portal-v444 .student-main-content-v444 {
+  position: relative !important;
+  z-index: auto !important;
+  isolation: auto !important;
+}
+
+/* The topbar stays sticky, but uses a solid surface instead of sampling
+   the page behind it. This avoids mobile Safari/Chrome repaint artifacts. */
+.student-portal-v444 .student-topbar-v444 {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 500 !important;
+  isolation: auto !important;
+  background: #f7f4fb !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Every student page heading must remain normal scrolling content.
+   No title, welcome header, grade header, or subject-detail header can
+   inherit sticky/fixed positioning or its own competing paint layer. */
+.student-portal-v444 .page-header,
+.student-portal-v444 .page-surface > .page-header,
+.student-portal-v444 .grades-page-header-v423,
+.student-portal-v444 .grades-page-header-v424,
+.student-portal-v444 .student-welcome-header-v442,
+.student-portal-v444 .student-subject-detail-header-v448 {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  z-index: auto !important;
+  -webkit-transform: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Prevent decorative header children from accidentally creating a higher
+   stacking layer than the topbar while the page is moving. */
+.student-portal-v444 .page-header > *,
+.student-portal-v444 .student-welcome-header-v442 > *,
+.student-portal-v444 .student-subject-detail-header-v448 > * {
+  z-index: auto;
+}
+
+/* Keep a clean divider while the page scrolls behind the fully opaque bar. */
+@media (max-width: 900px) {
+  .student-portal-v444 .student-topbar-v444 {
+    box-shadow:
+      0 1px 0 rgba(91, 60, 99, .06),
+      0 5px 14px rgba(48, 31, 53, .025) !important;
+  }
+}
