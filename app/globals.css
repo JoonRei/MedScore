@@ -1,4 +1,3 @@
-
 :root {
   --brand: #74108f;
   --brand-hover: #620d79;
@@ -23144,4 +23143,278 @@ body[data-student-route="subject-detail"] .student-portal-v444 .result-score str
 }
 @media (max-width: 390px) {
   .student-portal-v444 .leaderboard-v450-podium-block > strong::before { top: 10px; }
+}
+
+/* ================================================================
+   MedScores V4.56 — student shell polish
+   Final targeted overrides for sticky topbar masking, floating glass
+   mobile navigation, clean assessment overview, and centered podium ranks.
+   ================================================================ */
+
+/* Keep every student page title/content visually behind the sticky topbar. */
+.student-portal-v444 .student-topbar-v444 {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  isolation: isolate;
+  background: #f7f4fb !important;
+  border-bottom: 1px solid rgba(91, 60, 99, .065) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
+  backdrop-filter: blur(20px) saturate(1.12);
+  box-shadow: 0 6px 18px rgba(48, 31, 53, .022);
+}
+.student-portal-v444 .student-stage-v444 {
+  position: relative;
+  isolation: isolate;
+}
+.student-portal-v444 .student-main-content-v444 {
+  position: relative;
+  z-index: 1;
+}
+
+/* Home assessment overview: no visible parent box — only the four cards remain. */
+.student-portal-v444 .student-assessment-overview-v442 {
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.student-portal-v444 .student-assessment-overview-v442 .category-grid,
+.student-portal-v444 .student-assessment-overview-v442 .refined-category-grid,
+.student-portal-v444 .student-assessment-overview-v442 .student-v2-category-grid,
+.student-portal-v444 .student-assessment-overview-v442 .student-premium-category-grid-v437,
+.student-portal-v444 .student-assessment-overview-v442 .student-premium-category-grid-v438,
+.student-portal-v444 .student-assessment-overview-v442 .student-premium-category-grid-v439 {
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.student-portal-v444 .student-assessment-overview-v442 .category-card,
+.student-portal-v444 .student-assessment-overview-v442 .category-card + .category-card,
+.student-portal-v444 .student-assessment-overview-v442 .category-card:nth-child(n+3),
+.student-portal-v444 .student-assessment-overview-v442 .category-card:nth-child(even) {
+  border: 0 !important;
+}
+
+/* Podium: center rank 1 / 2 / 3 precisely inside the colored block. */
+.student-portal-v444 .leaderboard-v450-podium-block {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 6px !important;
+}
+.student-portal-v444 .leaderboard-v450-podium-block > strong {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  line-height: 1 !important;
+}
+.student-portal-v444 .leaderboard-v450-podium-block > strong::before {
+  position: absolute !important;
+  top: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+  /* Rounded floating glass dock with safe-area spacing. */
+  .student-portal-v444 .student-sidebar-v444 {
+    left: max(12px, env(safe-area-inset-left)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    height: 72px !important;
+    padding: 7px 9px !important;
+    overflow: visible !important;
+    border: 1px solid rgba(255, 255, 255, .70) !important;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, .72) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.65);
+    backdrop-filter: blur(24px) saturate(1.65);
+    box-shadow:
+      0 15px 36px rgba(43, 27, 47, .13),
+      0 3px 9px rgba(43, 27, 47, .05),
+      inset 0 1px 0 rgba(255, 255, 255, .82) !important;
+  }
+  .student-portal-v444 .student-sidebar-v444 .sidebar-nav {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+  }
+
+  /* Selected page = purple icon only. Never show a lavender tile/background. */
+  .student-portal-v444 .student-nav-link-v444,
+  .student-portal-v444 .student-nav-link-v444:hover,
+  .student-portal-v444 .student-nav-link-v444:active,
+  .student-portal-v444 .student-nav-link-v444:focus,
+  .student-portal-v444 .student-nav-link-v444.active {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+  }
+  .student-portal-v444 .student-nav-link-v444:not(.active) {
+    color: #9b949e !important;
+  }
+  .student-portal-v444 .student-nav-link-v444.active {
+    color: var(--brand) !important;
+  }
+  .student-portal-v444 .student-nav-link-v444 .student-nav-icon-wrap-v444,
+  .student-portal-v444 .student-nav-link-v444.active .student-nav-icon-wrap-v444 {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .student-portal-v444 .leaderboard-v450-podium-block > strong::before {
+    top: 12px !important;
+  }
+
+  /* Enough room to clear the now-floating dock on all student pages. */
+  .student-bottom-clearance-v444 {
+    height: calc(122px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-sidebar-v444 {
+    left: max(10px, env(safe-area-inset-left)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    height: 70px !important;
+    border-radius: 22px !important;
+  }
+  .student-bottom-clearance-v444 {
+    height: calc(126px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .student-portal-v444 .leaderboard-v450-podium-block > strong::before {
+    top: 10px !important;
+  }
+}
+/* ================================================================
+   MedScores V4.57 — Subjects responsiveness + premium mobile dock
+   Keeps V4.56 intact and applies only the latest requested polish.
+   ================================================================ */
+
+/* Subjects cards: remove the decorative right-side lavender line entirely
+   and reclaim the reserved right padding for a balanced card. */
+.student-portal-v444 .subject-card-v453 {
+  padding-right: 17px !important;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.student-portal-v444 .subject-card-v453::before,
+.student-portal-v444 .subject-card-v453:hover::before {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+.student-portal-v444 .subject-card-v453:active {
+  transform: scale(.992) !important;
+  border-color: #d9cedd !important;
+  box-shadow: 0 5px 14px rgba(57, 37, 62, .045) !important;
+}
+
+/* Selected destination is MedScores purple only — no lavender tile, glow,
+   or inherited soft-brand surface. */
+.student-portal-v444 .student-nav-link-v444.active,
+.student-portal-v444 .student-nav-link-v444.active:hover,
+.student-portal-v444 .student-nav-link-v444.active:focus,
+.student-portal-v444 .student-nav-link-v444.active:active {
+  color: #74108f !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.student-portal-v444 .student-nav-link-v444.active .student-nav-icon-wrap-v444,
+.student-portal-v444 .student-nav-link-v444.active .student-nav-icon-wrap-v444 svg {
+  color: #74108f !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.student-portal-v444 .student-nav-link-v444.active .student-nav-icon-wrap-v444 svg {
+  stroke: currentColor !important;
+}
+
+/* A slightly more dimensional floating glass dock while staying clean. */
+@media (max-width: 900px) {
+  .student-portal-v444 .student-sidebar-v444 {
+    left: max(13px, env(safe-area-inset-left)) !important;
+    right: max(13px, env(safe-area-inset-right)) !important;
+    bottom: max(13px, env(safe-area-inset-bottom)) !important;
+    height: 72px !important;
+    padding: 7px 9px !important;
+    border: 1px solid rgba(255,255,255,.82) !important;
+    border-radius: 28px !important;
+    background: rgba(255,255,255,.66) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(1.78);
+    backdrop-filter: blur(30px) saturate(1.78);
+    box-shadow:
+      0 18px 44px rgba(42, 25, 47, .14),
+      0 4px 12px rgba(42, 25, 47, .055),
+      inset 0 1px 0 rgba(255,255,255,.92) !important;
+  }
+
+  .student-portal-v444 .student-sidebar-v444 .sidebar-nav {
+    height: 100%;
+    align-items: center;
+  }
+
+  .student-portal-v444 .student-nav-link-v444 {
+    border-radius: 20px !important;
+  }
+
+  .student-portal-v444 .student-nav-icon-wrap-v444 {
+    transition: color .16s ease, transform .16s ease, opacity .16s ease;
+  }
+  .student-portal-v444 .student-nav-link-v444.active .student-nav-icon-wrap-v444 {
+    transform: translateY(-1px);
+  }
+
+  .student-portal-v444 .student-nav-link-v444:not(.active) {
+    color: #918a95 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .student-portal-v444 .subject-card-v453 {
+    padding: 14px 15px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-sidebar-v444 {
+    left: max(11px, env(safe-area-inset-left)) !important;
+    right: max(11px, env(safe-area-inset-right)) !important;
+    bottom: max(11px, env(safe-area-inset-bottom)) !important;
+    height: 70px !important;
+    border-radius: 26px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .subject-card-v453:active {
+    transform: none !important;
+  }
+  .student-portal-v444 .student-nav-icon-wrap-v444 {
+    transition: none !important;
+  }
 }
