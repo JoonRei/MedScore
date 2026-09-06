@@ -32,7 +32,7 @@ function rangePosition(value: number, low: number, high: number) {
 }
 
 function ScoreDistribution({ row, compact = false }: { row: StudentResultRow; compact?: boolean }) {
-  if (row.status !== "scored" || row.score == null || !row.classStats) return null;
+  if (row.score == null || !row.classStats) return null;
   const { low, mean, high } = row.classStats;
   const style = {
     "--student-score-position": `${rangePosition(Number(row.score), low, high)}%`,

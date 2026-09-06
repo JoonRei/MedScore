@@ -11,7 +11,7 @@ type AggregateScoreRow = {
 
 function buildClassStats(rows: AggregateScoreRow[]) {
   const values = rows
-    .filter((row) => row.result_status === "scored" && row.score != null)
+    .filter((row) => row.result_status !== "absent" && row.score != null)
     .map((row) => Number(row.score))
     .filter(Number.isFinite);
 
@@ -87,10 +87,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     }
   }
 
-  const rows = baseRows.map((row) => ({
-    ...row,
-    classStats: statsByAssessment.get(row.id) ?? null,
-  }));
+  const rows = baseRows.map((row) => {
+    const classStats = statsByAssessment.get(row.id);
+    const ownScore = row.score == null ? null : Number(row.score);
+    const fallbackStats = row.status === "scored" && ownScore != null && Number.isFinite(ownScore)
+      ? { low: ownScore, mean: ownScore, high: ownScore, count: 1 }
+      : null;
+
+    return {
+      ...row,
+      classStats: classStats ?? fallbackStats,
+    };
+  });
 
   return <>
     <PageHeader eyebrow="Student Portal" title="Results" description="Review your released assessment scores and result status." />
