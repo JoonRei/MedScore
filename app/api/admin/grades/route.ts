@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getGradeAdminUser } from "@/lib/admin-grade-auth";
-import { calculateTermGrade } from "@/lib/grade-engine";
+import { calculateTermGrade, calculateWeightedTermGrade } from "@/lib/grade-engine";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTermGradeReleasePush } from "@/lib/push-notifications";
 
@@ -55,7 +55,7 @@ async function loadWorkspace(ownerId: string, subjectId?: string, gradingPeriod 
       .eq("subject_id", subjectId)
       .order("assessment_date", { ascending: true }),
     db.from("grade_schemes")
-      .select("id,name,rounding_digits,grading_period,track_key,track_name,track_sort_order")
+      .select("id,name,rounding_digits,grading_period,track_key,track_name,track_sort_order,subject_weight")
       .eq("owner_id", ownerId)
       .eq("subject_id", subjectId)
       .order("track_sort_order", { ascending: true })
@@ -93,8 +93,8 @@ async function loadWorkspace(ownerId: string, subjectId?: string, gradingPeriod 
     }
   }
 
-  const schemeById = new Map(schemes.map((row: any) => [String(row.id), row]));
-  const componentById = new Map(allComponents.map((row: any) => [String(row.id), row]));
+  const schemeById = new Map<string, any>(schemes.map((row: any) => [String(row.id), row]));
+  const componentById = new Map<string, any>(allComponents.map((row: any) => [String(row.id), row]));
   const assignmentContexts: Record<string, any> = {};
   for (const row of allAssignmentRows) {
     const component = componentById.get(String(row.component_id));
@@ -145,55 +145,112 @@ async function loadWorkspace(ownerId: string, subjectId?: string, gradingPeriod 
     scoresByStudent.set(studentId, bucket);
   }
 
-  const configuredAssessments = assessmentRows
-    .filter((row: any) => assignments[String(row.id)])
-    .map((row: any) => ({
-      id: String(row.id),
-      title: String(row.title || "Assessment"),
-      totalScore: Number(row.total_score) || 0,
-      componentId: assignments[String(row.id)],
-    }));
-  const engineComponents = components.map((row: any) => ({
-    id: String(row.id),
-    name: String(row.name),
-    weight: Number(row.weight) || 0,
-    parentComponentId: row.parent_component_id ? String(row.parent_component_id) : null,
-  }));
+  const trackConfigs = periodSchemes.map((scheme: any) => {
+    const trackComponents = allComponents.filter((row: any) => String(row.scheme_id) === String(scheme.id));
+    const trackComponentIds = new Set(trackComponents.map((row: any) => String(row.id)));
+    const trackAssignments: Record<string, string> = {};
+    for (const row of allAssignmentRows) {
+      if (trackComponentIds.has(String(row.component_id))) {
+        trackAssignments[String(row.assessment_id)] = String(row.component_id);
+      }
+    }
+    return {
+      scheme,
+      components: trackComponents.map((row: any) => ({
+        id: String(row.id),
+        name: String(row.name),
+        weight: Number(row.weight) || 0,
+        parentComponentId: row.parent_component_id ? String(row.parent_component_id) : null,
+      })),
+      assessments: assessmentRows
+        .filter((row: any) => trackAssignments[String(row.id)])
+        .map((row: any) => ({
+          id: String(row.id),
+          title: String(row.title || "Assessment"),
+          totalScore: Number(row.total_score) || 0,
+          componentId: trackAssignments[String(row.id)],
+        })),
+    };
+  });
+
+  const trackWeightTotal = periodSchemes.reduce((sum: number, row: any) => sum + (Number(row.subject_weight) || 0), 0);
+  const trackWeightsValid = periodSchemes.length > 0
+    && periodSchemes.every((row: any) => Number(row.subject_weight) > 0)
+    && Math.abs(trackWeightTotal - 100) < 0.001;
 
   let releaseStatus = { releasedCount: 0, releasedAt: null as string | null, studentIds: [] as string[] };
-  if (selectedScheme?.id) {
-    const { data: releasedRows, error: releasedError } = await db
-      .from("released_term_grades")
-      .select("student_id,released_at")
-      .eq("owner_id", ownerId)
-      .eq("scheme_id", String(selectedScheme.id))
-      .order("released_at", { ascending: false });
-    if (releasedError) throw releasedError;
-    const rows = releasedRows || [];
-    releaseStatus = {
-      releasedCount: rows.length,
-      releasedAt: rows.length ? String(rows[0].released_at || "") || null : null,
-      studentIds: rows.map((row: any) => String(row.student_id || "")).filter(Boolean),
-    };
-  }
+  const { data: releasedRows, error: releasedError } = await db
+    .from("released_subject_term_grades")
+    .select("student_id,released_at")
+    .eq("owner_id", ownerId)
+    .eq("subject_id", subjectId)
+    .eq("grading_period", period)
+    .order("released_at", { ascending: false });
+  if (releasedError) throw releasedError;
+  const releaseRows = releasedRows || [];
+  releaseStatus = {
+    releasedCount: releaseRows.length,
+    releasedAt: releaseRows.length ? String(releaseRows[0].released_at || "") || null : null,
+    studentIds: releaseRows.map((row: any) => String(row.student_id || "")).filter(Boolean),
+  };
 
+  const finalRoundingDigits = Number(periodSchemes[0]?.rounding_digits || 0);
   const preview = Array.from(studentMap.entries()).map(([studentId, student]) => {
-    const calculation = calculateTermGrade({
-      components: engineComponents,
-      assessments: configuredAssessments,
-      scores: scoresByStudent.get(studentId) || [],
-      roundingDigits: Number((selectedScheme as any)?.rounding_digits || 0),
+    const trackGrades = trackConfigs.map((config: any) => {
+      const calculation = calculateTermGrade({
+        components: config.components,
+        assessments: config.assessments,
+        scores: scoresByStudent.get(studentId) || [],
+        roundingDigits: Number(config.scheme.rounding_digits || 0),
+      });
+      return {
+        trackKey: String(config.scheme.track_key || "overall"),
+        name: String(config.scheme.track_name || "Subject grade"),
+        weight: Number(config.scheme.subject_weight) || 0,
+        complete: calculation.complete,
+        rawPercentage: calculation.rawPercentage,
+        termGrade: calculation.termGrade,
+        missingCount: calculation.missingAssessmentIds.length,
+        components: calculation.components,
+      };
     });
+
+    const combined = calculateWeightedTermGrade({
+      grades: trackGrades.map((track: any) => ({
+        key: track.trackKey,
+        name: track.name,
+        weight: track.weight,
+        complete: track.complete,
+        rawPercentage: track.rawPercentage,
+        termGrade: track.termGrade,
+      })),
+      roundingDigits: finalRoundingDigits,
+    });
+    const selectedTrack = trackGrades.find((track: any) => track.trackKey === String(selectedScheme?.track_key || requestedTrackKey || "overall"))
+      || trackGrades[0]
+      || null;
+    const breakdown = trackGrades.map((track: any) => ({
+      kind: "grade_type",
+      trackKey: track.trackKey,
+      name: track.name,
+      weight: track.weight,
+      componentGrade: track.termGrade,
+      contribution: track.termGrade == null ? null : track.termGrade * (track.weight / 100),
+      components: track.components,
+      subcomponents: track.components,
+    }));
+
     return {
       studentId,
       name: studentLabel(student, studentId),
       codeName: String(student?.code_name || student?.preferred_code || "") || null,
-      complete: calculation.complete,
-      rawPercentage: calculation.rawPercentage,
-      termGrade: calculation.termGrade,
-      missingCount: calculation.missingAssessmentIds.length,
-      components: calculation.components,
-      breakdown: calculation.components,
+      complete: combined.complete,
+      rawPercentage: combined.rawPercentage,
+      termGrade: combined.termGrade,
+      missingCount: trackGrades.reduce((sum: number, track: any) => sum + track.missingCount, 0),
+      components: selectedTrack?.components || [],
+      trackGrades,
+      breakdown,
     };
   }).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -207,7 +264,11 @@ async function loadWorkspace(ownerId: string, subjectId?: string, gradingPeriod 
       trackKey: String(row.track_key || "overall"),
       name: String(row.track_name || "Subject grade"),
       sortOrder: Number(row.track_sort_order) || 0,
+      weight: Number(row.subject_weight) || 0,
+      roundingDigits: Number(row.rounding_digits) || 0,
     })),
+    trackWeightTotal,
+    trackWeightsValid,
     scheme: selectedScheme,
     components,
     assignments,
@@ -266,11 +327,16 @@ export async function POST(request: Request) {
         .eq("owner_id", user.id)
         .eq("subject_id", subjectId)
         .eq("grading_period", gradingPeriod)
-        .order("track_sort_order", { ascending: false });
+        .order("track_sort_order", { ascending: true });
       if (existingError) throw existingError;
-      const nextSortOrder = (existing?.[0]?.track_sort_order == null ? -1 : Number(existing[0].track_sort_order)) + 1;
+
+      const nextSortOrder = existing?.length ? Math.max(...existing.map((row: any) => Number(row.track_sort_order) || 0)) + 1 : 0;
       const nextTrackKey = randomUUID();
-      const { error } = await db.from("grade_schemes").insert({
+      const countAfterInsert = (existing?.length || 0) + 1;
+      const equalWeight = Number((100 / countAfterInsert).toFixed(3));
+      const newTrackWeight = Number((100 - equalWeight * (countAfterInsert - 1)).toFixed(3));
+
+      const { data: inserted, error } = await db.from("grade_schemes").insert({
         owner_id: user.id,
         subject_id: subjectId,
         name: "Term Grade",
@@ -279,10 +345,20 @@ export async function POST(request: Request) {
         track_key: nextTrackKey,
         track_name: name,
         track_sort_order: nextSortOrder,
-      });
+        subject_weight: newTrackWeight,
+      }).select("id").single();
       if (error) throw error;
+
+      if (existing?.length) {
+        const { error: rebalanceError } = await db
+          .from("grade_schemes")
+          .update({ subject_weight: equalWeight, updated_at: new Date().toISOString() })
+          .in("id", existing.map((row: any) => String(row.id)));
+        if (rebalanceError) throw rebalanceError;
+      }
+
       revalidatePath("/admin/grades");
-      return NextResponse.json({ ok: true, trackKey: nextTrackKey });
+      return NextResponse.json({ ok: true, trackKey: nextTrackKey, schemeId: String(inserted.id) });
     }
 
     if (action === "delete_track") {
@@ -296,17 +372,94 @@ export async function POST(request: Request) {
         .maybeSingle();
       if (schemeError) throw schemeError;
       if (!scheme) return NextResponse.json({ error: "Grade track not found." }, { status: 404 });
-      const { data: released, error: releaseError } = await db
-        .from("released_term_grades")
-        .select("id")
-        .eq("scheme_id", scheme.id)
-        .limit(1);
-      if (releaseError) throw releaseError;
-      if (released?.length) {
-        return NextResponse.json({ error: "This grade track already has released grades and cannot be deleted." }, { status: 400 });
+
+      const [{ data: releasedCombined, error: combinedReleaseError }, { data: releasedLegacy, error: legacyReleaseError }] = await Promise.all([
+        db.from("released_subject_term_grades")
+          .select("id")
+          .eq("owner_id", user.id)
+          .eq("subject_id", subjectId)
+          .eq("grading_period", gradingPeriod)
+          .limit(1),
+        db.from("released_term_grades").select("id").eq("scheme_id", scheme.id).limit(1),
+      ]);
+      if (combinedReleaseError) throw combinedReleaseError;
+      if (legacyReleaseError) throw legacyReleaseError;
+      if (releasedCombined?.length || releasedLegacy?.length) {
+        return NextResponse.json({ error: "This grading period already has released grades and its grade types cannot be deleted." }, { status: 400 });
       }
+
       const { error } = await db.from("grade_schemes").delete().eq("id", scheme.id).eq("owner_id", user.id);
       if (error) throw error;
+
+      const { data: remaining, error: remainingError } = await db
+        .from("grade_schemes")
+        .select("id,subject_weight")
+        .eq("owner_id", user.id)
+        .eq("subject_id", subjectId)
+        .eq("grading_period", gradingPeriod)
+        .order("track_sort_order", { ascending: true });
+      if (remainingError) throw remainingError;
+
+      if (remaining?.length === 1) {
+        const { error: normalizeError } = await db.from("grade_schemes")
+          .update({ subject_weight: 100, updated_at: new Date().toISOString() })
+          .eq("id", remaining[0].id);
+        if (normalizeError) throw normalizeError;
+      } else if ((remaining?.length || 0) > 1) {
+        const currentTotal = remaining.reduce((sum: number, row: any) => sum + (Number(row.subject_weight) || 0), 0);
+        const basis = currentTotal > 0 ? remaining.map((row: any) => (Number(row.subject_weight) || 0) / currentTotal) : remaining.map(() => 1 / remaining.length);
+        let assigned = 0;
+        for (let index = 0; index < remaining.length; index += 1) {
+          const weight = index === remaining.length - 1
+            ? Number((100 - assigned).toFixed(3))
+            : Number((basis[index] * 100).toFixed(3));
+          assigned += weight;
+          const { error: normalizeError } = await db.from("grade_schemes")
+            .update({ subject_weight: weight, updated_at: new Date().toISOString() })
+            .eq("id", remaining[index].id);
+          if (normalizeError) throw normalizeError;
+        }
+      }
+
+      revalidatePath("/admin/grades");
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "save_track_weights") {
+      const rawWeights: any[] = Array.isArray(body?.trackWeights) ? body.trackWeights : [];
+      const { data: periodSchemes, error: periodSchemesError } = await db
+        .from("grade_schemes")
+        .select("id,track_key")
+        .eq("owner_id", user.id)
+        .eq("subject_id", subjectId)
+        .eq("grading_period", gradingPeriod)
+        .order("track_sort_order", { ascending: true });
+      if (periodSchemesError) throw periodSchemesError;
+      if (!periodSchemes?.length) return NextResponse.json({ error: "Save the grade types first." }, { status: 400 });
+
+      const weightByTrack = new Map(rawWeights.map((row: any) => [String(row?.trackKey || ""), Number(row?.weight)]));
+      const normalized = periodSchemes.map((row: any) => ({
+        id: String(row.id),
+        trackKey: String(row.track_key || "overall"),
+        weight: weightByTrack.get(String(row.track_key || "overall")),
+      }));
+      if (normalized.some((row: any) => !Number.isFinite(row.weight) || Number(row.weight) <= 0 || Number(row.weight) > 100)) {
+        return NextResponse.json({ error: "Every grade type needs a weight greater than 0% and no more than 100%." }, { status: 400 });
+      }
+      const total = normalized.reduce((sum: number, row: any) => sum + Number(row.weight), 0);
+      if (Math.abs(total - 100) > 0.001) {
+        return NextResponse.json({ error: `Grade type weights must total exactly 100%. Current total: ${total.toFixed(2)}%.` }, { status: 400 });
+      }
+
+      const now = new Date().toISOString();
+      for (const row of normalized) {
+        const { error } = await db.from("grade_schemes")
+          .update({ subject_weight: Number(row.weight), updated_at: now })
+          .eq("id", row.id)
+          .eq("owner_id", user.id);
+        if (error) throw error;
+      }
+
       revalidatePath("/admin/grades");
       return NextResponse.json({ ok: true });
     }
@@ -427,7 +580,7 @@ export async function POST(request: Request) {
       }));
       const { data: insertedParents, error: parentInsertError } = await db.from("grade_components").insert(parentRows).select("id,sort_order");
       if (parentInsertError) throw parentInsertError;
-      const parentIdByOrder = new Map((insertedParents || []).map((row: any) => [Number(row.sort_order), String(row.id)]));
+      const parentIdByOrder = new Map<number, string>((insertedParents || []).map((row: any) => [Number(row.sort_order), String(row.id)] as [number, string]));
       const componentIdByKey = new Map<string, string>();
       components.forEach((row: any, index: number) => componentIdByKey.set(row.clientKey, parentIdByOrder.get(index * 10000) || ""));
 
@@ -474,41 +627,70 @@ export async function POST(request: Request) {
 
     if (action === "release") {
       const workspace: any = await loadWorkspace(user.id, subjectId, gradingPeriod, trackKey);
-      if (!workspace.scheme?.id) return NextResponse.json({ error: "Save this grading structure first." }, { status: 400 });
-      const ready = (workspace.preview || []).filter((row: any) => row.complete && row.termGrade != null && row.rawPercentage != null);
-      if (!ready.length) return NextResponse.json({ error: "No student grades are ready to release." }, { status: 400 });
+      if (!workspace.tracks?.length) return NextResponse.json({ error: "Save the grading structure first." }, { status: 400 });
+      if (!workspace.trackWeightsValid) {
+        return NextResponse.json({ error: "Grade type weights must total 100% before releasing the final subject grade." }, { status: 400 });
+      }
+
+      const allReady = (workspace.preview || []).filter((row: any) => row.complete && row.termGrade != null && row.rawPercentage != null);
+      if (!allReady.length) return NextResponse.json({ error: "No student grades are ready to release." }, { status: 400 });
+
+      const requestedIds: string[] = Array.isArray(body?.studentIds)
+        ? Array.from(new Set<string>(body.studentIds.map((value: any) => String(value || "").trim()).filter(Boolean)))
+        : allReady.map((row: any) => String(row.studentId));
+      if (!requestedIds.length) return NextResponse.json({ error: "Select at least one student to release." }, { status: 400 });
+
+      const readyById = new Map(allReady.map((row: any) => [String(row.studentId), row]));
+      const invalidIds = requestedIds.filter((studentId) => !readyById.has(studentId));
+      if (invalidIds.length) {
+        return NextResponse.json({ error: "One or more selected students do not have a complete final grade yet." }, { status: 400 });
+      }
+      const ready = requestedIds.map((studentId) => readyById.get(studentId));
+
       const now = new Date().toISOString();
+      const roundingDigits = Number(workspace.tracks?.[0]?.roundingDigits ?? workspace.scheme?.rounding_digits ?? 0);
       const rows = ready.map((row: any) => ({
-        scheme_id: workspace.scheme.id,
         owner_id: user.id,
         subject_id: subjectId,
+        grading_period: gradingPeriod,
         student_id: row.studentId,
         raw_percentage: row.rawPercentage,
         term_grade: row.termGrade,
+        rounding_digits: roundingDigits,
         breakdown: row.breakdown,
         released_at: now,
         updated_at: now,
       }));
-      const { error: historyError } = await db.from("term_grade_release_history").insert(ready.map((row: any) => ({
-        scheme_id: workspace.scheme.id,
+
+      const { error: historyError } = await db.from("subject_term_grade_release_history").insert(ready.map((row: any) => ({
         owner_id: user.id,
         subject_id: subjectId,
+        grading_period: gradingPeriod,
         student_id: row.studentId,
         raw_percentage: row.rawPercentage,
         term_grade: row.termGrade,
+        rounding_digits: roundingDigits,
         breakdown: row.breakdown,
         released_at: now,
         released_by: user.id,
       })));
       if (historyError) throw historyError;
 
-      const { error } = await db.from("released_term_grades").upsert(rows, { onConflict: "scheme_id,student_id" });
+      const { error } = await db
+        .from("released_subject_term_grades")
+        .upsert(rows, { onConflict: "owner_id,subject_id,grading_period,student_id" });
       if (error) throw error;
 
       const periodLabel = gradingPeriod === "prelim" ? "Prelim" : gradingPeriod === "midterm" ? "Midterm" : "Finals";
-      const trackName = String(workspace.scheme.track_name || "Subject grade");
-      const releaseContext = trackName === "Subject grade" ? `${subject.name} · ${periodLabel}` : `${subject.name} · ${periodLabel} · ${trackName}`;
-      await sendTermGradeReleasePush(ready.map((row: any) => String(row.studentId)), user.id, releaseContext, String(workspace.scheme.id), now);
+      const releaseContext = `${subject.name} · ${periodLabel}`;
+      await sendTermGradeReleasePush(
+        ready.map((row: any) => String(row.studentId)),
+        user.id,
+        releaseContext,
+        `${subjectId}-${gradingPeriod}`,
+        now,
+      );
+
       revalidatePath("/admin/grades");
       revalidatePath("/student");
       revalidatePath("/student/grades");

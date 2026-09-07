@@ -18,6 +18,7 @@ type GradeRow = {
   term_grade?: number | null;
   breakdown?: any[] | null;
   released_at?: string | null;
+  is_combined?: boolean;
   subject?: {
     id?: string | null;
     name?: string | null;
@@ -233,7 +234,7 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
         </div>
       </div>
 
-      <div className="student-term-grades-v423 student-term-grades-v435 student-term-grades-v436 student-term-grades-v470 student-term-grades-v471 student-term-grades-v472 student-term-grades-v473 student-term-grades-v474 student-term-grades-v475">
+      <div className="student-term-grades-v423 student-term-grades-v435 student-term-grades-v436 student-term-grades-v470 student-term-grades-v471 student-term-grades-v472 student-term-grades-v473 student-term-grades-v474 student-term-grades-v475 student-term-grades-v476">
         {filteredGrades.map((row) => {
           const subject = row.subject;
           const scheme = row.scheme;
@@ -269,6 +270,7 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
 
                 <div className="student-term-grade-breakdown-list-v475">
                   {breakdown.map((component: any, index: number) => {
+                    const isGradeType = component?.kind === "grade_type";
                     const earned = finiteNumber(component.earned);
                     const possible = finiteNumber(component.possible);
                     const grade = componentGrade(component);
@@ -277,11 +279,11 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
                     const children = Array.isArray(component.subcomponents) ? component.subcomponents : [];
 
                     return (
-                      <section className="student-term-grade-breakdown-item-v475" key={`${row.id}-${component.componentId || index}`}>
+                      <section className={`student-term-grade-breakdown-item-v475${isGradeType ? " student-grade-type-breakdown-v476" : ""}`} key={`${row.id}-${component.trackKey || component.componentId || index}`}>
                         <div className="student-term-grade-breakdown-primary-v475">
                           <div className="student-term-grade-breakdown-name-v475">
                             <strong>{component.name || "Component"}</strong>
-                            <small>{formatScore(earned)} / {formatScore(possible)} points</small>
+                            <small>{isGradeType ? `${children.length} ${children.length === 1 ? "component" : "components"}` : `${formatScore(earned)} / ${formatScore(possible)} points`}</small>
                           </div>
 
                           <div className="student-term-grade-breakdown-metrics-v475">
@@ -302,15 +304,21 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
 
                         {children.length ? (
                           <div className="student-term-grade-subcomponent-list-v475">
-                            {children.map((child: any, childIndex: number) => (
-                              <div className="student-term-grade-subcomponent-row-v475" key={`${row.id}-${child.componentId || childIndex}`}>
-                                <div>
-                                  <strong>{child.name || "Subcomponent"}</strong>
-                                  <small>{formatScore(child.earned)} / {formatScore(child.possible)} points</small>
+                            {children.map((child: any, childIndex: number) => {
+                              const childGrade = Number(child?.componentGrade);
+                              return (
+                                <div className={`student-term-grade-subcomponent-row-v475${isGradeType ? " student-grade-type-component-v476" : ""}`} key={`${row.id}-${child.componentId || childIndex}`}>
+                                  <div>
+                                    <strong>{child.name || "Subcomponent"}</strong>
+                                    <small>{formatScore(child.earned)} / {formatScore(child.possible)} points</small>
+                                  </div>
+                                  <div className="student-grade-type-component-values-v476">
+                                    <span>{formatScore(child.weight)}%</span>
+                                    {isGradeType && Number.isFinite(childGrade) ? <strong>{childGrade.toFixed(2)}</strong> : null}
+                                  </div>
                                 </div>
-                                <span>{formatScore(child.weight)}%</span>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : null}
                       </section>

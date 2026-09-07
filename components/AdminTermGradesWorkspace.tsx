@@ -40,6 +40,8 @@ type TrackRow = {
   trackKey: string;
   name: string;
   sortOrder: number;
+  weight: number;
+  roundingDigits?: number;
 };
 
 type AssignmentContext = {
@@ -73,6 +75,17 @@ type PreviewComponent = {
   subcomponents?: PreviewSubcomponent[];
 };
 
+type PreviewTrackGrade = {
+  trackKey: string;
+  name: string;
+  weight: number;
+  complete: boolean;
+  rawPercentage: number | null;
+  termGrade: number | null;
+  missingCount: number;
+  components: PreviewComponent[];
+};
+
 type PreviewRow = {
   studentId: string;
   name: string;
@@ -82,6 +95,7 @@ type PreviewRow = {
   termGrade: number | null;
   missingCount: number;
   components: PreviewComponent[];
+  trackGrades?: PreviewTrackGrade[];
 };
 
 type WorkspacePayload = {
@@ -96,6 +110,7 @@ type WorkspacePayload = {
     grading_period?: string;
     track_key?: string;
     track_name?: string;
+    subject_weight?: number;
   } | null;
   components?: Array<{
     id: string;
@@ -112,6 +127,8 @@ type WorkspacePayload = {
     releasedAt?: string | null;
     studentIds?: string[];
   };
+  trackWeightTotal?: number;
+  trackWeightsValid?: boolean;
 };
 
 type Notice = { tone: "success" | "error"; text: string } | null;
@@ -299,26 +316,37 @@ function TermGradesSkeleton() {
 }
 
 function normalizePreview(data: WorkspacePayload): WorkspacePayload {
+  const normalizeComponents = (rows: PreviewComponent[] = []) => rows.map((component) => ({
+    ...component,
+    earned: finiteNumber(component.earned),
+    possible: finiteNumber(component.possible),
+    percentage: finiteNumber(component.percentage),
+    componentGrade: normalizedComponentGrade(component),
+    weight: finiteNumber(component.weight),
+    contribution: normalizedContribution(component),
+    subcomponents: (component.subcomponents || []).map((child) => ({
+      ...child,
+      earned: finiteNumber(child.earned),
+      possible: finiteNumber(child.possible),
+      percentage: finiteNumber(child.percentage),
+      weight: finiteNumber(child.weight),
+      rawShare: finiteNumber(child.rawShare),
+    })),
+  }));
+
   return {
     ...data,
+    tracks: (data.tracks || []).map((track) => ({ ...track, weight: finiteNumber(track.weight) })),
     preview: (data.preview || []).map((row) => ({
       ...row,
-      components: (row.components || []).map((component) => ({
-        ...component,
-        earned: finiteNumber(component.earned),
-        possible: finiteNumber(component.possible),
-        percentage: finiteNumber(component.percentage),
-        componentGrade: normalizedComponentGrade(component),
-        weight: finiteNumber(component.weight),
-        contribution: normalizedContribution(component),
-        subcomponents: (component.subcomponents || []).map((child) => ({
-          ...child,
-          earned: finiteNumber(child.earned),
-          possible: finiteNumber(child.possible),
-          percentage: finiteNumber(child.percentage),
-          weight: finiteNumber(child.weight),
-          rawShare: finiteNumber(child.rawShare),
-        })),
+      components: normalizeComponents(row.components || []),
+      trackGrades: (row.trackGrades || []).map((track) => ({
+        ...track,
+        weight: finiteNumber(track.weight),
+        rawPercentage: track.rawPercentage == null ? null : finiteNumber(track.rawPercentage),
+        termGrade: track.termGrade == null ? null : finiteNumber(track.termGrade),
+        missingCount: finiteNumber(track.missingCount),
+        components: normalizeComponents(track.components || []),
       })),
     })),
   };
@@ -339,6 +367,9 @@ export function AdminTermGradesWorkspace() {
   const [notice, setNotice] = useState<Notice>(null);
   const [addingTrack, setAddingTrack] = useState(false);
   const [newTrackName, setNewTrackName] = useState("");
+  const [trackWeights, setTrackWeights] = useState<Record<string, number>>({});
+  const [trackWeightsDirty, setTrackWeightsDirty] = useState(false);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
   const load = async (nextSubjectId?: string, nextPeriod?: string, nextTrackKey?: string) => {
@@ -371,6 +402,9 @@ export function AdminTermGradesWorkspace() {
       const activeTrackKey = String(normalized.scheme?.track_key || normalized.tracks?.[0]?.trackKey || requestedTrack || "overall");
       setTrackKey(activeTrackKey);
       setTrackName(String(normalized.scheme?.track_name || normalized.tracks?.find((row) => row.trackKey === activeTrackKey)?.name || "Subject grade"));
+      setTrackWeights(Object.fromEntries((normalized.tracks || []).map((row) => [row.trackKey, finiteNumber(row.weight)])));
+      setTrackWeightsDirty(false);
+      setSelectedStudentIds(new Set((normalized.preview || []).filter((row) => row.complete).map((row) => String(row.studentId))));
 
       const flat = normalized.components || [];
       const parents = flat.filter((row) => !row.parent_component_id);
@@ -437,8 +471,21 @@ export function AdminTermGradesWorkspace() {
   const assignedAssessmentCount = assessments.filter((row) => assignments[row.id]).length;
   const autoZeroCount = preview.reduce((sum, row) => sum + (row.missingCount || 0), 0);
   const schemeSaved = Boolean(payload.scheme?.id);
+  const trackWeightTotal = tracks.reduce((sum, row) => sum + finiteNumber(trackWeights[row.trackKey], row.weight), 0);
+  const trackWeightsValid = tracks.length > 0
+    && tracks.every((row) => finiteNumber(trackWeights[row.trackKey], row.weight) > 0)
+    && Math.abs(trackWeightTotal - 100) < 0.001;
+  const readyStudentIds = preview.filter((row) => row.complete).map((row) => String(row.studentId));
+  const selectedCount = readyStudentIds.filter((id) => selectedStudentIds.has(id)).length;
+  const allReadySelected = readyStudentIds.length > 0 && selectedCount === readyStudentIds.length;
   const canSave = Boolean(subjectId) && topWeightValid && subWeightsValid && weightsPositive && namesValid && !saving;
-  const canRelease = Boolean(subjectId) && schemeSaved && readyCount > 0 && !configDirty && !saving;
+  const canRelease = Boolean(subjectId)
+    && readyCount > 0
+    && selectedCount > 0
+    && trackWeightsValid
+    && !trackWeightsDirty
+    && !configDirty
+    && !saving;
 
   const markDirty = () => { setConfigDirty(true); setNotice(null); };
 
@@ -578,15 +625,67 @@ export function AdminTermGradesWorkspace() {
     } finally { setSaving(false); }
   };
 
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudentIds((current) => {
+      const next = new Set(current);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  const toggleAllReady = () => {
+    setSelectedStudentIds((current) => {
+      if (readyStudentIds.length && readyStudentIds.every((id) => current.has(id))) return new Set();
+      return new Set(readyStudentIds);
+    });
+  };
+
+  const updateTrackWeight = (key: string, value: number) => {
+    setTrackWeights((current) => ({ ...current, [key]: value }));
+    setTrackWeightsDirty(true);
+    setNotice(null);
+  };
+
+  const saveTrackWeights = async () => {
+    if (!trackWeightsValid || !trackWeightsDirty || saving) return;
+    setSaving(true);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/admin/grades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save_track_weights",
+          subjectId,
+          gradingPeriod,
+          trackWeights: tracks.map((track) => ({
+            trackKey: track.trackKey,
+            weight: finiteNumber(trackWeights[track.trackKey], track.weight),
+          })),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Unable to save grade type weights.");
+      await load(subjectId, gradingPeriod, trackKey);
+      setNotice({ tone: "success", text: "Final subject grade weights saved." });
+    } catch (error) {
+      setNotice({ tone: "error", text: error instanceof Error ? error.message : "Unable to save grade type weights." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const performRelease = async () => {
     if (!canRelease) return;
     setConfirmAction(null);
     setSaving(true); setNotice(null);
     try {
+      const studentIds = readyStudentIds.filter((id) => selectedStudentIds.has(id));
       const response = await fetch("/api/admin/grades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "release", subjectId, gradingPeriod, trackKey }),
+        body: JSON.stringify({ action: "release", subjectId, gradingPeriod, trackKey, studentIds }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "Unable to release grades.");
@@ -612,11 +711,9 @@ export function AdminTermGradesWorkspace() {
     const updating = releaseStatus.releasedCount > 0;
     setConfirmAction({
       kind: "release",
-      title: updating ? "Update released grades?" : `Release ${periodLabel(gradingPeriod)} grades?`,
-      message: updating
-        ? `Students will receive the current ${periodLabel(gradingPeriod)} grades for ${trackName}. Any previously released values will be updated.`
-        : `${readyCount} student grade${readyCount === 1 ? "" : "s"} will be released for ${trackName}. Missing assessment scores are counted as 0.`,
-      confirmLabel: updating ? "Update grades" : "Release grades",
+      title: updating ? "Release selected grades?" : `Release ${periodLabel(gradingPeriod)} grades?`,
+      message: `${selectedCount} selected student${selectedCount === 1 ? "" : "s"} will receive the final ${periodLabel(gradingPeriod)} subject grade. Only the selected students will be released or updated.`,
+      confirmLabel: updating ? "Release selected" : "Release selected",
     });
   };
 
@@ -638,9 +735,9 @@ export function AdminTermGradesWorkspace() {
     ? tracks.map((track) => ({
         value: track.trackKey,
         label: track.name,
-        description: track.trackKey === "overall" ? "Main subject grade" : "Separate grade for this subject",
+        description: tracks.length > 1 ? `${finiteNumber(trackWeights[track.trackKey], track.weight).toFixed(0)}% of final grade` : undefined,
       }))
-    : [{ value: "overall", label: "Subject grade", description: "Main subject grade" }];
+    : [{ value: "overall", label: "Subject grade" }];
 
   return (
     <div className={`grades-workspace-v424 grades-hierarchy-workspace-v427 grades-consistent-v430${loading ? " is-loading" : ""}`}>
@@ -717,6 +814,45 @@ export function AdminTermGradesWorkspace() {
             <div className="grades-summary-card-v424 grades-stat-card-v432"><span className="grades-summary-icon-v424"><UsersIcon size={19} /></span><div><span className="grades-stat-label-v432">Students</span><strong>{preview.length}</strong><small>{readyCount} ready</small></div></div>
             <div className="grades-summary-card-v424 grades-stat-card-v432"><span className="grades-summary-icon-v424"><CheckIcon size={19} /></span><div><span className="grades-stat-label-v432">Missing scores</span><strong>{autoZeroCount}</strong><small>Counted as 0</small></div></div>
           </div>
+
+          {tracks.length > 1 ? (
+            <section className="grades-track-weights-v476">
+              <div className="grades-track-weights-head-v476">
+                <div>
+                  <span>Final subject grade</span>
+                  <h2>Grade type weights</h2>
+                  <p>Set how much each grade type contributes to the final {periodLabel(gradingPeriod)} grade.</p>
+                </div>
+                <strong className={trackWeightsValid ? "is-valid" : ""}>{trackWeightTotal.toFixed(2)}%</strong>
+              </div>
+
+              <div className="grades-track-weights-grid-v476">
+                {tracks.map((track) => (
+                  <label className="grades-track-weight-item-v476" key={track.trackKey}>
+                    <span>{track.name}</span>
+                    <div>
+                      <input
+                        type="number"
+                        min="0.01"
+                        max="100"
+                        step="0.01"
+                        value={finiteNumber(trackWeights[track.trackKey], track.weight)}
+                        onChange={(event) => updateTrackWeight(track.trackKey, Number(event.target.value))}
+                      />
+                      <b>%</b>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="grades-track-weights-footer-v476">
+                <span>{trackWeightsValid ? "Ready to calculate the final subject grade." : `Weights must total 100%. Current total: ${trackWeightTotal.toFixed(2)}%.`}</span>
+                <button className="button button-primary" type="button" disabled={!trackWeightsDirty || !trackWeightsValid || saving} onClick={saveTrackWeights}>
+                  {saving ? "Saving…" : trackWeightsDirty ? "Save weights" : "Weights saved"}
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section className="grades-panel-v424 grades-hierarchy-panel-v427">
             <div className="grades-panel-heading-v424">
@@ -801,71 +937,118 @@ export function AdminTermGradesWorkspace() {
             </div>
           </section>
 
-          <section className="grades-panel-v424 grades-preview-panel-v424 grades-hierarchy-panel-v427">
+          <section className="grades-panel-v424 grades-preview-panel-v424 grades-hierarchy-panel-v427 grades-preview-panel-v476">
             <div className="grades-panel-heading-v424">
-              <div className="grades-heading-main-v424"><span className="grades-step-v424">3</span><div><h2>Student grades</h2><p>Review {periodLabel(gradingPeriod)} grades before release.</p></div></div>
-              <div className="grades-ready-cluster-v424"><span><strong>{readyCount}</strong> ready</span><span><strong>{incompleteCount}</strong> incomplete</span></div>
+              <div className="grades-heading-main-v424"><span className="grades-step-v424">3</span><div><h2>Student grades</h2><p>Select the students whose final {periodLabel(gradingPeriod)} grade you want to release.</p></div></div>
+              <div className="grades-ready-cluster-v424"><span><strong>{readyCount}</strong> ready</span><span><strong>{incompleteCount}</strong> unavailable</span></div>
             </div>
-            {configDirty ? <div className="grades-preview-stale-v424"><span>!</span><div><strong>Save your changes</strong><p>Then review or release the updated grades.</p></div></div> : null}
-            <div className="grades-preview-table-v424">
-              <div className="grades-preview-head-v424" aria-hidden="true"><span>Student</span><span>Performance</span><span>{periodLabel(gradingPeriod)} grade</span><span>Status</span></div>
+
+            {configDirty || trackWeightsDirty ? (
+              <div className="grades-preview-stale-v424">
+                <span>!</span>
+                <div><strong>Save your changes</strong><p>Save the grading setup and grade type weights before release.</p></div>
+              </div>
+            ) : null}
+
+            <div className="grades-release-selection-bar-v476">
+              <div>
+                <strong>{selectedCount} selected</strong>
+                <span>Only selected ready students will receive or update their grade.</span>
+              </div>
+              <button type="button" onClick={toggleAllReady} disabled={!readyStudentIds.length}>
+                {allReadySelected ? "Clear selection" : "Select all ready"}
+              </button>
+            </div>
+
+            <div className="grades-preview-table-v424 grades-preview-table-v476">
+              <div className="grades-preview-head-v424 grades-preview-head-v476" aria-hidden="true">
+                <span>Student</span>
+                <span>Grade types</span>
+                <span>Final grade</span>
+                <span>Status</span>
+              </div>
+
               {preview.map((row) => {
-                const isReleased = releasedStudentIds.has(String(row.studentId));
+                const studentId = String(row.studentId);
+                const isReleased = releasedStudentIds.has(studentId);
+                const isSelected = selectedStudentIds.has(studentId) && row.complete;
+                const rowTracks = row.trackGrades || [];
+
                 return (
-                <details className="grades-preview-row-v424 grades-hierarchy-preview-row-v427" key={row.studentId}>
-                  <summary>
-                    <span className="grades-student-cell-v424"><strong>{row.name}</strong>{row.codeName ? <small>{row.codeName}</small> : null}</span>
-                    <span className="grades-data-cell-v424" data-label="Performance">{row.rawPercentage == null ? "—" : `${finiteNumber(row.rawPercentage).toFixed(2)}%`}</span>
-                    <span className="grades-data-cell-v424 grades-final-value-v424" data-label={`${periodLabel(gradingPeriod)} grade`}>{row.termGrade ?? "—"}</span>
-                    <span className="grades-status-cell-v424" data-label="Status"><span className={`grades-status-v424 ${isReleased ? "is-released" : row.complete ? "is-ready" : "is-incomplete"}`}>{isReleased ? "Released" : row.complete ? "Ready" : "Unavailable"}</span></span>
-                  </summary>
-                  <div className="grades-breakdown-v424 grades-grade-details-v432">
-                    <div className="grades-grade-details-heading-v432">
-                      <div><strong>Grade details</strong><span>{trackName} · {periodLabel(gradingPeriod)}</span></div>
-                      {row.missingCount ? <span className="grades-zero-inline-v432">{row.missingCount} missing {row.missingCount === 1 ? "score" : "scores"} counted as 0</span> : null}
-                    </div>
-                    <div className="grades-grade-detail-list-v432">
-                      {row.components.map((component, index) => {
-                        const percentage = finiteNumber(component.percentage);
-                        const grade = normalizedComponentGrade(component);
-                        const contribution = normalizedContribution(component);
-                        const weight = finiteNumber(component.weight);
-                        const children = component.subcomponents || [];
-                        return (
-                          <div className="grades-grade-detail-item-v432" key={component.componentId || `${component.name}-${index}`}>
-                            <div className="grades-grade-detail-main-v432">
-                              <div className="grades-grade-detail-name-v432"><strong>{component.name}</strong><span>{weight}%</span></div>
-                              {children.length ? (
-                                <div className="grades-grade-detail-subs-v432">
-                                  {children.map((child, childIndex) => (
-                                    <div className="grades-grade-detail-sub-v432" key={child.componentId || `${child.name}-${childIndex}`}>
-                                      <span>{child.name}</span>
-                                      <small>{formatScore(child.earned)} / {formatScore(child.possible)}</small>
-                                      <small>{finiteNumber(child.weight)}%</small>
-                                      <strong>{finiteNumber(child.percentage).toFixed(2)}%</strong>
-                                    </div>
-                                  ))}
+                  <details className="grades-preview-row-v424 grades-hierarchy-preview-row-v427 grades-preview-row-v476" key={row.studentId}>
+                    <summary>
+                      <span className="grades-student-cell-v424 grades-student-cell-v476">
+                        <button
+                          type="button"
+                          className={`grades-student-select-v476${isSelected ? " is-selected" : ""}`}
+                          aria-label={`${isSelected ? "Deselect" : "Select"} ${row.name}`}
+                          aria-pressed={isSelected}
+                          disabled={!row.complete}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            if (row.complete) toggleStudentSelection(studentId);
+                          }}
+                        >
+                          {isSelected ? <CheckIcon size={13} /> : null}
+                        </button>
+                        <span><strong>{row.name}</strong>{row.codeName ? <small>{row.codeName}</small> : null}</span>
+                      </span>
+
+                      <span className="grades-track-snapshot-v476" data-label="Grade types">
+                        {rowTracks.length ? rowTracks.map((track) => (
+                          <span key={track.trackKey}>
+                            <small>{track.name}</small>
+                            <strong>{track.termGrade ?? "—"}</strong>
+                          </span>
+                        )) : <span><small>Subject grade</small><strong>—</strong></span>}
+                      </span>
+
+                      <span className="grades-data-cell-v424 grades-final-value-v424 grades-final-value-v476" data-label="Final grade">{row.termGrade ?? "—"}</span>
+                      <span className="grades-status-cell-v424" data-label="Status"><span className={`grades-status-v424 ${isReleased ? "is-released" : row.complete ? "is-ready" : "is-incomplete"}`}>{isReleased ? "Released" : row.complete ? "Ready" : "Unavailable"}</span></span>
+                    </summary>
+
+                    <div className="grades-combined-details-v476">
+                      <div className="grades-combined-details-head-v476">
+                        <div><strong>Final grade calculation</strong><span>{periodLabel(gradingPeriod)} · {rowTracks.length > 1 ? `${rowTracks.length} grade types` : rowTracks[0]?.name || "Subject grade"}</span></div>
+                        {row.missingCount ? <span>{row.missingCount} missing {row.missingCount === 1 ? "score" : "scores"} counted as 0</span> : null}
+                      </div>
+
+                      <div className="grades-combined-track-list-v476">
+                        {rowTracks.map((track) => (
+                          <section className="grades-combined-track-v476" key={track.trackKey}>
+                            <div className="grades-combined-track-head-v476">
+                              <div><strong>{track.name}</strong><span>{formatScore(track.weight)}% of final grade</span></div>
+                              <strong>{track.termGrade ?? "—"}</strong>
+                            </div>
+
+                            <div className="grades-combined-component-list-v476">
+                              {track.components.map((component, index) => (
+                                <div className="grades-combined-component-v476" key={component.componentId || `${track.trackKey}-${component.name}-${index}`}>
+                                  <div><strong>{component.name}</strong><span>{formatScore(component.earned)} / {formatScore(component.possible)} points</span></div>
+                                  <span>{formatScore(component.weight)}%</span>
+                                  <strong>{normalizedComponentGrade(component).toFixed(2)}</strong>
                                 </div>
-                              ) : null}
+                              ))}
                             </div>
-                            <div className={`grades-grade-detail-metrics-v432${children.length ? " has-subcomponents" : ""}`}>
-                              {!children.length ? <span><small>Score</small><strong>{formatScore(component.earned)} / {formatScore(component.possible)}</strong></span> : null}
-                              <span><small>Performance</small><strong>{percentage.toFixed(2)}%</strong></span>
-                              <span><small>Grade</small><strong>{grade.toFixed(2)}</strong></span>
-                              <span><small>Weighted</small><strong>{contribution.toFixed(2)}</strong></span>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          </section>
+                        ))}
+                      </div>
+
+                      <div className="grades-combined-total-v476">
+                        <span>Final {periodLabel(gradingPeriod)} grade</span>
+                        <strong>{row.termGrade ?? "—"}</strong>
+                      </div>
                     </div>
-                    <div className="grades-grade-detail-total-v432"><span>{periodLabel(gradingPeriod)} grade</span><strong>{row.termGrade ?? "—"}</strong></div>
-                  </div>
-                </details>
+                  </details>
                 );
               })}
+
               {!preview.length ? <div className="grades-inline-empty-v424 grades-preview-empty-v424"><UsersIcon size={19} /><div><strong>No student grades yet</strong><span>Save your settings and record assessment scores first.</span></div></div> : null}
             </div>
-            <div className={`grades-release-bar-v424 grades-release-bar-v433${releaseStatus.releasedCount ? " is-released" : ""}`}>
+
+            <div className={`grades-release-bar-v424 grades-release-bar-v433 grades-release-bar-v476${releaseStatus.releasedCount ? " is-released" : ""}`}>
               <div className="grades-release-copy-v424">
                 <span className="grades-release-icon-v424"><ScoresIcon size={18} /></span>
                 <div>
@@ -873,10 +1056,22 @@ export function AdminTermGradesWorkspace() {
                     <strong>{releaseStatus.releasedCount ? `${periodLabel(gradingPeriod)} grades released` : `Release ${periodLabel(gradingPeriod)} grades`}</strong>
                     {releaseStatus.releasedCount ? <span className="grades-release-badge-v433">Released</span> : null}
                   </div>
-                  <span>{configDirty ? "Save your changes first." : releaseStatus.releasedCount ? `${releaseStatus.releasedCount} student${releaseStatus.releasedCount === 1 ? "" : "s"} · ${formatReleaseTime(releaseStatus.releasedAt)}. Update the release if grades have changed.` : readyCount ? `${readyCount} grade${readyCount === 1 ? "" : "s"} ready${incompleteCount ? ` · ${incompleteCount} unavailable` : ""}. Missing scores count as 0.` : "No grades are ready yet."}</span>
+                  <span>
+                    {configDirty
+                      ? "Save your grading changes first."
+                      : trackWeightsDirty
+                        ? "Save the final grade weights first."
+                        : !trackWeightsValid
+                          ? "Grade type weights must total 100%."
+                          : selectedCount
+                            ? `${selectedCount} selected · ${readyCount} ready${incompleteCount ? ` · ${incompleteCount} unavailable` : ""}.`
+                            : "Select at least one ready student."}
+                  </span>
                 </div>
               </div>
-              <button className="button button-primary" type="button" disabled={!canRelease} onClick={requestRelease}>{saving ? "Working…" : releaseStatus.releasedCount ? "Update released grades" : `Release ${readyCount || ""} grade${readyCount === 1 ? "" : "s"}`.trim()}</button>
+              <button className="button button-primary" type="button" disabled={!canRelease} onClick={requestRelease}>
+                {saving ? "Working…" : `Release ${selectedCount || ""} selected`.trim()}
+              </button>
             </div>
           </section>
         </>

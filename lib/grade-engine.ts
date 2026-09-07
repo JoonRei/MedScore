@@ -231,3 +231,67 @@ export function calculateTermGrade(args: {
     components: componentRows,
   };
 }
+
+export type WeightedGradePart = {
+  key: string;
+  name: string;
+  weight: number;
+  complete: boolean;
+  rawPercentage: number | null;
+  termGrade: number | null;
+};
+
+export type WeightedTermGradeCalculation = {
+  complete: boolean;
+  weightTotal: number;
+  rawPercentage: number | null;
+  termGrade: number | null;
+};
+
+/**
+ * Combines independently calculated grade types into one subject grade.
+ *
+ * Example:
+ *   Lecture 85 × 70% + Laboratory 90 × 30% = 86.5
+ *
+ * Each grade type keeps its own 100%-based component structure. The weights
+ * supplied here describe only how much that finished grade type contributes
+ * to the final subject grade.
+ */
+export function calculateWeightedTermGrade(args: {
+  grades: WeightedGradePart[];
+  roundingDigits?: number;
+}): WeightedTermGradeCalculation {
+  const weightTotal = args.grades.reduce((sum, row) => sum + (Number(row.weight) || 0), 0);
+  const validWeights = args.grades.length > 0
+    && args.grades.every((row) => Number.isFinite(Number(row.weight)) && Number(row.weight) > 0)
+    && Math.abs(weightTotal - 100) < 0.001;
+  const complete = validWeights
+    && args.grades.every((row) => row.complete && row.termGrade != null && row.rawPercentage != null);
+
+  if (!complete) {
+    return {
+      complete: false,
+      weightTotal,
+      rawPercentage: null,
+      termGrade: null,
+    };
+  }
+
+  const rawPercentage = boundedPercentage(args.grades.reduce(
+    (sum, row) => sum + Number(row.rawPercentage) * (Number(row.weight) / 100),
+    0,
+  ));
+  const exactGrade = args.grades.reduce(
+    (sum, row) => sum + Number(row.termGrade) * (Number(row.weight) / 100),
+    0,
+  );
+
+  return {
+    complete: true,
+    weightTotal,
+    rawPercentage,
+    termGrade: roundGrade(exactGrade, args.roundingDigits ?? 0),
+  };
+}
+
