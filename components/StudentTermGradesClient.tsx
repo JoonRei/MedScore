@@ -194,12 +194,11 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
       const id = String(row.subject_id || row.subject?.id || "").trim();
       if (!id || unique.has(id)) return;
       const name = String(row.subject?.name || "Subject");
-      const detail = [row.subject?.code, row.subject?.term, row.subject?.academic_year].filter(Boolean).join(" · ");
-      unique.set(id, { value: id, label: name, description: detail || undefined });
+      unique.set(id, { value: id, label: name });
     });
 
     return [
-      { value: "all", label: "All subjects", description: `${unique.size} ${unique.size === 1 ? "subject" : "subjects"}` },
+      { value: "all", label: "All subjects" },
       ...Array.from(unique.values()).sort((a, b) => a.label.localeCompare(b.label)),
     ];
   }, [grades]);
