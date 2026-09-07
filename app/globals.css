@@ -24442,4 +24442,2994 @@ body[data-student-route="notifications"] .student-portal-v444 .student-notificat
     font-size: 10px;
   }
 }
+/* ================================================================
+   MedScores V4.70 — premium Student Term Grades
+   One clean period badge, clearer grade hierarchy and breakdown.
+   ================================================================ */
 
+.student-portal-v444 .student-grades-header-v470 {
+  margin-bottom: 18px !important;
+}
+
+.student-portal-v444 .student-term-grades-v470 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  padding-bottom: 30px !important;
+}
+
+/* Card shell */
+.student-portal-v444 .student-term-grade-card-v470 {
+  min-width: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 30px rgba(66, 42, 74, .055) !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+.student-portal-v444 .student-term-grade-card-v470:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 34px rgba(66, 42, 74, .07) !important;
+}
+.student-portal-v444 .student-term-grade-card-v470[open] {
+  grid-column: 1 / -1 !important;
+  transform: none !important;
+}
+
+/* Summary */
+.student-portal-v444 .student-term-grade-card-v470 > .student-term-grade-summary-v470 {
+  position: relative;
+  min-height: 154px !important;
+  padding: 22px 22px 21px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 22px !important;
+  list-style: none !important;
+  cursor: pointer;
+}
+.student-portal-v444 .student-term-grade-summary-v470::-webkit-details-marker { display: none; }
+.student-portal-v444 .student-term-grade-summary-v470::marker { content: ""; }
+
+.student-portal-v444 .student-term-grade-copy-v470 {
+  min-width: 0;
+  display: grid !important;
+  align-content: center;
+  justify-items: start;
+}
+
+/* The only badge on the card: grading period. */
+.student-portal-v444 .student-term-grade-period-v470 {
+  min-height: 27px;
+  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f2e8f5;
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: .015em;
+  white-space: nowrap;
+}
+
+.student-portal-v444 .student-term-grade-copy-v470 h2 {
+  margin: 13px 0 5px !important;
+  color: var(--text) !important;
+  font-size: 18px !important;
+  font-weight: 800;
+  line-height: 1.28 !important;
+  letter-spacing: -.035em !important;
+  overflow-wrap: anywhere;
+}
+.student-portal-v444 .student-term-grade-copy-v470 p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 11.5px !important;
+  font-weight: 600;
+  line-height: 1.5 !important;
+}
+
+/* Grade focus */
+.student-portal-v444 .student-term-grade-value-v470 {
+  min-width: 126px !important;
+  align-self: stretch !important;
+  padding: 4px 0 4px 22px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: end !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-left: 1px solid rgba(96, 69, 103, .09) !important;
+}
+.student-portal-v444 .student-term-grade-value-v470 > span {
+  color: var(--muted) !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.student-portal-v444 .student-term-grade-value-v470 > strong {
+  margin-top: 7px !important;
+  color: var(--brand) !important;
+  font-size: clamp(36px, 4vw, 46px) !important;
+  font-weight: 850 !important;
+  line-height: .9 !important;
+  letter-spacing: -.065em !important;
+  font-variant-numeric: tabular-nums;
+}
+.student-portal-v444 .student-term-grade-value-v470 > small {
+  margin-top: 10px !important;
+  color: #938b96 !important;
+  font-size: 9.5px !important;
+  font-weight: 650;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+}
+
+/* Expanded details */
+.student-portal-v444 .student-term-grade-details-v470 {
+  padding: 22px !important;
+  display: grid !important;
+  gap: 20px !important;
+  border-top: 1px solid rgba(96, 69, 103, .08) !important;
+  background: #fcfbfc !important;
+}
+
+/* High-level released grade facts */
+.student-portal-v444 .student-term-grade-overview-v470 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.student-portal-v444 .student-term-grade-overview-v470 > div {
+  min-width: 0;
+  min-height: 90px;
+  padding: 16px 17px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(66, 42, 74, .035);
+}
+.student-portal-v444 .student-term-grade-overview-v470 span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.student-portal-v444 .student-term-grade-overview-v470 strong {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 830;
+  line-height: 1;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+.student-portal-v444 .student-term-grade-overview-v470 small {
+  color: #938b96;
+  font-size: 9.5px;
+  font-weight: 650;
+}
+
+/* Section title */
+.student-portal-v444 .student-term-grade-section-heading-v470 {
+  padding: 2px 1px 0;
+}
+.student-portal-v444 .student-term-grade-section-heading-v470 > div {
+  display: grid;
+  gap: 3px;
+}
+.student-portal-v444 .student-term-grade-section-heading-v470 span {
+  color: var(--brand);
+  font-size: 9.5px;
+  font-weight: 820;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.student-portal-v444 .student-term-grade-section-heading-v470 strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 790;
+  line-height: 1.35;
+}
+
+/* Component cards */
+.student-portal-v444 .student-term-grade-components-v470 {
+  display: grid !important;
+  gap: 11px !important;
+}
+.student-portal-v444 .student-term-grade-component-v470 {
+  min-width: 0;
+  padding: 17px !important;
+  border: 0 !important;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(66, 42, 74, .035);
+}
+.student-portal-v444 .student-term-grade-component-head-v470 {
+  margin: 0 0 13px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+.student-portal-v444 .student-term-grade-component-head-v470 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.student-portal-v444 .student-term-grade-component-head-v470 > div > strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.student-portal-v444 .student-term-grade-component-head-v470 > div > small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+.student-portal-v444 .student-term-grade-component-head-v470 > span {
+  flex: 0 0 auto;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--brand) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  white-space: nowrap;
+}
+
+/* Meaningful performance bar, not decorative. */
+.student-portal-v444 .student-term-grade-performance-v470 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 14px;
+}
+.student-portal-v444 .student-term-grade-performance-v470 > span {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eee9f0;
+}
+.student-portal-v444 .student-term-grade-performance-v470 > span > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+}
+.student-portal-v444 .student-term-grade-performance-v470 > strong {
+  min-width: 48px;
+  color: var(--text-soft);
+  font-size: 10.5px;
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subcomponents */
+.student-portal-v444 .student-term-grade-subcomponents-v470 {
+  margin: 0 0 14px !important;
+  padding: 4px 0 !important;
+  display: grid !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(96, 69, 103, .075) !important;
+  border-bottom: 1px solid rgba(96, 69, 103, .075) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 {
+  min-width: 0;
+  padding: 10px 1px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 + .student-term-grade-subcomponent-v470 {
+  border-top: 1px solid rgba(96, 69, 103, .065) !important;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 > div:last-child {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 760;
+}
+.student-portal-v444 .student-term-grade-subcomponent-v470 small,
+.student-portal-v444 .student-term-grade-subcomponent-v470 span {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 650;
+}
+
+/* Four metrics remain useful, but flatter and cleaner. */
+.student-portal-v444 .student-term-grade-metrics-v470 {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: #f8f6f9 !important;
+}
+.student-portal-v444 .student-term-grade-metrics-v470 > div {
+  min-width: 0;
+  padding: 11px 12px !important;
+  border: 0 !important;
+}
+.student-portal-v444 .student-term-grade-metrics-v470 > div + div {
+  border-left: 1px solid rgba(96, 69, 103, .075) !important;
+}
+.student-portal-v444 .student-term-grade-metrics-v470 span {
+  margin-bottom: 4px !important;
+  color: var(--muted) !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+}
+.student-portal-v444 .student-term-grade-metrics-v470 strong {
+  color: var(--text) !important;
+  font-size: 12px !important;
+  font-weight: 790 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Final released grade: clear focal ending, solid brand only. */
+.student-portal-v444 .student-term-grade-final-v470 {
+  margin: 0 !important;
+  padding: 17px 18px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 20px !important;
+  border: 0 !important;
+  border-radius: 17px !important;
+  background: var(--brand) !important;
+  box-shadow: 0 10px 24px rgba(116, 16, 143, .14) !important;
+}
+.student-portal-v444 .student-term-grade-final-v470 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.student-portal-v444 .student-term-grade-final-v470 span {
+  color: rgba(255,255,255,.7) !important;
+  font-size: 9.5px !important;
+  font-weight: 750 !important;
+}
+.student-portal-v444 .student-term-grade-final-v470 > div > strong {
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.student-portal-v444 .student-term-grade-final-v470 > strong {
+  color: #fff !important;
+  font-size: 32px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  letter-spacing: -.055em !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-note-v470 {
+  margin: -5px 1px 0 !important;
+  color: #938b96 !important;
+  font-size: 9.5px !important;
+  font-weight: 600;
+  line-height: 1.45 !important;
+  text-align: center;
+}
+
+.student-portal-v444 .student-term-grades-empty-v470 {
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(66, 42, 74, .05);
+}
+
+/* Tablet */
+@media (max-width: 980px) {
+  .student-portal-v444 .student-term-grades-v470 {
+    grid-template-columns: 1fr !important;
+  }
+  .student-portal-v444 .student-term-grade-card-v470[open] {
+    grid-column: auto !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grades-v470 {
+    gap: 11px !important;
+    padding-bottom: 24px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v470 {
+    border-radius: 19px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v470 > .student-term-grade-summary-v470 {
+    min-height: 0 !important;
+    padding: 17px !important;
+    grid-template-columns: minmax(0, 1fr) 104px !important;
+    gap: 14px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-period-v470 {
+    min-height: 25px;
+    padding: 4px 9px;
+    font-size: 9.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-copy-v470 h2 {
+    margin-top: 11px !important;
+    font-size: 16px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-copy-v470 p {
+    font-size: 10.5px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v470 {
+    min-width: 0 !important;
+    padding-left: 14px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v470 > span {
+    font-size: 8.5px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v470 > strong {
+    font-size: 34px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v470 > small {
+    margin-top: 7px !important;
+    font-size: 8.5px !important;
+    white-space: normal !important;
+    text-align: right;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v470 {
+    padding: 15px !important;
+    gap: 16px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-overview-v470 > div {
+    min-height: 82px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-overview-v470 strong {
+    font-size: 21px;
+  }
+
+  .student-portal-v444 .student-term-grade-component-v470 {
+    padding: 14px !important;
+    border-radius: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-metrics-v470 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .student-portal-v444 .student-term-grade-metrics-v470 > div:nth-child(3) {
+    border-left: 0 !important;
+    border-top: 1px solid rgba(96, 69, 103, .075) !important;
+  }
+  .student-portal-v444 .student-term-grade-metrics-v470 > div:nth-child(4) {
+    border-top: 1px solid rgba(96, 69, 103, .075) !important;
+  }
+
+  .student-portal-v444 .student-term-grade-final-v470 {
+    padding: 15px 16px !important;
+    border-radius: 15px !important;
+  }
+  .student-portal-v444 .student-term-grade-final-v470 > strong {
+    font-size: 28px !important;
+  }
+}
+
+/* Small phones */
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-card-v470 > .student-term-grade-summary-v470 {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v470 {
+    min-width: 0 !important;
+    padding: 13px 0 0 !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    justify-items: start !important;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(96, 69, 103, .085) !important;
+  }
+  .student-portal-v444 .student-term-grade-value-v470 > span {
+    grid-column: 1;
+  }
+  .student-portal-v444 .student-term-grade-value-v470 > small {
+    grid-column: 1;
+    margin-top: 3px !important;
+    text-align: left;
+  }
+  .student-portal-v444 .student-term-grade-value-v470 > strong {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    justify-self: end;
+    margin-top: 0 !important;
+    font-size: 35px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-overview-v470 {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .student-portal-v444 .student-term-grade-overview-v470 > div {
+    min-height: 76px;
+    padding: 12px;
+  }
+  .student-portal-v444 .student-term-grade-overview-v470 span {
+    font-size: 8.5px;
+  }
+  .student-portal-v444 .student-term-grade-overview-v470 strong {
+    font-size: 19px;
+  }
+  .student-portal-v444 .student-term-grade-overview-v470 small {
+    font-size: 8.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-component-head-v470 {
+    gap: 10px !important;
+  }
+  .student-portal-v444 .student-term-grade-component-head-v470 > div > strong {
+    font-size: 13px;
+  }
+  .student-portal-v444 .student-term-grade-component-head-v470 > span {
+    font-size: 9px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-subcomponent-v470 {
+    gap: 10px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-metrics-v470 > div {
+    padding: 10px !important;
+  }
+  .student-portal-v444 .student-term-grade-metrics-v470 span {
+    font-size: 8.5px !important;
+  }
+  .student-portal-v444 .student-term-grade-metrics-v470 strong {
+    font-size: 11px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-final-v470 {
+    gap: 12px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .student-term-grade-card-v470 {
+    transition: none !important;
+  }
+}
+/* ================================================================
+   MedScores V4.71 — refined Term Grades breakdown table
+   ================================================================ */
+
+.student-portal-v444 .student-term-grades-v471 {
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v471 {
+  border-radius: 20px !important;
+  box-shadow: 0 9px 26px rgba(66, 42, 74, .05) !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v471[open] {
+  grid-column: auto !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v471 > .student-term-grade-summary-v471 {
+  min-height: 116px !important;
+  padding: 19px 21px !important;
+  gap: 24px !important;
+}
+
+.student-portal-v444 .student-term-grade-period-v471 {
+  min-height: 25px !important;
+  padding: 4px 10px !important;
+  background: #f3ebf6 !important;
+  color: var(--brand) !important;
+  font-size: 9.5px !important;
+  font-weight: 820 !important;
+  letter-spacing: .01em !important;
+}
+
+.student-portal-v444 .student-term-grade-copy-v471 h2 {
+  margin: 11px 0 4px !important;
+  font-size: 17px !important;
+}
+
+.student-portal-v444 .student-term-grade-copy-v471 p {
+  font-size: 10.75px !important;
+}
+
+.student-portal-v444 .student-term-grade-value-v471 {
+  min-width: 142px !important;
+  padding-left: 21px !important;
+}
+
+.student-portal-v444 .student-term-grade-value-v471 > strong {
+  font-size: 40px !important;
+}
+
+.student-portal-v444 .student-term-grade-details-v471 {
+  padding: 20px 21px 22px !important;
+  display: grid !important;
+  gap: 14px !important;
+  background: #faf9fb !important;
+}
+
+/* Simple breakdown heading — no extra explanatory copy or component count. */
+.student-portal-v444 .student-term-grade-breakdown-head-v471 {
+  min-width: 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 1px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v471 > div:first-child {
+  min-width: 0;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v471 > div:first-child > span {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v471 > div:last-child {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v471 > div:last-child > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v471 > div:last-child > strong {
+  color: var(--brand);
+  font-size: 17px;
+  font-weight: 830;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Clean table surface */
+.student-portal-v444 .student-term-grade-table-v471 {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(91, 60, 99, .075);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(66, 42, 74, .025);
+}
+
+.student-portal-v444 .student-term-grade-table-head-v471,
+.student-portal-v444 .student-term-grade-table-row-v471 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(190px, 1.65fr) 82px 118px 110px 86px 92px;
+  align-items: center;
+  column-gap: 0;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v471 {
+  min-height: 39px;
+  padding: 0 15px;
+  background: #f7f5f8;
+  border-bottom: 1px solid rgba(91, 60, 99, .075);
+}
+
+.student-portal-v444 .student-term-grade-table-head-v471 > span {
+  min-width: 0;
+  padding: 0 10px;
+  color: #8b838e;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v471 > span:first-child {
+  padding-left: 0;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v471 > span:not(:first-child) {
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-table-body-v471 {
+  min-width: 0;
+}
+
+.student-portal-v444 .student-term-grade-table-group-v471 + .student-term-grade-table-group-v471 {
+  border-top: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471 {
+  min-height: 61px;
+  padding: 10px 15px;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471 > div {
+  min-width: 0;
+  padding: 0 10px;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471 > div:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471 > div:last-child {
+  padding-right: 0;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471 > div > strong {
+  color: var(--text-soft);
+  font-size: 10.5px;
+  font-weight: 760;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471.is-component > div > strong {
+  color: var(--text);
+  font-weight: 790;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v471 {
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v471 > strong {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v471 > small {
+  color: #98909a;
+  font-size: 8.75px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+/* Subcomponents read like subordinate table rows, not badges/cards. */
+.student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent {
+  min-height: 52px;
+  padding-block: 8px;
+  background: #fcfbfc;
+  border-top: 1px solid rgba(91, 60, 99, .055);
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent .student-term-grade-table-name-v471 {
+  position: relative;
+  padding-left: 18px;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent .student-term-grade-table-name-v471::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  bottom: 5px;
+  width: 2px;
+  border-radius: 999px;
+  background: #e4d8e8;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent .student-term-grade-table-name-v471 > strong {
+  color: #5f5861 !important;
+  font-size: 10.75px !important;
+  font-weight: 740 !important;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent > div > strong {
+  color: #746d76;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Integrated final row instead of a separate oversized card. */
+.student-portal-v444 .student-term-grade-table-final-v471 {
+  min-height: 66px;
+  padding: 13px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid rgba(116, 16, 143, .1);
+  background: #f6eff8;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v471 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v471 span {
+  color: #8e6b95;
+  font-size: 8.75px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v471 > div > strong {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 770;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v471 > strong {
+  color: var(--brand);
+  font-size: 28px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: -.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Remove the V4.70 dashboard-style extras completely. */
+.student-portal-v444 .student-term-grade-overview-v470,
+.student-portal-v444 .student-term-grade-section-heading-v470,
+.student-portal-v444 .student-term-grade-performance-v470,
+.student-portal-v444 .student-term-grade-note-v470,
+.student-portal-v444 .student-term-grade-final-v470 {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .student-portal-v444 .student-term-grade-table-head-v471,
+  .student-portal-v444 .student-term-grade-table-row-v471 {
+    grid-template-columns: minmax(170px, 1.5fr) 72px 104px 96px 76px 82px;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grade-card-v471 > .student-term-grade-summary-v471 {
+    min-height: 0 !important;
+    padding: 17px !important;
+    grid-template-columns: minmax(0, 1fr) 110px !important;
+    gap: 15px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v471 {
+    min-width: 0 !important;
+    padding-left: 14px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v471 > strong {
+    font-size: 34px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v471 {
+    padding: 15px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-head-v471 {
+    align-items: center;
+  }
+
+  .student-portal-v444 .student-term-grade-table-v471 {
+    border-radius: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-head-v471 {
+    display: none;
+  }
+
+  .student-portal-v444 .student-term-grade-table-group-v471 {
+    padding: 0;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 {
+    min-height: 0;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 > div {
+    padding: 0 !important;
+    display: grid;
+    gap: 3px;
+    text-align: left !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 > div::before {
+    content: attr(data-label);
+    color: #938b96;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 .student-term-grade-table-name-v471 {
+    grid-column: 1 / -1;
+    padding-bottom: 2px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 .student-term-grade-table-name-v471::before {
+    content: none;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent {
+    margin: 0 10px 10px;
+    padding: 12px;
+    border: 0;
+    border-radius: 11px;
+    background: #f8f6f9;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent .student-term-grade-table-name-v471 {
+    padding-left: 12px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471.is-subcomponent .student-term-grade-table-name-v471::before {
+    content: "";
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-final-v471 {
+    min-height: 62px;
+    padding: 13px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-final-v471 > strong {
+    font-size: 25px;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-card-v471 > .student-term-grade-summary-v471 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v471 {
+    padding: 12px 0 0 !important;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(96, 69, 103, .08) !important;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-head-v471 > div:last-child > strong {
+    font-size: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v471 {
+    gap: 10px 12px;
+  }
+}
+/* ================================================================
+   MedScores V4.72 — richer, cleaner Term Grades
+   ================================================================ */
+
+.student-portal-v444 .student-term-grades-v472 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v472 {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 30px rgba(66, 42, 74, .06) !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v472:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 34px rgba(66, 42, 74, .075) !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v472[open] {
+  grid-column: 1 / -1 !important;
+  transform: none !important;
+}
+
+/* More composed summary layout. */
+.student-portal-v444 .student-term-grade-card-v472 > .student-term-grade-summary-v472 {
+  min-height: 146px !important;
+  padding: 21px 22px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+  gap: 22px !important;
+  background: #fff !important;
+}
+
+/* Custom term label: intentionally not a generic pill. */
+.student-portal-v444 .student-term-grade-copy-v472 {
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center !important;
+  gap: 15px !important;
+}
+
+.student-portal-v444 .student-term-grade-period-v472 {
+  position: relative;
+  width: 72px;
+  min-height: 58px;
+  padding: 10px 10px 10px 14px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(116, 16, 143, .11);
+  border-radius: 15px;
+  background: #f8f3f9;
+  box-shadow: 0 5px 14px rgba(86, 48, 96, .045);
+}
+
+.student-portal-v444 .student-term-grade-period-v472::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--brand);
+}
+
+.student-portal-v444 .student-term-grade-period-v472 > small {
+  color: #9a819f;
+  font-size: 7.5px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-period-v472 > strong {
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+
+.student-portal-v444 .student-term-grade-title-wrap-v472 {
+  min-width: 0;
+}
+
+.student-portal-v444 .student-term-grade-title-wrap-v472 h2 {
+  margin: 0 0 6px !important;
+  color: var(--text) !important;
+  font-size: 18px !important;
+  font-weight: 820 !important;
+  line-height: 1.28 !important;
+  letter-spacing: -.035em !important;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-title-wrap-v472 p {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  font-size: 10.75px !important;
+  font-weight: 620 !important;
+  line-height: 1.5 !important;
+}
+
+/* Grade panel gives the card visual balance without another badge. */
+.student-portal-v444 .student-term-grade-value-v472 {
+  min-width: 142px !important;
+  align-self: stretch !important;
+  padding: 15px 0 15px 22px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: end !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-left: 1px solid rgba(91, 60, 99, .08) !important;
+}
+
+.student-portal-v444 .student-term-grade-value-v472 > span {
+  color: #948c97 !important;
+  font-size: 8.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: .055em !important;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-value-v472 > strong {
+  margin-top: 8px !important;
+  color: var(--brand) !important;
+  font-size: 43px !important;
+  font-weight: 860 !important;
+  line-height: .9 !important;
+  letter-spacing: -.065em !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-value-v472 > small {
+  margin-top: 10px !important;
+  color: #958d98 !important;
+  font-size: 9px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+/* Expanded area */
+.student-portal-v444 .student-term-grade-details-v472 {
+  padding: 21px 22px 23px !important;
+  display: grid !important;
+  gap: 12px !important;
+  border-top: 1px solid rgba(91, 60, 99, .07) !important;
+  background: #faf9fb !important;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v472 {
+  padding: 0 2px 2px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v472 > span {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 820;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+/* Refined grade table */
+.student-portal-v444 .student-term-grade-table-v472 {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(91, 60, 99, .08);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(66, 42, 74, .035);
+}
+
+.student-portal-v444 .student-term-grade-table-head-v472,
+.student-portal-v444 .student-term-grade-table-row-v472 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) 90px 128px 92px 98px;
+  align-items: center;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v472 {
+  min-height: 42px;
+  padding: 0 16px;
+  background: #f6f2f7;
+  border-bottom: 1px solid rgba(91, 60, 99, .075);
+}
+
+.student-portal-v444 .student-term-grade-table-head-v472 > span {
+  min-width: 0;
+  padding: 0 10px;
+  color: #8b828e;
+  font-size: 8.5px;
+  font-weight: 830;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v472 > span:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-table-head-v472 > span:not(:first-child) {
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-table-group-v472 + .student-term-grade-table-group-v472 {
+  border-top: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472 {
+  min-height: 66px;
+  padding: 11px 16px;
+  background: #fff;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472 > div {
+  min-width: 0;
+  padding: 0 10px;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472 > div:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472 > div:last-child {
+  padding-right: 0;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472 > div > strong {
+  color: #58515a;
+  font-size: 10.75px;
+  font-weight: 750;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-component > div:nth-child(4) > strong,
+.student-portal-v444 .student-term-grade-table-row-v472.is-component > div:nth-child(5) > strong {
+  color: var(--brand);
+  font-weight: 830;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v472 {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v472 > strong {
+  color: var(--text) !important;
+  font-size: 12.25px !important;
+  font-weight: 810 !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-table-name-v472 > small {
+  color: #9a929d;
+  font-size: 8.75px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+/* Nested subcomponent band */
+.student-portal-v444 .student-term-grade-subrows-v472 {
+  margin: 0 13px 12px;
+  overflow: hidden;
+  border: 1px solid rgba(91, 60, 99, .055);
+  border-radius: 12px;
+  background: #faf8fb;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent {
+  min-height: 52px;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent + .student-term-grade-table-row-v472.is-subcomponent {
+  border-top: 1px solid rgba(91, 60, 99, .055);
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent .student-term-grade-table-name-v472 {
+  position: relative;
+  padding-left: 15px;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent .student-term-grade-table-name-v472::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 999px;
+  background: #d8c9dd;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent .student-term-grade-table-name-v472 > strong {
+  color: #625b64 !important;
+  font-size: 10.75px !important;
+  font-weight: 740 !important;
+}
+
+.student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent > div > strong {
+  color: #777079;
+  font-size: 9.75px;
+  font-weight: 690;
+}
+
+/* Final grade is part of the table, not another separate card. */
+.student-portal-v444 .student-term-grade-table-final-v472 {
+  min-height: 70px;
+  padding: 14px 17px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid rgba(116, 16, 143, .105);
+  background: #f5eef7;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v472 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v472 span {
+  color: #8d7392;
+  font-size: 8.5px;
+  font-weight: 820;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v472 > div > strong {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 770;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-table-final-v472 > strong {
+  color: var(--brand);
+  font-size: 30px;
+  font-weight: 860;
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Neutralize the previous V4.71 table when V4.72 is present. */
+.student-portal-v444 .student-term-grade-card-v472 .student-term-grade-table-v471,
+.student-portal-v444 .student-term-grade-card-v472 .student-term-grade-breakdown-head-v471 {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .student-portal-v444 .student-term-grades-v472 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v472[open] {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .student-portal-v444 .student-term-grade-table-head-v472,
+  .student-portal-v444 .student-term-grade-table-row-v472 {
+    grid-template-columns: minmax(180px, 1.5fr) 78px 108px 82px 88px;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grade-card-v472 {
+    border-radius: 19px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v472 > .student-term-grade-summary-v472 {
+    min-height: 0 !important;
+    padding: 17px !important;
+    grid-template-columns: minmax(0, 1fr) 108px !important;
+    gap: 15px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-copy-v472 {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-period-v472 {
+    width: 62px;
+    min-height: 53px;
+    padding: 9px 8px 9px 12px;
+    border-radius: 13px;
+  }
+
+  .student-portal-v444 .student-term-grade-period-v472 > strong {
+    font-size: 11px;
+  }
+
+  .student-portal-v444 .student-term-grade-title-wrap-v472 h2 {
+    font-size: 15.5px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-title-wrap-v472 p {
+    font-size: 9.75px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 {
+    min-width: 0 !important;
+    padding: 12px 0 12px 14px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 > strong {
+    font-size: 34px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v472 {
+    padding: 15px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-v472 {
+    border-radius: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-head-v472 {
+    display: none;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472 {
+    min-height: 0;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472 > div {
+    padding: 0 !important;
+    display: grid;
+    gap: 3px;
+    text-align: left !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472 > div:not(.student-term-grade-table-name-v472)::before {
+    content: attr(data-label);
+    color: #9a929d;
+    font-size: 7.75px;
+    font-weight: 820;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472 .student-term-grade-table-name-v472 {
+    grid-column: 1 / -1;
+    padding-bottom: 3px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472.is-component > div:nth-child(4),
+  .student-portal-v444 .student-term-grade-table-row-v472.is-component > div:nth-child(5) {
+    padding-top: 2px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-subrows-v472 {
+    margin: 0 10px 11px;
+    border-radius: 11px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472.is-subcomponent {
+    padding: 12px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-final-v472 {
+    min-height: 64px;
+    padding: 13px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-table-final-v472 > strong {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-card-v472 > .student-term-grade-summary-v472 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 {
+    padding: 13px 0 0 !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    justify-items: start !important;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(91, 60, 99, .08) !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 > span {
+    grid-column: 1;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 > small {
+    grid-column: 1;
+    margin-top: 3px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-value-v472 > strong {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    justify-self: end;
+    margin-top: 0 !important;
+    font-size: 35px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-table-row-v472 {
+    gap: 10px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .student-term-grade-card-v472 {
+    transition: none !important;
+  }
+}
+/* ================================================================
+   MedScores V4.73 — Academic Grade Sheet
+   Clean hierarchy, no accent-border containers, no performance metric.
+   ================================================================ */
+
+.student-portal-v444 .student-term-grades-v473 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v473 {
+  min-width: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 28px rgba(61, 42, 66, .055) !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v473:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 34px rgba(61, 42, 66, .07) !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v473[open] {
+  grid-column: 1 / -1 !important;
+  transform: none !important;
+}
+
+/* Main card */
+.student-portal-v444 .student-term-grade-summary-v473 {
+  min-height: 142px;
+  padding: 20px 21px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  cursor: pointer;
+  background: #fff;
+}
+
+.student-portal-v444 .student-term-grade-summary-v473::-webkit-details-marker { display: none; }
+.student-portal-v444 .student-term-grade-summary-v473::marker { content: ""; }
+
+.student-portal-v444 .student-term-grade-summary-main-v473 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Refined term stamp — no left border, no pill. */
+.student-portal-v444 .student-term-grade-period-v473 {
+  width: 68px;
+  min-height: 60px;
+  flex: 0 0 auto;
+  padding: 10px 8px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  border: 1px solid rgba(116, 16, 143, .1);
+  border-radius: 16px;
+  background: #f8f4f9;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 5px 14px rgba(66,42,74,.035);
+  text-align: center;
+}
+
+.student-portal-v444 .student-term-grade-period-v473 small {
+  color: #9b8d9f;
+  font-size: 7.5px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-period-v473 strong {
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+}
+
+.student-portal-v444 .student-term-grade-title-v473 {
+  min-width: 0;
+}
+
+.student-portal-v444 .student-term-grade-title-v473 h2 {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 820;
+  line-height: 1.28;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-meta-v473 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.student-portal-v444 .student-term-grade-meta-v473 span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.student-portal-v444 .student-term-grade-meta-v473 span + span::before {
+  content: "•";
+  margin: 0 7px;
+  color: #c2bac4;
+  font-size: 8px;
+}
+
+/* Grade side */
+.student-portal-v444 .student-term-grade-score-v473 {
+  min-width: 136px;
+  padding-left: 22px;
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  border-left: 1px solid rgba(91, 60, 99, .075);
+}
+
+.student-portal-v444 .student-term-grade-score-v473 > span {
+  color: #948c97;
+  font-size: 8.5px;
+  font-weight: 820;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-score-v473 > strong {
+  margin-top: 7px;
+  color: var(--brand);
+  font-size: 42px;
+  font-weight: 860;
+  line-height: .92;
+  letter-spacing: -.065em;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-score-v473 > small {
+  margin-top: 9px;
+  color: #99919b;
+  font-size: 8.75px;
+  font-weight: 650;
+}
+
+/* Details */
+.student-portal-v444 .student-term-grade-details-v473 {
+  padding: 20px 21px 22px;
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid rgba(91, 60, 99, .07);
+  background: #faf9fb;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-title-v473 {
+  padding: 0 2px 2px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-title-v473 h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 820;
+  letter-spacing: -.025em;
+}
+
+/* Academic grade sheet */
+.student-portal-v444 .student-term-grade-sheet-v473 {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(61,42,66,.035);
+}
+
+.student-portal-v444 .student-term-grade-sheet-head-v473,
+.student-portal-v444 .student-term-grade-sheet-row-v473 {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.75fr) 90px 128px 92px 98px;
+  align-items: center;
+}
+
+.student-portal-v444 .student-term-grade-sheet-head-v473 {
+  min-height: 42px;
+  padding: 0 16px;
+  background: #f7f4f8;
+  border-bottom: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-sheet-head-v473 span {
+  min-width: 0;
+  padding: 0 10px;
+  color: #8e8691;
+  font-size: 8.5px;
+  font-weight: 830;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-sheet-head-v473 span:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-sheet-group-v473 + .student-term-grade-sheet-group-v473 {
+  border-top: 1px solid rgba(91,60,99,.065);
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473 {
+  min-height: 64px;
+  padding: 10px 16px;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473 > div {
+  min-width: 0;
+  padding: 0 10px;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473 > div:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473 > div:last-child {
+  padding-right: 0;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473 > div > strong {
+  color: #5d565f;
+  font-size: 10.75px;
+  font-weight: 750;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-main > div:nth-child(4) > strong,
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-main > div:nth-child(5) > strong {
+  color: var(--brand);
+  font-weight: 830;
+}
+
+.student-portal-v444 .student-term-grade-sheet-name-v473 {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-sheet-name-v473 strong {
+  color: var(--text) !important;
+  font-size: 12.25px !important;
+  font-weight: 810 !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-sheet-name-v473 small {
+  color: #9b939d;
+  font-size: 8.75px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+/* Subcomponents: soft inset area, no left accent line. */
+.student-portal-v444 .student-term-grade-sheet-subrows-v473 {
+  margin: 0 14px 12px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f9f7fa;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-sub {
+  min-height: 50px;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-sub + .student-term-grade-sheet-row-v473.is-sub {
+  border-top: 1px solid rgba(91,60,99,.055);
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-sub .student-term-grade-sheet-name-v473 strong {
+  color: #655e67 !important;
+  font-size: 10.75px !important;
+  font-weight: 740 !important;
+}
+
+.student-portal-v444 .student-term-grade-sheet-row-v473.is-sub > div > strong {
+  color: #777079;
+  font-size: 9.75px;
+  font-weight: 690;
+}
+
+/* Final grade integrated into the sheet */
+.student-portal-v444 .student-term-grade-sheet-total-v473 {
+  min-height: 70px;
+  padding: 14px 17px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid rgba(116,16,143,.1);
+  background: #f5eff7;
+}
+
+.student-portal-v444 .student-term-grade-sheet-total-v473 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-sheet-total-v473 span {
+  color: #8e7493;
+  font-size: 8.5px;
+  font-weight: 820;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-sheet-total-v473 > div > strong {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 770;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-sheet-total-v473 > strong {
+  color: var(--brand);
+  font-size: 30px;
+  font-weight: 860;
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hide previous version structures when inside V4.73. */
+.student-portal-v444 .student-term-grade-card-v473 .student-term-grade-period-v472,
+.student-portal-v444 .student-term-grade-card-v473 .student-term-grade-table-v472,
+.student-portal-v444 .student-term-grade-card-v473 .student-term-grade-table-v471,
+.student-portal-v444 .student-term-grade-card-v473 .student-term-grade-breakdown-head-v472,
+.student-portal-v444 .student-term-grade-card-v473 .student-term-grade-breakdown-head-v471 {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .student-portal-v444 .student-term-grades-v473 {
+    grid-template-columns: 1fr !important;
+  }
+  .student-portal-v444 .student-term-grade-card-v473[open] {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .student-portal-v444 .student-term-grade-sheet-head-v473,
+  .student-portal-v444 .student-term-grade-sheet-row-v473 {
+    grid-template-columns: minmax(180px, 1.55fr) 78px 108px 82px 88px;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grade-card-v473 {
+    border-radius: 19px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-summary-v473 {
+    min-height: 0;
+    padding: 17px;
+    grid-template-columns: minmax(0, 1fr) 108px;
+    gap: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-summary-main-v473 {
+    gap: 12px;
+  }
+
+  .student-portal-v444 .student-term-grade-period-v473 {
+    width: 60px;
+    min-height: 54px;
+    border-radius: 13px;
+  }
+
+  .student-portal-v444 .student-term-grade-title-v473 h2 {
+    font-size: 15.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-meta-v473 {
+    font-size: 9.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 {
+    min-width: 0;
+    padding-left: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 > strong {
+    font-size: 34px;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v473 {
+    padding: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-v473 {
+    border-radius: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-head-v473 {
+    display: none;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-row-v473 {
+    min-height: 0;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-row-v473 > div {
+    padding: 0 !important;
+    display: grid;
+    gap: 3px;
+    text-align: left !important;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-row-v473 > div:not(.student-term-grade-sheet-name-v473)::before {
+    content: attr(data-label);
+    color: #9c949f;
+    font-size: 7.75px;
+    font-weight: 820;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-name-v473 {
+    grid-column: 1 / -1;
+    padding-bottom: 3px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-subrows-v473 {
+    margin: 0 10px 11px;
+    border-radius: 11px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-row-v473.is-sub {
+    padding: 12px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-total-v473 {
+    min-height: 64px;
+    padding: 13px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-sheet-total-v473 > strong {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-summary-v473 {
+    grid-template-columns: 1fr;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 {
+    padding: 12px 0 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    justify-items: start;
+    border-left: 0;
+    border-top: 1px solid rgba(91,60,99,.075);
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 > span {
+    grid-column: 1;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 > small {
+    grid-column: 1;
+    margin-top: 3px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v473 > strong {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    justify-self: end;
+    margin-top: 0;
+    font-size: 35px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .student-term-grade-card-v473 {
+    transition: none !important;
+  }
+}
+/* ================================================================
+   MedScores V4.74 — refined Term Grades card + grade ledger
+   ================================================================ */
+
+.student-portal-v444 .student-term-grades-v474 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v474 {
+  min-width: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 28px rgba(61, 42, 66, .055) !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v474:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 34px rgba(61, 42, 66, .072) !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v474[open] {
+  grid-column: 1 / -1 !important;
+  transform: none !important;
+}
+
+/* Summary: restrained, balanced, less information. */
+.student-portal-v444 .student-term-grade-summary-v474 {
+  min-height: 138px;
+  padding: 21px 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 26px;
+  list-style: none;
+  cursor: pointer;
+  background: #fff;
+}
+
+.student-portal-v444 .student-term-grade-summary-v474::-webkit-details-marker { display: none; }
+.student-portal-v444 .student-term-grade-summary-v474::marker { content: ""; }
+
+.student-portal-v444 .student-term-grade-summary-copy-v474 {
+  min-width: 0;
+}
+
+/* Typographic term signature — no bordered box, no generic pill. */
+.student-portal-v444 .student-term-grade-period-v474 {
+  width: fit-content;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.student-portal-v444 .student-term-grade-period-v474 > span {
+  position: relative;
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 860;
+  line-height: 1;
+  letter-spacing: .015em;
+}
+
+.student-portal-v444 .student-term-grade-period-v474 > span::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #d9bfdF;
+}
+
+.student-portal-v444 .student-term-grade-period-v474 > small {
+  color: #a198a4;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-summary-copy-v474 h2 {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 820;
+  line-height: 1.28;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-meta-v474 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 10.25px;
+  font-weight: 620;
+}
+
+.student-portal-v444 .student-term-grade-meta-v474 span + span::before {
+  content: "•";
+  margin: 0 7px;
+  color: #c6bec8;
+  font-size: 8px;
+}
+
+/* Grade: no label, just the number and release date. */
+.student-portal-v444 .student-term-grade-score-v474 {
+  min-width: 126px;
+  padding-left: 22px;
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  border-left: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-score-v474 > strong {
+  color: var(--brand);
+  font-size: 44px;
+  font-weight: 860;
+  line-height: .9;
+  letter-spacing: -.065em;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-score-v474 > small {
+  margin-top: 10px;
+  color: #99919b;
+  font-size: 8.75px;
+  font-weight: 650;
+}
+
+/* Details */
+.student-portal-v444 .student-term-grade-details-v474 {
+  padding: 20px 22px 22px;
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid rgba(91, 60, 99, .065);
+  background: #faf9fb;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-title-v474 {
+  padding: 0 2px 2px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-title-v474 h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 820;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+/* Grade ledger — fewer columns, calmer hierarchy. */
+.student-portal-v444 .student-term-grade-ledger-v474 {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(61,42,66,.035);
+}
+
+.student-portal-v444 .student-term-grade-ledger-head-v474,
+.student-portal-v444 .student-term-grade-ledger-row-v474 {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.9fr) 92px 96px 104px;
+  align-items: center;
+}
+
+.student-portal-v444 .student-term-grade-ledger-head-v474 {
+  min-height: 42px;
+  padding: 0 17px;
+  background: #f7f4f8;
+  border-bottom: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-ledger-head-v474 > span {
+  min-width: 0;
+  padding: 0 10px;
+  color: #8e8691;
+  font-size: 8.5px;
+  font-weight: 830;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-ledger-head-v474 > span:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-ledger-group-v474 + .student-term-grade-ledger-group-v474 {
+  border-top: 1px solid rgba(91,60,99,.065);
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474 {
+  min-height: 67px;
+  padding: 11px 17px;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474 > div {
+  min-width: 0;
+  padding: 0 10px;
+  text-align: right;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474 > div:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474 > div:last-child {
+  padding-right: 0;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474 > div > strong {
+  color: #5c555e;
+  font-size: 10.75px;
+  font-weight: 750;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-main > div:nth-child(3) > strong,
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-main > div:nth-child(4) > strong {
+  color: var(--brand);
+  font-weight: 830;
+}
+
+.student-portal-v444 .student-term-grade-ledger-name-v474 {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.student-portal-v444 .student-term-grade-ledger-name-v474 > strong {
+  color: var(--text) !important;
+  font-size: 12.5px !important;
+  font-weight: 810 !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-ledger-name-v474 > small {
+  color: #99919c;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+/* Subcomponents read as secondary rows, not mini cards. */
+.student-portal-v444 .student-term-grade-ledger-subrows-v474 {
+  margin: 0 15px 12px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #f8f6f9;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-sub {
+  min-height: 51px;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-sub + .student-term-grade-ledger-row-v474.is-sub {
+  border-top: 1px solid rgba(91,60,99,.055);
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-sub .student-term-grade-ledger-name-v474 > strong {
+  color: #655e67 !important;
+  font-size: 10.75px !important;
+  font-weight: 740 !important;
+}
+
+.student-portal-v444 .student-term-grade-ledger-row-v474.is-sub > div > strong {
+  color: #777079;
+  font-size: 9.75px;
+  font-weight: 690;
+}
+
+/* Integrated released grade footer. */
+.student-portal-v444 .student-term-grade-ledger-total-v474 {
+  min-height: 70px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid rgba(116,16,143,.1);
+  background: #f5eff7;
+}
+
+.student-portal-v444 .student-term-grade-ledger-total-v474 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-ledger-total-v474 span {
+  color: #8e7493;
+  font-size: 8.5px;
+  font-weight: 820;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-ledger-total-v474 > div > strong {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 770;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-ledger-total-v474 > strong {
+  color: var(--brand);
+  font-size: 30px;
+  font-weight: 860;
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 980px) {
+  .student-portal-v444 .student-term-grades-v474 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v474[open] {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grade-card-v474 {
+    border-radius: 19px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-summary-v474 {
+    min-height: 0;
+    padding: 17px;
+    grid-template-columns: minmax(0, 1fr) 108px;
+    gap: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-summary-copy-v474 h2 {
+    font-size: 15.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-meta-v474 {
+    font-size: 9.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v474 {
+    min-width: 0;
+    padding-left: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v474 > strong {
+    font-size: 35px;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v474 {
+    padding: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-v474 {
+    border-radius: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-head-v474 {
+    display: none;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-row-v474 {
+    min-height: 0;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-row-v474 > div {
+    padding: 0 !important;
+    display: grid;
+    gap: 3px;
+    text-align: left !important;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-row-v474 > div:not(.student-term-grade-ledger-name-v474)::before {
+    content: attr(data-label);
+    color: #9c949f;
+    font-size: 7.75px;
+    font-weight: 820;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-name-v474 {
+    grid-column: 1 / -1;
+    padding-bottom: 2px !important;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-subrows-v474 {
+    margin: 0 10px 11px;
+    border-radius: 10px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-row-v474.is-sub {
+    padding: 12px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-total-v474 {
+    min-height: 64px;
+    padding: 13px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-ledger-total-v474 > strong {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-summary-v474 {
+    grid-template-columns: 1fr;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v474 {
+    padding: 12px 0 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    justify-items: start;
+    border-left: 0;
+    border-top: 1px solid rgba(91,60,99,.07);
+  }
+
+  .student-portal-v444 .student-term-grade-score-v474 > small {
+    grid-column: 1;
+    align-self: end;
+    margin-top: 0;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v474 > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    font-size: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .student-term-grade-card-v474 {
+    transition: none !important;
+  }
+}
+/* ================================================================
+   MedScores V4.75 — clean Term Grade breakdown
+   Replaces the rigid table/ledger with an organized component layout.
+   ================================================================ */
+
+.student-portal-v444 .student-term-grades-v475 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.student-portal-v444 .student-term-grade-card-v475 {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(61, 42, 66, .055);
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.student-portal-v444 .student-term-grade-card-v475:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(61, 42, 66, .07);
+}
+
+.student-portal-v444 .student-term-grade-card-v475[open] {
+  grid-column: 1 / -1;
+  transform: none;
+}
+
+/* Card summary */
+.student-portal-v444 .student-term-grade-summary-v475 {
+  min-height: 132px;
+  padding: 21px 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  cursor: pointer;
+  background: #fff;
+}
+
+.student-portal-v444 .student-term-grade-summary-v475::-webkit-details-marker { display: none; }
+.student-portal-v444 .student-term-grade-summary-v475::marker { content: ""; }
+
+.student-portal-v444 .student-term-grade-main-v475 {
+  min-width: 0;
+  display: grid;
+  gap: 13px;
+  justify-items: start;
+}
+
+/* Distinct period tag — period name only, no "TERM" label. */
+.student-portal-v444 .student-term-grade-period-v475 {
+  position: relative;
+  min-height: 28px;
+  padding: 6px 12px 6px 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 11px 11px 11px 4px;
+  background: #f3eaf5;
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px rgba(116, 16, 143, .07);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .01em;
+}
+
+.student-portal-v444 .student-term-grade-period-v475::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  right: -7px;
+  top: -7px;
+  border-radius: 50%;
+  background: rgba(116,16,143,.08);
+}
+
+.student-portal-v444 .student-term-grade-title-v475 {
+  min-width: 0;
+}
+
+.student-portal-v444 .student-term-grade-title-v475 h2 {
+  margin: 0 0 5px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 820;
+  line-height: 1.28;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-title-v475 p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.student-portal-v444 .student-term-grade-score-v475 {
+  min-width: 118px;
+  padding-left: 22px;
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  border-left: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-score-v475 > strong {
+  color: var(--brand);
+  font-size: 44px;
+  font-weight: 860;
+  line-height: .9;
+  letter-spacing: -.065em;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-score-v475 > small {
+  margin-top: 10px;
+  color: #98909a;
+  font-size: 8.75px;
+  font-weight: 650;
+}
+
+/* Expanded area */
+.student-portal-v444 .student-term-grade-details-v475 {
+  padding: 20px 22px 22px;
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid rgba(91, 60, 99, .065);
+  background: #faf9fb;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v475 {
+  padding: 0 2px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-head-v475 h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 820;
+  letter-spacing: -.025em;
+}
+
+/* Main breakdown list */
+.student-portal-v444 .student-term-grade-breakdown-list-v475 {
+  display: grid;
+  gap: 9px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-item-v475 {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(61,42,66,.03);
+}
+
+.student-portal-v444 .student-term-grade-breakdown-primary-v475 {
+  min-height: 82px;
+  padding: 16px 17px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.45fr) minmax(280px, 1fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-name-v475 {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-name-v475 > strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 810;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-name-v475 > small {
+  color: #99919c;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div {
+  min-width: 0;
+  padding: 2px 14px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div + div {
+  border-left: 1px solid rgba(91, 60, 99, .07);
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 span {
+  color: #9a929d;
+  font-size: 8px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 strong {
+  color: #514a53;
+  font-size: 13px;
+  font-weight: 820;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div:nth-child(2) strong,
+.student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div:nth-child(3) strong {
+  color: var(--brand);
+}
+
+/* Subcomponents: one flat, tidy strip under the parent. */
+.student-portal-v444 .student-term-grade-subcomponent-list-v475 {
+  margin: 0 13px 13px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #f8f6f9;
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 {
+  min-height: 48px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 + .student-term-grade-subcomponent-row-v475 {
+  border-top: 1px solid rgba(91,60,99,.055);
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 > div > strong {
+  color: #625b64;
+  font-size: 10.75px;
+  font-weight: 750;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 > div > small {
+  color: #9a929c;
+  font-size: 8.75px;
+  font-weight: 640;
+}
+
+.student-portal-v444 .student-term-grade-subcomponent-row-v475 > span {
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Final grade */
+.student-portal-v444 .student-term-grade-final-v475 {
+  min-height: 70px;
+  padding: 14px 17px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border-radius: 16px;
+  background: #f3ebf6;
+}
+
+.student-portal-v444 .student-term-grade-final-v475 > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.student-portal-v444 .student-term-grade-final-v475 span {
+  color: #8f7594;
+  font-size: 8.5px;
+  font-weight: 820;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.student-portal-v444 .student-term-grade-final-v475 > div > strong {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 770;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.student-portal-v444 .student-term-grade-final-v475 > strong {
+  color: var(--brand);
+  font-size: 29px;
+  font-weight: 860;
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 980px) {
+  .student-portal-v444 .student-term-grades-v475 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .student-portal-v444 .student-term-grade-card-v475[open] {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-portal-v444 .student-term-grade-card-v475 {
+    border-radius: 19px;
+  }
+
+  .student-portal-v444 .student-term-grade-summary-v475 {
+    min-height: 0;
+    padding: 17px;
+    grid-template-columns: minmax(0, 1fr) 106px;
+    gap: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-main-v475 {
+    gap: 10px;
+  }
+
+  .student-portal-v444 .student-term-grade-period-v475 {
+    min-height: 26px;
+    padding: 5px 10px 5px 11px;
+    border-radius: 10px 10px 10px 4px;
+    font-size: 9.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-title-v475 h2 {
+    font-size: 15.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-title-v475 p {
+    font-size: 9.5px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v475 {
+    min-width: 0;
+    padding-left: 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v475 > strong {
+    font-size: 35px;
+  }
+
+  .student-portal-v444 .student-term-grade-details-v475 {
+    padding: 15px;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-primary-v475 {
+    min-height: 0;
+    padding: 14px;
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div {
+    padding: 2px 10px;
+    justify-items: start;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div:first-child {
+    padding-left: 0;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-metrics-v475 > div:last-child {
+    padding-right: 0;
+  }
+
+  .student-portal-v444 .student-term-grade-subcomponent-list-v475 {
+    margin: 0 10px 10px;
+  }
+
+  .student-portal-v444 .student-term-grade-final-v475 {
+    min-height: 64px;
+    padding: 13px 14px;
+  }
+
+  .student-portal-v444 .student-term-grade-final-v475 > strong {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 430px) {
+  .student-portal-v444 .student-term-grade-summary-v475 {
+    grid-template-columns: 1fr;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v475 {
+    padding: 12px 0 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    justify-items: start;
+    border-left: 0;
+    border-top: 1px solid rgba(91,60,99,.07);
+  }
+
+  .student-portal-v444 .student-term-grade-score-v475 > small {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .student-portal-v444 .student-term-grade-score-v475 > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    font-size: 36px;
+  }
+
+  .student-portal-v444 .student-term-grade-breakdown-metrics-v475 strong {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-portal-v444 .student-term-grade-card-v475 {
+    transition: none;
+  }
+}

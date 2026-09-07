@@ -59,7 +59,11 @@ function formatReleasedDate(value: unknown) {
 
   if (Number.isNaN(date.getTime())) return "—";
 
-  return `${date.getMonth() + 1}/${date.getDate()}/${String(date.getFullYear()).slice(-2)}`;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
 function periodLabel(value: unknown) {
@@ -230,114 +234,98 @@ export function StudentTermGradesClient({ grades }: { grades: GradeRow[] }) {
         </div>
       </div>
 
-      <div className="student-term-grades-v423 student-term-grades-v435 student-term-grades-v436">
+      <div className="student-term-grades-v423 student-term-grades-v435 student-term-grades-v436 student-term-grades-v470 student-term-grades-v471 student-term-grades-v472 student-term-grades-v473 student-term-grades-v474 student-term-grades-v475">
         {filteredGrades.map((row) => {
           const subject = row.subject;
           const scheme = row.scheme;
           const breakdown = Array.isArray(row.breakdown) ? row.breakdown : [];
           const currentPeriod = periodLabel(scheme?.grading_period);
-          const trackName = String(scheme?.track_name || "Subject grade");
-          const isMainGrade = trackName === "Subject grade";
           const releaseDate = formatReleasedDate(row.released_at);
           const roundingDigits = scheme?.rounding_digits ?? 0;
 
           return (
-            <details className="student-term-grade-card-v423 student-period-grade-card-v427 student-term-grade-card-v435 student-term-grade-card-v436" key={row.id}>
-              <summary className="student-term-grade-summary-v435 student-term-grade-summary-v436">
-                <div className="student-term-grade-copy-v423 student-term-grade-copy-v435 student-term-grade-copy-v436">
-                  <div className="student-term-grade-badges-v435">
-                    <span className="student-term-grade-code-v435">{subject?.code || "Subject"}</span>
-                    <span className="student-term-grade-period-v435">{currentPeriod}</span>
-                    {!isMainGrade ? <span className="student-term-grade-type-v435">{trackName}</span> : null}
+            <details className="student-term-grade-card-v475" key={row.id}>
+              <summary className="student-term-grade-summary-v475">
+                <div className="student-term-grade-main-v475">
+                  <span className={`student-term-grade-period-v475 is-${String(scheme?.grading_period || "prelim")}`}>
+                    {currentPeriod}
+                  </span>
+
+                  <div className="student-term-grade-title-v475">
+                    <h2>{subject?.name || "Subject"}</h2>
+                    <p>{[subject?.academic_year, subject?.term].filter(Boolean).join(" · ") || "Released academic grade"}</p>
                   </div>
-                  <h2>{subject?.name || "Subject"}</h2>
-                  <p>{[subject?.academic_year, subject?.term].filter(Boolean).join(" · ") || "Released academic grade"}</p>
                 </div>
 
-                <div className="student-term-grade-value-v423 student-term-grade-value-v435 student-term-grade-value-v436">
+                <div className="student-term-grade-score-v475">
                   <strong>{formatGrade(row.term_grade, roundingDigits)}</strong>
-                  <small>Released {releaseDate}</small>
+                  <small>{releaseDate}</small>
                 </div>
               </summary>
 
-              <div className="student-term-grade-breakdown-v423 student-base40-breakdown-v426 student-hierarchy-breakdown-v427 student-term-grade-details-v435 student-term-grade-details-v436">
-                <div className="student-term-grade-details-head-v435">
-                  <div>
-                    <span>Grade details</span>
-                    <strong>{breakdown.length} {breakdown.length === 1 ? "component" : "components"}</strong>
-                  </div>
-                  <div>
-                    <span>Overall performance</span>
-                    <strong>{finiteNumber(row.raw_percentage).toFixed(2)}%</strong>
-                  </div>
+              <div className="student-term-grade-details-v475">
+                <div className="student-term-grade-breakdown-head-v475">
+                  <h3>Grade breakdown</h3>
                 </div>
 
-                <div className="student-term-grade-components-v435">
+                <div className="student-term-grade-breakdown-list-v475">
                   {breakdown.map((component: any, index: number) => {
                     const earned = finiteNumber(component.earned);
                     const possible = finiteNumber(component.possible);
-                    const percentage = finiteNumber(component.percentage);
                     const grade = componentGrade(component);
                     const weight = finiteNumber(component.weight);
                     const weighted = contribution(component);
                     const children = Array.isArray(component.subcomponents) ? component.subcomponents : [];
 
                     return (
-                      <section className="student-term-grade-component-v435" key={`${row.id}-${component.componentId || index}`}>
-                        <div className="student-term-grade-component-head-v435">
-                          <strong>{component.name || "Component"}</strong>
-                          <span>{formatScore(weight)}% of grade</span>
+                      <section className="student-term-grade-breakdown-item-v475" key={`${row.id}-${component.componentId || index}`}>
+                        <div className="student-term-grade-breakdown-primary-v475">
+                          <div className="student-term-grade-breakdown-name-v475">
+                            <strong>{component.name || "Component"}</strong>
+                            <small>{formatScore(earned)} / {formatScore(possible)} points</small>
+                          </div>
+
+                          <div className="student-term-grade-breakdown-metrics-v475">
+                            <div>
+                              <span>Weight</span>
+                              <strong>{formatScore(weight)}%</strong>
+                            </div>
+                            <div>
+                              <span>Grade</span>
+                              <strong>{grade.toFixed(2)}</strong>
+                            </div>
+                            <div>
+                              <span>Weighted</span>
+                              <strong>{weighted.toFixed(2)}</strong>
+                            </div>
+                          </div>
                         </div>
 
                         {children.length ? (
-                          <div className="student-term-grade-subcomponents-v435">
+                          <div className="student-term-grade-subcomponent-list-v475">
                             {children.map((child: any, childIndex: number) => (
-                              <div className="student-term-grade-subcomponent-v435" key={`${row.id}-${child.componentId || childIndex}`}>
+                              <div className="student-term-grade-subcomponent-row-v475" key={`${row.id}-${child.componentId || childIndex}`}>
                                 <div>
                                   <strong>{child.name || "Subcomponent"}</strong>
-                                  <small>{formatScore(child.earned)} / {formatScore(child.possible)}</small>
+                                  <small>{formatScore(child.earned)} / {formatScore(child.possible)} points</small>
                                 </div>
-                                <div>
-                                  <span>{formatScore(child.weight)}%</span>
-                                  <strong>{finiteNumber(child.percentage).toFixed(2)}%</strong>
-                                </div>
+                                <span>{formatScore(child.weight)}%</span>
                               </div>
                             ))}
                           </div>
                         ) : null}
-
-                        <div className="student-term-grade-metrics-v435">
-                          <div>
-                            <span>Score</span>
-                            <strong>{formatScore(earned)} / {formatScore(possible)}</strong>
-                          </div>
-                          <div>
-                            <span>Performance</span>
-                            <strong>{percentage.toFixed(2)}%</strong>
-                          </div>
-                          <div>
-                            <span>Grade</span>
-                            <strong>{grade.toFixed(2)}</strong>
-                          </div>
-                          <div>
-                            <span>Weighted</span>
-                            <strong>{weighted.toFixed(2)}</strong>
-                          </div>
-                        </div>
                       </section>
                     );
                   })}
                 </div>
 
-                <div className="student-term-grade-final-v435 student-term-grade-final-v436">
+                <div className="student-term-grade-final-v475">
                   <div>
-                    <span>Released grade</span>
-                    <strong>{currentPeriod}{!isMainGrade ? ` · ${trackName}` : ""}</strong>
+                    <span>{currentPeriod} grade</span>
+                    <strong>{subject?.name || "Subject"}</strong>
                   </div>
                   <strong>{formatGrade(row.term_grade, roundingDigits)}</strong>
                 </div>
-
-                <p className="student-term-grade-note-v423 student-term-grade-note-v435">Assessment scores remain available separately in Results.</p>
               </div>
             </details>
           );

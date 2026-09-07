@@ -55,7 +55,7 @@ export default async function Page() {
 
   return (
     <>
-      <header className="page-header student-grades-header-v423 student-grades-header-v435 student-grades-header-v436">
+      <header className="page-header student-grades-header-v423 student-grades-header-v435 student-grades-header-v436 student-grades-header-v470">
         <div>
           <span className="eyebrow">Released grades</span>
           <h1>Term Grades</h1>
@@ -64,7 +64,7 @@ export default async function Page() {
       </header>
 
       {!grades.length ? (
-        <div className="student-term-grades-empty-v435">
+        <div className="student-term-grades-empty-v435 student-term-grades-empty-v470">
           <EmptyState
             title="No released term grades"
             description="Your Prelim, Midterm, or Finals grades will appear here after your instructor releases them."
