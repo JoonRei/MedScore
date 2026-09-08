@@ -34,10 +34,10 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
 
   return (
     <StudentNotificationsProvider>
-      <div className="app-shell student-shell student-portal-v437 student-portal-v438 student-portal-v439 student-portal-v440 student-portal-v441 student-portal-v442 student-portal-v443 student-portal-v444">
+      <div className="app-shell student-shell student-portal-v437 student-portal-v438 student-portal-v439 student-portal-v440 student-portal-v441 student-portal-v442 student-portal-v443 student-portal-v444 student-portal-v478">
         <InactivityLogout role="student" />
 
-        <aside className="sidebar student-sidebar student-sidebar-v437 student-sidebar-v438 student-sidebar-v439 student-sidebar-v440 student-sidebar-v441 student-sidebar-v442 student-sidebar-v443 student-sidebar-v444">
+        <aside className="sidebar student-sidebar student-sidebar-v437 student-sidebar-v438 student-sidebar-v439 student-sidebar-v440 student-sidebar-v441 student-sidebar-v442 student-sidebar-v443 student-sidebar-v444 student-sidebar-v478">
           <nav className="sidebar-nav student-rail-nav-v439 student-rail-nav-v440 student-rail-nav-v441 student-rail-nav-v442 student-rail-nav-v443 student-rail-nav-v444" aria-label="Student navigation">
             {nav.map((item) => {
               const active = item.href === "/student"
@@ -69,7 +69,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
         </aside>
 
         <div className="student-stage-v442 student-stage-v443 student-stage-v444">
-          <header className="student-topbar-v442 student-topbar-v443 student-topbar-v444 student-topbar-flow-v459">
+          <header className="student-topbar-v442 student-topbar-v443 student-topbar-v444 student-topbar-flow-v459 student-topbar-v478">
             <Brand href="/student" />
             <div className="student-topbar-actions-v442 student-topbar-actions-v443 student-topbar-actions-v444">
               <Link href="/student/settings" className="student-topbar-avatar-v442 student-topbar-avatar-v443 student-topbar-avatar-v444" aria-label="Open student settings" title="Student settings">
@@ -81,7 +81,7 @@ export function StudentShell({ children, codeName }: { children: React.ReactNode
             </div>
           </header>
 
-          <main className={cn("main-content student-main-content-v437 student-main-content-v438 student-main-content-v439 student-main-content-v440 student-main-content-v441 student-main-content-v442 student-main-content-v443 student-main-content-v444", isResultsPage && "student-main-is-results-v443 student-main-is-results-v444")}>
+          <main className={cn("main-content student-main-content-v437 student-main-content-v438 student-main-content-v439 student-main-content-v440 student-main-content-v441 student-main-content-v442 student-main-content-v443 student-main-content-v444 student-main-content-v478", isResultsPage && "student-main-is-results-v443 student-main-is-results-v444")}>
             {isResultsPage && (
               <div className="student-results-grade-access-v443 student-results-grade-access-v444">
                 <Link href="/student/grades" className="button button-secondary button-sm">Term grades</Link>

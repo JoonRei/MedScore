@@ -27996,3 +27996,131 @@ body[data-student-route="notifications"] .student-portal-v444 .student-notificat
     gap: 8px !important;
   }
 }
+/* ================================================================
+   MedScores V4.78 — glass topbar + no pull-to-refresh
+   Matches the Student mobile dock glass material and keeps scrolling
+   inside the app shell so browser/PWA overscroll refresh is avoided.
+   ================================================================ */
+
+/* The Student app owns the viewport. The document itself never becomes
+   the vertical scroll surface, which prevents pull-to-refresh at the
+   browser/PWA root while preserving ordinary content scrolling. */
+html:has(.student-portal-v478),
+body:has(.student-portal-v478) {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body:has(.student-portal-v478) {
+  position: relative !important;
+  touch-action: manipulation;
+}
+
+.student-portal-v478.app-shell {
+  width: 100% !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+/* Same premium glass material as the floating Student navigation.
+   The topbar keeps its existing rectangular app-bar geometry; only the
+   material/lighting changes so the two navigation surfaces feel unified. */
+.student-portal-v478 .student-topbar-v478 {
+  background: rgba(255, 255, 255, .66) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .82) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.78) !important;
+  backdrop-filter: blur(30px) saturate(1.78) !important;
+  box-shadow:
+    0 8px 28px rgba(42, 25, 47, .065),
+    0 1px 0 rgba(255, 255, 255, .82) inset !important;
+}
+
+/* Keep the actual content pane as the only vertical scrolling surface. */
+.student-portal-v478 .student-stage-v444 {
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+.student-portal-v478 .student-main-content-v478 {
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Desktop: preserve V4.63 topbar/content measurements. */
+@media (min-width: 901px) {
+  .student-portal-v478 .student-stage-v444 {
+    padding-top: 60px !important;
+  }
+
+  .student-portal-v478 .student-main-content-v478 {
+    height: calc(100dvh - 60px) !important;
+    max-height: calc(100dvh - 60px) !important;
+  }
+}
+
+/* Mobile/tablet: unlike the older document-scroll rules, the viewport is
+   locked and only main scrolls. This is what removes pull-down refresh. */
+@media (max-width: 900px) {
+  html:has(.student-portal-v478),
+  body:has(.student-portal-v478) {
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+
+  .student-portal-v478.app-shell {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+
+  .student-portal-v478 .student-stage-v444 {
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    padding-top: calc(58px + env(safe-area-inset-top)) !important;
+    overflow: hidden !important;
+  }
+
+  .student-portal-v478 .student-topbar-v478 {
+    background: rgba(255, 255, 255, .66) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .82) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(1.78) !important;
+    backdrop-filter: blur(30px) saturate(1.78) !important;
+    box-shadow:
+      0 10px 30px rgba(42, 25, 47, .07),
+      inset 0 1px 0 rgba(255, 255, 255, .9) !important;
+  }
+
+  .student-portal-v478 .student-main-content-v478 {
+    width: 100% !important;
+    height: calc(100dvh - 58px - env(safe-area-inset-top)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 58px - env(safe-area-inset-top)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: none !important;
+  }
+}
+
+/* Slightly stronger transparency fallback when backdrop blur is unavailable. */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .student-portal-v478 .student-topbar-v478 {
+    background: rgba(255, 255, 255, .94) !important;
+  }
+}
