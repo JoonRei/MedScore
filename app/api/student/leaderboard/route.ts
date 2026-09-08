@@ -2,7 +2,28 @@ import { NextResponse } from "next/server";
 import { getStudentSession } from "@/lib/student-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const LEADERBOARD_TYPES = ["Long Exam", "Prelim Examination", "Midterm Examination", "Final Examination"];
+const LEADERBOARD_TYPE_ALIASES = new Map<string, string>([
+  ["long exam", "Long Exam"],
+  ["long examination", "Long Exam"],
+  ["prelim exam", "Prelim Examination"],
+  ["prelim examination", "Prelim Examination"],
+  ["preliminary exam", "Prelim Examination"],
+  ["preliminary examination", "Prelim Examination"],
+  ["midterm exam", "Midterm Examination"],
+  ["midterm examination", "Midterm Examination"],
+  ["mid-term exam", "Midterm Examination"],
+  ["mid-term examination", "Midterm Examination"],
+  ["final exam", "Final Examination"],
+  ["final examination", "Final Examination"],
+]);
+
+function canonicalLeaderboardType(value: unknown) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  return LEADERBOARD_TYPE_ALIASES.get(normalized) || null;
+}
 
 type StudentRow = { id: string; code_name: string };
 type SubjectRow = { id: string; name: string; code: string | null; is_archived: boolean; academic_year: string; term: string };
@@ -76,7 +97,7 @@ function rankAssessment(
   return {
     id: assessment.id,
     title: assessment.title,
-    type: assessment.assessment_type,
+    type: canonicalLeaderboardType(assessment.assessment_type) || assessment.assessment_type,
     totalScore: Number(assessment.total_score),
     date: assessment.assessment_date,
     doctorName: assessment.doctor_name,
@@ -133,7 +154,6 @@ export async function GET() {
     .in("subject_id", activeSubjectIds)
     .eq("status", "published")
     .not("released_at", "is", null)
-    .in("assessment_type", LEADERBOARD_TYPES)
     .order("released_at", { ascending: false })
     .order("assessment_date", { ascending: false });
 
@@ -144,17 +164,19 @@ export async function GET() {
       .in("subject_id", activeSubjectIds)
       .eq("status", "published")
       .not("released_at", "is", null)
-      .in("assessment_type", LEADERBOARD_TYPES)
-      .order("released_at", { ascending: false })
+        .order("released_at", { ascending: false })
       .order("assessment_date", { ascending: false });
 
     if (fallback.error) {
       console.error("leaderboard: assessment query failed", assessmentQuery.error, fallback.error);
       return json({ error: "Unable to load assessment rankings." }, 500);
     }
-    assessmentRows = (fallback.data || []).map((row: any) => ({ ...row, doctor_name: null })) as AssessmentRow[];
+    assessmentRows = (fallback.data || [])
+      .map((row: any) => ({ ...row, doctor_name: null }))
+      .filter((row: any) => Boolean(canonicalLeaderboardType(row.assessment_type))) as AssessmentRow[];
   } else {
-    assessmentRows = (assessmentQuery.data || []) as AssessmentRow[];
+    assessmentRows = ((assessmentQuery.data || []) as AssessmentRow[])
+      .filter((row) => Boolean(canonicalLeaderboardType(row.assessment_type)));
   }
 
   if (!assessmentRows.length) return json({ boards: [] });
