@@ -43,7 +43,7 @@ type ScoreRow = {
   score: number | null;
   result_status: string;
 };
-type RankedEntry = { codeName: string; score: number; rank: number; isCurrent: boolean };
+type RankedEntry = { studentId: string; codeName: string; score: number; rank: number; isCurrent: boolean };
 
 function json(body: unknown, status = 200) {
   return NextResponse.json(body, {
@@ -70,13 +70,16 @@ function rankAssessment(
     .flatMap((row): Array<Omit<RankedEntry, "rank">> => {
       const student = studentsById.get(row.student_id);
       if (!student) return [];
+      const numericScore = Number(row.score);
+      if (!Number.isFinite(numericScore)) return [];
       return [{
+        studentId: row.student_id,
         codeName: student.code_name,
-        score: Number(row.score),
+        score: numericScore,
         isCurrent: row.student_id === currentStudentId,
       }];
     })
-    .sort((a, b) => b.score - a.score || a.codeName.localeCompare(b.codeName));
+    .sort((a, b) => b.score - a.score || a.codeName.localeCompare(b.codeName) || a.studentId.localeCompare(b.studentId));
 
   let denseRank = 0;
   let previousScore: number | null = null;
@@ -111,6 +114,64 @@ function rankAssessment(
     currentStatus: currentRaw?.result_status || "not_entered",
     totalRanked: ranked.length,
   };
+}
+
+
+const SCORE_PAGE_SIZE = 500;
+
+async function loadScoresForAssessment(db: ReturnType<typeof createAdminClient>, assessmentId: string): Promise<ScoreRow[]> {
+  async function load(includeResultStatus: boolean): Promise<ScoreRow[]> {
+    const rows: ScoreRow[] = [];
+    let from = 0;
+
+    while (true) {
+      const to = from + SCORE_PAGE_SIZE - 1;
+      const query = includeResultStatus
+        ? db
+            .from("scores")
+            .select("student_id,assessment_id,score,result_status")
+            .eq("assessment_id", assessmentId)
+            .order("student_id", { ascending: true })
+            .range(from, to)
+        : db
+            .from("scores")
+            .select("student_id,assessment_id,score")
+            .eq("assessment_id", assessmentId)
+            .order("student_id", { ascending: true })
+            .range(from, to);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const batch = (data || []).map((row: any) => ({
+        student_id: String(row.student_id || ""),
+        assessment_id: String(row.assessment_id || assessmentId),
+        score: row.score == null ? null : Number(row.score),
+        result_status: includeResultStatus
+          ? String(row.result_status || (row.score == null ? "absent" : "scored"))
+          : (row.score == null ? "absent" : "scored"),
+      })) as ScoreRow[];
+
+      rows.push(...batch);
+      if (batch.length < SCORE_PAGE_SIZE) break;
+      from += batch.length;
+    }
+
+    return rows;
+  }
+
+  try {
+    return await load(true);
+  } catch (error) {
+    // Older schemas may not expose result_status. Fall back per assessment
+    // without sacrificing pagination or ranking completeness.
+    try {
+      return await load(false);
+    } catch (fallbackError) {
+      console.error("leaderboard: score query failed", { assessmentId, error, fallbackError });
+      throw fallbackError;
+    }
+  }
 }
 
 export async function GET() {
@@ -211,28 +272,14 @@ export async function GET() {
 
   let scoreRows: ScoreRow[] = [];
   if (assessmentIds.length) {
-    const scoreQuery = await db
-      .from("scores")
-      .select("student_id,assessment_id,score,result_status")
-      .in("assessment_id", assessmentIds);
-
-    if (scoreQuery.error) {
-      const fallback = await db
-        .from("scores")
-        .select("student_id,assessment_id,score")
-        .in("assessment_id", assessmentIds);
-
-      if (fallback.error) {
-        console.error("leaderboard: score query failed", scoreQuery.error, fallback.error);
-        return json({ error: "Unable to load assessment rankings." }, 500);
-      }
-
-      scoreRows = (fallback.data || []).map((row: any) => ({
-        ...row,
-        result_status: row.score === null ? "absent" : "scored",
-      })) as ScoreRow[];
-    } else {
-      scoreRows = (scoreQuery.data || []) as ScoreRow[];
+    try {
+      const scoreBatches = await Promise.all(
+        assessmentIds.map((assessmentId) => loadScoresForAssessment(db, assessmentId))
+      );
+      scoreRows = scoreBatches.flat();
+    } catch (error) {
+      console.error("leaderboard: complete score loading failed", error);
+      return json({ error: "Unable to load assessment rankings." }, 500);
     }
   }
 

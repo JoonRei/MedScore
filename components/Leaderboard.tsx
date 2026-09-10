@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent, TransitionEvent as ReactTransitionEvent } from "react";
 import { formatDate } from "@/lib/utils";
 
-type Entry = { codeName: string; score: number; rank: number; isCurrent: boolean };
+type Entry = { studentId: string; codeName: string; score: number; rank: number; isCurrent: boolean };
 type ShowcaseBoard = {
   id: string;
   title: string;
@@ -72,7 +72,7 @@ function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: num
       <div className="leaderboard-v441-person leaderboard-v449-person leaderboard-v450-person">
         <div className="leaderboard-v449-avatar-cluster leaderboard-v450-avatar-cluster" aria-hidden="true">
           {visibleAvatars.map((entry, avatarIndex) => (
-            <span className={`leaderboard-v441-avatar leaderboard-v449-avatar leaderboard-v450-avatar avatar-${avatarIndex + 1}`} key={`${group.rank}-avatar-${entry.codeName}`}>
+            <span className={`leaderboard-v441-avatar leaderboard-v449-avatar leaderboard-v450-avatar avatar-${avatarIndex + 1}`} key={`${group.rank}-avatar-${entry.studentId}`}>
               {initials(entry.codeName)}
             </span>
           ))}
@@ -82,7 +82,7 @@ function PodiumGroup({ group, totalScore }: { group?: RankGroup; totalScore: num
         </div>
         <div className="leaderboard-v441-podium-names leaderboard-v449-podium-names leaderboard-v450-podium-names">
           {group.entries.map((entry) => (
-            <span className="leaderboard-v449-name-row leaderboard-v450-name-row" key={`${group.rank}-${entry.codeName}`}>
+            <span className="leaderboard-v449-name-row leaderboard-v450-name-row" key={`${group.rank}-${entry.studentId}`}>
               <strong>{entry.codeName}</strong>
               {entry.isCurrent && <small>You</small>}
             </span>
@@ -128,7 +128,7 @@ function LeaderboardCard({ board, index, totalBoards }: { board: ShowcaseBoard; 
       {runners.length > 0 && (
         <div className="leaderboard-v441-runner-list leaderboard-v449-runner-list leaderboard-v450-runner-list" aria-label="Other top rankings">
           {runners.map(({ rank, score, entry }, runnerIndex) => (
-            <div className={`leaderboard-v441-runner leaderboard-v449-runner leaderboard-v450-runner${entry.isCurrent ? " is-you" : ""}`} key={`${board.id}-${rank}-${entry.codeName}-${runnerIndex}`}>
+            <div className={`leaderboard-v441-runner leaderboard-v449-runner leaderboard-v450-runner${entry.isCurrent ? " is-you" : ""}`} key={`${board.id}-${rank}-${entry.studentId}`}>
               <span className="leaderboard-v441-runner-rank">{rank}</span>
               <span className="leaderboard-v441-runner-avatar" aria-hidden="true">{initials(entry.codeName)}</span>
               <div className="leaderboard-v441-runner-copy">
