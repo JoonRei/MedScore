@@ -134,6 +134,7 @@ type WorkspacePayload = {
 type Notice = { tone: "success" | "error"; text: string } | null;
 type ConfirmAction =
   | { kind: "release"; title: string; message: string; confirmLabel: string }
+  | { kind: "unrelease"; title: string; message: string; confirmLabel: string }
   | { kind: "delete-track"; title: string; message: string; confirmLabel: string }
   | null;
 
@@ -476,15 +477,31 @@ export function AdminTermGradesWorkspace() {
     && tracks.every((row) => finiteNumber(trackWeights[row.trackKey], row.weight) > 0)
     && Math.abs(trackWeightTotal - 100) < 0.001;
   const readyStudentIds = preview.filter((row) => row.complete).map((row) => String(row.studentId));
-  const selectedCount = readyStudentIds.filter((id) => selectedStudentIds.has(id)).length;
-  const allReadySelected = readyStudentIds.length > 0 && selectedCount === readyStudentIds.length;
+  const releasedPreviewIds = preview
+    .map((row) => String(row.studentId))
+    .filter((id) => releasedStudentIds.has(id));
+  const selectableStudentIds = preview
+    .filter((row) => row.complete || releasedStudentIds.has(String(row.studentId)))
+    .map((row) => String(row.studentId));
+
+  const selectedCount = selectableStudentIds.filter((id) => selectedStudentIds.has(id)).length;
+  const selectedReadyStudentIds = readyStudentIds.filter((id) => selectedStudentIds.has(id));
+  const selectedReleasedStudentIds = releasedPreviewIds.filter((id) => selectedStudentIds.has(id));
+  const selectedReadyCount = selectedReadyStudentIds.length;
+  const selectedReleasedCount = selectedReleasedStudentIds.length;
+  const allReadySelected = readyStudentIds.length > 0 && readyStudentIds.every((id) => selectedStudentIds.has(id));
+  const allReleasedSelected = releasedPreviewIds.length > 0 && releasedPreviewIds.every((id) => selectedStudentIds.has(id));
+
   const canSave = Boolean(subjectId) && topWeightValid && subWeightsValid && weightsPositive && namesValid && !saving;
   const canRelease = Boolean(subjectId)
     && readyCount > 0
-    && selectedCount > 0
+    && selectedReadyCount > 0
     && trackWeightsValid
     && !trackWeightsDirty
     && !configDirty
+    && !saving;
+  const canUnrelease = Boolean(subjectId)
+    && selectedReleasedCount > 0
     && !saving;
 
   const markDirty = () => { setConfigDirty(true); setNotice(null); };
@@ -636,8 +653,25 @@ export function AdminTermGradesWorkspace() {
 
   const toggleAllReady = () => {
     setSelectedStudentIds((current) => {
-      if (readyStudentIds.length && readyStudentIds.every((id) => current.has(id))) return new Set();
-      return new Set(readyStudentIds);
+      const next = new Set(current);
+      const shouldClear = readyStudentIds.length > 0 && readyStudentIds.every((id) => next.has(id));
+      readyStudentIds.forEach((id) => {
+        if (shouldClear) next.delete(id);
+        else next.add(id);
+      });
+      return next;
+    });
+  };
+
+  const toggleAllReleased = () => {
+    setSelectedStudentIds((current) => {
+      const next = new Set(current);
+      const shouldClear = releasedPreviewIds.length > 0 && releasedPreviewIds.every((id) => next.has(id));
+      releasedPreviewIds.forEach((id) => {
+        if (shouldClear) next.delete(id);
+        else next.add(id);
+      });
+      return next;
     });
   };
 
@@ -681,7 +715,7 @@ export function AdminTermGradesWorkspace() {
     setConfirmAction(null);
     setSaving(true); setNotice(null);
     try {
-      const studentIds = readyStudentIds.filter((id) => selectedStudentIds.has(id));
+      const studentIds = selectedReadyStudentIds;
       const response = await fetch("/api/admin/grades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -694,6 +728,52 @@ export function AdminTermGradesWorkspace() {
     } catch (error) {
       setNotice({ tone: "error", text: error instanceof Error ? error.message : "Unable to release grades." });
     } finally { setSaving(false); }
+  };
+
+  const performUnrelease = async () => {
+    if (!canUnrelease) return;
+    setConfirmAction(null);
+    setSaving(true);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/admin/grades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "unrelease",
+          subjectId,
+          gradingPeriod,
+          studentIds: selectedReleasedStudentIds,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Unable to unrelease grades.");
+
+      await load(subjectId, gradingPeriod, trackKey);
+      setNotice({
+        tone: "success",
+        text: `${data.unreleased || 0} ${periodLabel(gradingPeriod)} grade${data.unreleased === 1 ? "" : "s"} unreleased. Students can no longer see ${data.unreleased === 1 ? "it" : "them"}.`,
+      });
+    } catch (error) {
+      setNotice({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Unable to unrelease grades.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const requestUnrelease = () => {
+    if (!canUnrelease) return;
+    setConfirmAction({
+      kind: "unrelease",
+      title: `Unrelease ${selectedReleasedCount} ${periodLabel(gradingPeriod)} grade${selectedReleasedCount === 1 ? "" : "s"}?`,
+      message: `${selectedReleasedCount} selected student${selectedReleasedCount === 1 ? "" : "s"} will no longer see this ${periodLabel(gradingPeriod)} term grade in the Student Portal. The grading setup and release history will be kept.`,
+      confirmLabel: "Unrelease grades",
+    });
   };
 
   const requestDeleteTrack = () => {
@@ -712,7 +792,7 @@ export function AdminTermGradesWorkspace() {
     setConfirmAction({
       kind: "release",
       title: updating ? "Release selected grades?" : `Release ${periodLabel(gradingPeriod)} grades?`,
-      message: `${selectedCount} selected student${selectedCount === 1 ? "" : "s"} will receive the final ${periodLabel(gradingPeriod)} subject grade. Only the selected students will be released or updated.`,
+      message: `${selectedReadyCount} selected student${selectedReadyCount === 1 ? "" : "s"} will receive the final ${periodLabel(gradingPeriod)} subject grade. Released students in this selection will be updated.`,
       confirmLabel: updating ? "Release selected" : "Release selected",
     });
   };
@@ -800,7 +880,18 @@ export function AdminTermGradesWorkspace() {
             </div>
             <div className="grades-confirm-actions-v433">
               <button type="button" className="button button-secondary" disabled={saving} onClick={() => setConfirmAction(null)}>Cancel</button>
-              <button type="button" className={`button ${confirmAction.kind === "delete-track" ? "grades-danger-button-v433" : "button-primary"}`} disabled={saving} onClick={() => { if (confirmAction.kind === "delete-track") void performDeleteTrack(); else void performRelease(); }}>{saving ? "Working…" : confirmAction.confirmLabel}</button>
+              <button
+                type="button"
+                className={`button ${confirmAction.kind === "delete-track" || confirmAction.kind === "unrelease" ? "grades-danger-button-v433" : "button-primary"}`}
+                disabled={saving}
+                onClick={() => {
+                  if (confirmAction.kind === "delete-track") void performDeleteTrack();
+                  else if (confirmAction.kind === "unrelease") void performUnrelease();
+                  else void performRelease();
+                }}
+              >
+                {saving ? "Working…" : confirmAction.confirmLabel}
+              </button>
             </div>
           </div>
         </div>
@@ -950,14 +1041,21 @@ export function AdminTermGradesWorkspace() {
               </div>
             ) : null}
 
-            <div className="grades-release-selection-bar-v476">
+            <div className="grades-release-selection-bar-v476 grades-release-selection-bar-v481">
               <div>
                 <strong>{selectedCount} selected</strong>
-                <span>Only selected ready students will receive or update their grade.</span>
+                <span>Select ready students to release or update, and released students if you want to unrelease them.</span>
               </div>
-              <button type="button" onClick={toggleAllReady} disabled={!readyStudentIds.length}>
-                {allReadySelected ? "Clear selection" : "Select all ready"}
-              </button>
+              <div className="grades-release-selection-actions-v481">
+                <button type="button" onClick={toggleAllReady} disabled={!readyStudentIds.length}>
+                  {allReadySelected ? "Clear ready" : "Select all ready"}
+                </button>
+                {releasedPreviewIds.length ? (
+                  <button type="button" onClick={toggleAllReleased}>
+                    {allReleasedSelected ? "Clear released" : "Select released"}
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             <div className="grades-preview-table-v424 grades-preview-table-v476">
@@ -971,7 +1069,8 @@ export function AdminTermGradesWorkspace() {
               {preview.map((row) => {
                 const studentId = String(row.studentId);
                 const isReleased = releasedStudentIds.has(studentId);
-                const isSelected = selectedStudentIds.has(studentId) && row.complete;
+                const isSelectable = row.complete || isReleased;
+                const isSelected = selectedStudentIds.has(studentId) && isSelectable;
                 const rowTracks = row.trackGrades || [];
 
                 return (
@@ -983,12 +1082,12 @@ export function AdminTermGradesWorkspace() {
                           className={`grades-student-select-v476${isSelected ? " is-selected" : ""}`}
                           aria-label={`${isSelected ? "Deselect" : "Select"} ${row.name}`}
                           aria-pressed={isSelected}
-                          disabled={!row.complete}
+                          disabled={!isSelectable}
                           onPointerDown={(event) => event.stopPropagation()}
                           onClick={(event) => {
                             event.preventDefault();
                             event.stopPropagation();
-                            if (row.complete) toggleStudentSelection(studentId);
+                            if (isSelectable) toggleStudentSelection(studentId);
                           }}
                         >
                           {isSelected ? <CheckIcon size={13} /> : null}
@@ -1064,14 +1163,28 @@ export function AdminTermGradesWorkspace() {
                         : !trackWeightsValid
                           ? "Grade type weights must total 100%."
                           : selectedCount
-                            ? `${selectedCount} selected · ${readyCount} ready${incompleteCount ? ` · ${incompleteCount} unavailable` : ""}.`
-                            : "Select at least one ready student."}
+                            ? `${selectedCount} selected${selectedReleasedCount ? ` · ${selectedReleasedCount} released` : ""}${selectedReadyCount ? ` · ${selectedReadyCount} ready to release/update` : ""}.`
+                            : releaseStatus.releasedCount
+                              ? "Select ready students to release, or released students to unrelease."
+                              : "Select at least one ready student."}
                   </span>
                 </div>
               </div>
-              <button className="button button-primary" type="button" disabled={!canRelease} onClick={requestRelease}>
-                {saving ? "Working…" : `Release ${selectedCount || ""} selected`.trim()}
-              </button>
+              <div className="grades-release-actions-v481">
+                {releaseStatus.releasedCount ? (
+                  <button
+                    className="button button-secondary grades-unrelease-button-v481"
+                    type="button"
+                    disabled={!canUnrelease}
+                    onClick={requestUnrelease}
+                  >
+                    {saving ? "Working…" : `Unrelease ${selectedReleasedCount || ""} selected`.trim()}
+                  </button>
+                ) : null}
+                <button className="button button-primary" type="button" disabled={!canRelease} onClick={requestRelease}>
+                  {saving ? "Working…" : `Release ${selectedReadyCount || ""} selected`.trim()}
+                </button>
+              </div>
             </div>
           </section>
         </>

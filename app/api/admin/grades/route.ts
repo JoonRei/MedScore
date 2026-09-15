@@ -179,19 +179,45 @@ async function loadWorkspace(ownerId: string, subjectId?: string, gradingPeriod 
     && Math.abs(trackWeightTotal - 100) < 0.001;
 
   let releaseStatus = { releasedCount: 0, releasedAt: null as string | null, studentIds: [] as string[] };
-  const { data: releasedRows, error: releasedError } = await db
+  const periodSchemeIds = periodSchemes.map((row: any) => String(row.id)).filter(Boolean);
+
+  const combinedReleaseQuery = db
     .from("released_subject_term_grades")
     .select("student_id,released_at")
     .eq("owner_id", ownerId)
     .eq("subject_id", subjectId)
-    .eq("grading_period", period)
-    .order("released_at", { ascending: false });
+    .eq("grading_period", period);
+
+  const legacyReleasePromise = periodSchemeIds.length
+    ? db
+        .from("released_term_grades")
+        .select("student_id,released_at")
+        .eq("owner_id", ownerId)
+        .eq("subject_id", subjectId)
+        .in("scheme_id", periodSchemeIds)
+    : Promise.resolve({ data: [], error: null } as any);
+
+  const [
+    { data: releasedRows, error: releasedError },
+    { data: legacyReleasedRows, error: legacyReleasedError },
+  ] = await Promise.all([combinedReleaseQuery, legacyReleasePromise]);
+
   if (releasedError) throw releasedError;
-  const releaseRows = releasedRows || [];
+  if (legacyReleasedError) throw legacyReleasedError;
+
+  const currentReleaseRows = [...(releasedRows || []), ...(legacyReleasedRows || [])];
+  const releasedIds = Array.from(new Set(
+    currentReleaseRows.map((row: any) => String(row.student_id || "")).filter(Boolean),
+  ));
+  const latestReleasedAt = currentReleaseRows
+    .map((row: any) => String(row.released_at || ""))
+    .filter(Boolean)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+
   releaseStatus = {
-    releasedCount: releaseRows.length,
-    releasedAt: releaseRows.length ? String(releaseRows[0].released_at || "") || null : null,
-    studentIds: releaseRows.map((row: any) => String(row.student_id || "")).filter(Boolean),
+    releasedCount: releasedIds.length,
+    releasedAt: latestReleasedAt,
+    studentIds: releasedIds,
   };
 
   const finalRoundingDigits = Number(periodSchemes[0]?.rounding_digits || 0);
@@ -623,6 +649,104 @@ export async function POST(request: Request) {
 
       revalidatePath("/admin/grades");
       return NextResponse.json({ ok: true, schemeId });
+    }
+
+    if (action === "unrelease") {
+      const requestedIds: string[] = Array.isArray(body?.studentIds)
+        ? Array.from(new Set<string>(
+            body.studentIds
+              .map((value: any) => String(value || "").trim())
+              .filter(Boolean),
+          ))
+        : [];
+
+      if (!requestedIds.length) {
+        return NextResponse.json({ error: "Select at least one released student to unrelease." }, { status: 400 });
+      }
+
+      const { data: periodSchemeRows, error: periodSchemeError } = await db
+        .from("grade_schemes")
+        .select("id")
+        .eq("owner_id", user.id)
+        .eq("subject_id", subjectId)
+        .eq("grading_period", gradingPeriod);
+      if (periodSchemeError) throw periodSchemeError;
+
+      const periodSchemeIds = (periodSchemeRows || []).map((row: any) => String(row.id)).filter(Boolean);
+
+      const combinedLookup = db
+        .from("released_subject_term_grades")
+        .select("student_id")
+        .eq("owner_id", user.id)
+        .eq("subject_id", subjectId)
+        .eq("grading_period", gradingPeriod)
+        .in("student_id", requestedIds);
+
+      const legacyLookupPromise = periodSchemeIds.length
+        ? db
+            .from("released_term_grades")
+            .select("student_id")
+            .eq("owner_id", user.id)
+            .eq("subject_id", subjectId)
+            .in("scheme_id", periodSchemeIds)
+            .in("student_id", requestedIds)
+        : Promise.resolve({ data: [], error: null } as any);
+
+      const [
+        { data: combinedCurrent, error: combinedLookupError },
+        { data: legacyCurrent, error: legacyLookupError },
+      ] = await Promise.all([combinedLookup, legacyLookupPromise]);
+
+      if (combinedLookupError) throw combinedLookupError;
+      if (legacyLookupError) throw legacyLookupError;
+
+      const releasedIds = Array.from(new Set(
+        [...(combinedCurrent || []), ...(legacyCurrent || [])]
+          .map((row: any) => String(row.student_id || ""))
+          .filter(Boolean),
+      ));
+
+      if (!releasedIds.length) {
+        return NextResponse.json({ error: "The selected students no longer have a released grade." }, { status: 400 });
+      }
+
+      const combinedDelete = db
+        .from("released_subject_term_grades")
+        .delete()
+        .eq("owner_id", user.id)
+        .eq("subject_id", subjectId)
+        .eq("grading_period", gradingPeriod)
+        .in("student_id", releasedIds);
+
+      const legacyDeletePromise = periodSchemeIds.length
+        ? db
+            .from("released_term_grades")
+            .delete()
+            .eq("owner_id", user.id)
+            .eq("subject_id", subjectId)
+            .in("scheme_id", periodSchemeIds)
+            .in("student_id", releasedIds)
+        : Promise.resolve({ error: null } as any);
+
+      const [
+        { error: combinedDeleteError },
+        { error: legacyDeleteError },
+      ] = await Promise.all([combinedDelete, legacyDeletePromise]);
+
+      if (combinedDeleteError) throw combinedDeleteError;
+      if (legacyDeleteError) throw legacyDeleteError;
+
+      // Intentionally keep both release-history tables unchanged.
+      // "Unrelease" removes the current student-visible grade, not the audit trail.
+      revalidatePath("/admin/grades");
+      revalidatePath("/student");
+      revalidatePath("/student/grades");
+
+      return NextResponse.json({
+        ok: true,
+        unreleased: releasedIds.length,
+        studentIds: releasedIds,
+      });
     }
 
     if (action === "release") {

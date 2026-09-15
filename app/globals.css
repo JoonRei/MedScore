@@ -28124,3 +28124,78 @@ body:has(.student-portal-v478) {
     background: rgba(255, 255, 255, .94) !important;
   }
 }
+
+
+/* ======================================================================
+   MedScores V4.81 — Term Grades selective unrelease
+   ====================================================================== */
+.grades-consistent-v430 .grades-release-selection-bar-v481 {
+  gap: 18px;
+}
+
+.grades-consistent-v430 .grades-release-selection-actions-v481 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grades-consistent-v430 .grades-release-selection-actions-v481 > button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.grades-consistent-v430 .grades-release-selection-actions-v481 > button:hover:not(:disabled) {
+  background: var(--brand-soft);
+}
+
+.grades-consistent-v430 .grades-release-selection-actions-v481 > button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.grades-consistent-v430 .grades-release-actions-v481 {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.grades-consistent-v430 .grades-unrelease-button-v481 {
+  color: var(--danger);
+  border-color: rgba(180, 35, 24, .18);
+}
+
+.grades-consistent-v430 .grades-unrelease-button-v481:hover:not(:disabled) {
+  background: var(--danger-soft);
+  border-color: rgba(180, 35, 24, .24);
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .grades-consistent-v430 .grades-release-selection-bar-v481 {
+    align-items: stretch;
+  }
+
+  .grades-consistent-v430 .grades-release-selection-actions-v481,
+  .grades-consistent-v430 .grades-release-actions-v481 {
+    width: 100%;
+  }
+
+  .grades-consistent-v430 .grades-release-selection-actions-v481 {
+    justify-content: flex-start;
+  }
+
+  .grades-consistent-v430 .grades-release-actions-v481 > .button {
+    flex: 1 1 150px;
+  }
+}
