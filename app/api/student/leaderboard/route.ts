@@ -117,9 +117,15 @@ function rankAssessment(
 }
 
 
-const SCORE_PAGE_SIZE = 500;
+const SCORE_PAGE_SIZE = 1000;
+const LEADERBOARD_BOARD_LIMIT = 12;
 
-async function loadScoresForAssessment(db: ReturnType<typeof createAdminClient>, assessmentId: string): Promise<ScoreRow[]> {
+async function loadScoresForAssessments(
+  db: ReturnType<typeof createAdminClient>,
+  assessmentIds: string[],
+): Promise<ScoreRow[]> {
+  if (!assessmentIds.length) return [];
+
   async function load(includeResultStatus: boolean): Promise<ScoreRow[]> {
     const rows: ScoreRow[] = [];
     let from = 0;
@@ -130,13 +136,15 @@ async function loadScoresForAssessment(db: ReturnType<typeof createAdminClient>,
         ? db
             .from("scores")
             .select("student_id,assessment_id,score,result_status")
-            .eq("assessment_id", assessmentId)
+            .in("assessment_id", assessmentIds)
+            .order("assessment_id", { ascending: true })
             .order("student_id", { ascending: true })
             .range(from, to)
         : db
             .from("scores")
             .select("student_id,assessment_id,score")
-            .eq("assessment_id", assessmentId)
+            .in("assessment_id", assessmentIds)
+            .order("assessment_id", { ascending: true })
             .order("student_id", { ascending: true })
             .range(from, to);
 
@@ -145,7 +153,7 @@ async function loadScoresForAssessment(db: ReturnType<typeof createAdminClient>,
 
       const batch = (data || []).map((row: any) => ({
         student_id: String(row.student_id || ""),
-        assessment_id: String(row.assessment_id || assessmentId),
+        assessment_id: String(row.assessment_id || ""),
         score: row.score == null ? null : Number(row.score),
         result_status: includeResultStatus
           ? String(row.result_status || (row.score == null ? "absent" : "scored"))
@@ -163,12 +171,10 @@ async function loadScoresForAssessment(db: ReturnType<typeof createAdminClient>,
   try {
     return await load(true);
   } catch (error) {
-    // Older schemas may not expose result_status. Fall back per assessment
-    // without sacrificing pagination or ranking completeness.
     try {
       return await load(false);
     } catch (fallbackError) {
-      console.error("leaderboard: score query failed", { assessmentId, error, fallbackError });
+      console.error("leaderboard: batched score query failed", { error, fallbackError });
       throw fallbackError;
     }
   }
@@ -234,18 +240,22 @@ export async function GET() {
     }
     assessmentRows = (fallback.data || [])
       .map((row: any) => ({ ...row, doctor_name: null }))
-      .filter((row: any) => Boolean(canonicalLeaderboardType(row.assessment_type))) as AssessmentRow[];
+      .filter((row: any) => Boolean(canonicalLeaderboardType(row.assessment_type)))
+      .slice(0, LEADERBOARD_BOARD_LIMIT) as AssessmentRow[];
   } else {
     assessmentRows = ((assessmentQuery.data || []) as AssessmentRow[])
-      .filter((row) => Boolean(canonicalLeaderboardType(row.assessment_type)));
+      .filter((row) => Boolean(canonicalLeaderboardType(row.assessment_type)))
+      .slice(0, LEADERBOARD_BOARD_LIMIT);
   }
 
   if (!assessmentRows.length) return json({ boards: [] });
 
+  const boardSubjectIds = Array.from(new Set(assessmentRows.map((assessment) => assessment.subject_id)));
+
   const { data: cohortData, error: cohortError } = await db
     .from("enrollments")
     .select("subject_id,student_id")
-    .in("subject_id", activeSubjectIds);
+    .in("subject_id", boardSubjectIds);
 
   if (cohortError) {
     console.error("leaderboard: roster query failed", cohortError);
@@ -273,10 +283,7 @@ export async function GET() {
   let scoreRows: ScoreRow[] = [];
   if (assessmentIds.length) {
     try {
-      const scoreBatches = await Promise.all(
-        assessmentIds.map((assessmentId) => loadScoresForAssessment(db, assessmentId))
-      );
-      scoreRows = scoreBatches.flat();
+      scoreRows = await loadScoresForAssessments(db, assessmentIds);
     } catch (error) {
       console.error("leaderboard: complete score loading failed", error);
       return json({ error: "Unable to load assessment rankings." }, 500);

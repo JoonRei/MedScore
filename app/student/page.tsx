@@ -15,7 +15,14 @@ export default async function Page() {
   const { student } = await requireStudent();
   const db = createAdminClient();
 
-  const [{ data: activePeriod }, { data: ownEnrollments }] = await Promise.all([
+  // These four reads are independent. Starting them together removes an
+  // unnecessary extra database round-trip from every Student Home load.
+  const [
+    { data: activePeriod },
+    { data: ownEnrollments },
+    { data: scores },
+    { data: views },
+  ] = await Promise.all([
     db.from("academic_periods")
       .select("academic_year,term")
       .eq("owner_id", student.owner_id)
@@ -24,16 +31,8 @@ export default async function Page() {
     db.from("enrollments")
       .select("subject_id")
       .eq("student_id", student.id),
-  ]);
-
-  const subjectIds = Array.from(new Set((ownEnrollments || []).map((row: any) => String(row.subject_id || "")).filter(Boolean)));
-
-  const [
-    { data: scores },
-    { data: views },
-  ] = await Promise.all([
     db.from("scores")
-      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,doctor_name,status,released_at,subjects(id,name,code,term,academic_year))")
+      .select("score,result_status,assessments!inner(id,title,assessment_type,total_score,passing_score,assessment_date,status,released_at,subjects(id,name,code,term,academic_year))")
       .eq("student_id", student.id)
       .eq("assessments.status", "published")
       .order("created_at", { ascending: false }),
@@ -42,6 +41,8 @@ export default async function Page() {
       .eq("student_id", student.id),
   ]);
 
+  const subjectIds = Array.from(new Set((ownEnrollments || []).map((row: any) => String(row.subject_id || "")).filter(Boolean)));
+
   // Coming up next is assessment-driven rather than score-driven. That means a
   // newly created draft assessment can appear for enrolled students immediately,
   // even before a score row exists. Numerical scores are intentionally not queried.
@@ -49,8 +50,9 @@ export default async function Page() {
   if (subjectIds.length) {
     const { data: pendingAssessments, error: pendingAssessmentError } = await db
       .from("assessments")
-      .select("id,subject_id,title,assessment_type,assessment_date,status,released_at,doctor_name,created_at,subjects!inner(id,name,code,term,academic_year,is_archived)")
+      .select("id,subject_id,title,assessment_type,assessment_date,status,released_at,created_at,subjects!inner(id,name,code,term,academic_year,is_archived)")
       .in("subject_id", subjectIds)
+      .neq("status", "archived")
       .order("created_at", { ascending: false });
 
     if (pendingAssessmentError) {

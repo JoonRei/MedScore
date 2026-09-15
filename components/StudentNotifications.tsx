@@ -21,73 +21,126 @@ type NotificationContextValue = {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
+const AUTO_REFRESH_BASE_MS = 30_000;
+const AUTO_REFRESH_JITTER_MS = 15_000;
+
+function eventKey(item: StudentNotification) {
+  return `${item.id}:${item.releasedAt}`;
+}
+
 export function StudentNotificationsProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [items, setItems] = useState<StudentNotification[]>([]);
   const [toast, setToast] = useState("");
   const seenEventsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+  const inFlightRef = useRef<Promise<void> | null>(null);
+
+  const loadUnread = useCallback((notifyOnNew: boolean) => {
+    if (inFlightRef.current) return inFlightRef.current;
+
+    const task = (async () => {
+      try {
+        const response = await fetch("/api/student/notifications", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!response.ok) return;
+
+        const body = await response.json().catch(() => ({}));
+        const nextItems = Array.isArray(body.notifications)
+          ? body.notifications as StudentNotification[]
+          : [];
+
+        const wasInitialized = initializedRef.current;
+        const newestUnseen = wasInitialized
+          ? nextItems.find((item) => !seenEventsRef.current.has(eventKey(item)))
+          : undefined;
+
+        for (const item of nextItems) {
+          seenEventsRef.current.add(eventKey(item));
+        }
+
+        setItems(nextItems);
+        initializedRef.current = true;
+
+        if (notifyOnNew && newestUnseen) {
+          setToast(`New result available — ${newestUnseen.subject}: ${newestUnseen.title}`);
+          // Refresh only when something actually changed. This keeps the portal
+          // current without continuously re-rendering server components.
+          router.refresh();
+        }
+      } catch {
+        // Temporary network/database pressure must never interrupt the portal.
+      }
+    })().finally(() => {
+      inFlightRef.current = null;
+    });
+
+    inFlightRef.current = task;
+    return task;
+  }, [router]);
 
   const refreshUnread = useCallback(async () => {
-    try {
-      const response = await fetch("/api/student/notifications", { cache: "no-store", credentials: "same-origin" });
-      if (!response.ok) return;
-      const body = await response.json().catch(() => ({}));
-      const nextItems = Array.isArray(body.notifications) ? body.notifications as StudentNotification[] : [];
-      for (const item of nextItems) seenEventsRef.current.add(`${item.id}:${item.releasedAt}`);
-      setItems(nextItems);
-    } catch {
-      // A temporary fetch failure should not interrupt the Student portal.
-    }
-  }, []);
+    await loadUnread(false);
+  }, [loadUnread]);
 
   useEffect(() => {
     let cancelled = false;
-    let source: EventSource | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const handleRelease = (event: MessageEvent<string>) => {
-      try {
-        const item = JSON.parse(event.data) as StudentNotification;
-        if (!item?.id) return;
-        const eventKey = `${item.id}:${item.releasedAt}`;
-        if (seenEventsRef.current.has(eventKey)) return;
-        seenEventsRef.current.add(eventKey);
-        setItems((current) => [{ ...item, isUnread: true }, ...current.filter((entry) => entry.id !== item.id)].slice(0, 20));
-        setToast(`New result available — ${item.subject}: ${item.title}`);
-        router.refresh();
-      } catch {
-        // Ignore malformed live events and keep the stream connected.
+    const clearTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
       }
+    };
+
+    const schedule = () => {
+      clearTimer();
+      if (cancelled) return;
+
+      const jitter = Math.floor(Math.random() * AUTO_REFRESH_JITTER_MS);
+      timer = setTimeout(async () => {
+        if (cancelled) return;
+        if (document.visibilityState === "visible") {
+          await loadUnread(true);
+        }
+        schedule();
+      }, AUTO_REFRESH_BASE_MS + jitter);
     };
 
     const handleViewed = (event: Event) => {
       const id = (event as CustomEvent<{ assessmentId?: string }>).detail?.assessmentId;
       if (id) setItems((current) => current.filter((item) => item.id !== id));
     };
+
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") void refreshUnread();
+      if (document.visibilityState !== "visible") return;
+      void loadUnread(true);
+      schedule();
+    };
+
+    const handleOnline = () => {
+      if (document.visibilityState !== "visible") return;
+      void loadUnread(true);
+      schedule();
     };
 
     window.addEventListener("medscores:result-viewed", handleViewed);
+    window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    void (async () => {
-      await refreshUnread();
-      if (cancelled) return;
-      const since = new Date(Date.now() - 15000).toISOString();
-      source = new EventSource(`/api/student/notifications/stream?since=${encodeURIComponent(since)}`);
-      source.addEventListener("score_release", handleRelease as EventListener);
-    })();
+    void loadUnread(false).finally(schedule);
 
     return () => {
       cancelled = true;
-      if (source) {
-        source.removeEventListener("score_release", handleRelease as EventListener);
-        source.close();
-      }
+      clearTimer();
       window.removeEventListener("medscores:result-viewed", handleViewed);
+      window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refreshUnread, router]);
+  }, [loadUnread]);
 
   const value = useMemo(() => ({ items, refreshUnread }), [items, refreshUnread]);
 

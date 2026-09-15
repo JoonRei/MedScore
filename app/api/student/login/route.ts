@@ -25,11 +25,32 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
     const now = new Date();
 
-    const { data: attempt } = await supabase
-      .from("student_login_attempts")
-      .select("attempts, locked_until")
-      .eq("identifier", codeName)
-      .maybeSingle();
+    const [attemptResult, studentResult] = await Promise.all([
+      supabase
+        .from("student_login_attempts")
+        .select("attempts, locked_until")
+        .eq("identifier", codeName)
+        .maybeSingle(),
+      supabase
+        .from("students")
+        .select("id, pin_hash, is_active")
+        .eq("code_name", codeName)
+        .maybeSingle(),
+    ]);
+
+    if (attemptResult.error || studentResult.error) {
+      console.error("student login: lookup failed", {
+        attemptError: attemptResult.error,
+        studentError: studentResult.error,
+      });
+      return NextResponse.json(
+        { error: "Sign in is temporarily busy. Please try again." },
+        { status: 503, headers: { "Retry-After": "2" } }
+      );
+    }
+
+    const attempt = attemptResult.data;
+    const student = studentResult.data;
 
     if (attempt?.locked_until && new Date(attempt.locked_until) > now) {
       return NextResponse.json(
@@ -37,12 +58,6 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
-
-    const { data: student } = await supabase
-      .from("students")
-      .select("id, pin_hash, is_active")
-      .eq("code_name", codeName)
-      .maybeSingle();
 
     const valid = Boolean(student?.is_active && student.pin_hash && (await bcrypt.compare(pinValue, student.pin_hash)));
 
@@ -65,8 +80,18 @@ export async function POST(request: Request) {
       );
     }
 
-    await supabase.from("student_login_attempts").delete().eq("identifier", codeName);
-    await supabase.from("student_sessions").delete().eq("student_id", student!.id);
+    const [, sessionCleanup] = await Promise.all([
+      supabase.from("student_login_attempts").delete().eq("identifier", codeName),
+      supabase.from("student_sessions").delete().eq("student_id", student!.id),
+    ]);
+
+    if (sessionCleanup.error) {
+      console.error("student login: session cleanup failed", sessionCleanup.error);
+      return NextResponse.json(
+        { error: "Sign in is temporarily busy. Please try again." },
+        { status: 503, headers: { "Retry-After": "2" } }
+      );
+    }
 
     const token = newSessionToken();
     const expiresAt = new Date(now.getTime() + STUDENT_SESSION_HOURS * 60 * 60 * 1000);
@@ -87,7 +112,11 @@ export async function POST(request: Request) {
       expires: expiresAt,
     });
     return response;
-  } catch {
-    return NextResponse.json({ error: "Unable to sign in right now." }, { status: 500 });
+  } catch (error) {
+    console.error("student login: unexpected failure", error);
+    return NextResponse.json(
+      { error: "Unable to sign in right now." },
+      { status: 503, headers: { "Retry-After": "2" } }
+    );
   }
 }

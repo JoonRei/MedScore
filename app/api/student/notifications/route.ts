@@ -11,7 +11,7 @@ export async function GET() {
 
   try {
     const notifications = await loadReleasedNotifications(session.student, { unreadOnly: true, limit: 20 });
-    return NextResponse.json({ notifications }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ notifications }, { headers: { "Cache-Control": "private, no-store, max-age=0", "Vary": "Cookie" } });
   } catch (error) {
     console.error("student notifications: load failed", error);
     return NextResponse.json({ error: "Unable to load notifications." }, { status: 500 });

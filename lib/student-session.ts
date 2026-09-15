@@ -16,6 +16,8 @@ export function newSessionToken() {
   return crypto.randomBytes(32).toString("base64url");
 }
 
+// React cache deduplicates repeated session reads within the same server render/request.
+// Do not use a long-lived process cache here: revoked student sessions must stop promptly.
 const readStudentSession = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get(STUDENT_COOKIE)?.value;

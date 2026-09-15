@@ -80,6 +80,11 @@ export async function loadReleasedNotifications(
 
   if (!items.length) return items;
 
+  // A live/after query is only asking what was newly released after a cursor.
+  // It does not need a second result-view query for every poll.
+  const needsReadState = Boolean(options.unreadOnly) || !options.after;
+  if (!needsReadState) return items;
+
   const { data: views, error: viewsError } = await db
     .from("student_result_views")
     .select("assessment_id,viewed_at")

@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const revalidate = 0;
 
-const POLL_MS = 2200;
-const STREAM_LIFETIME_MS = 26000;
+const POLL_MS = 15_000;
+const STREAM_LIFETIME_MS = 55_000;
 
 export async function GET(request: Request) {
   const session = await getStudentSession();
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         }
       };
 
-      send("retry: 1800\n\n");
+      send("retry: 12_000\n\n");
       send(`event: ready\ndata: ${JSON.stringify({ ok: true })}\n\n`);
       void poll();
       interval = setInterval(() => void poll(), POLL_MS);
