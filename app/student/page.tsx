@@ -1,4 +1,5 @@
 import { Leaderboard } from "@/components/Leaderboard";
+import { StudentGalleryShowcase } from "@/components/StudentGalleryShowcase";
 import { StudentWelcomeHeader } from "@/components/StudentWelcomeHeader";
 import { requireStudent } from "@/lib/student-session";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -196,6 +197,8 @@ export default async function Page() {
       </div>
 
       <Leaderboard />
+
+      <StudentGalleryShowcase />
 
       <section className="section-gap student-open-section-v442 student-assessment-overview-v442">
         <div className="panel-header compact-section-header student-open-section-head-v442"><div><h2>Assessment overview</h2><p>Your latest score in each common assessment type.</p></div></div>

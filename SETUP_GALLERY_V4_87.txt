@@ -1,0 +1,45 @@
+MedScores V4.87 — Responsive Gallery Showcase + Full Gallery
+
+INSTALL ORDER
+
+1. Run this SQL once in Supabase:
+   database/v4.29_gallery_responsive_previews.sql
+
+2. Replace:
+   components/StudentGalleryShowcase.tsx
+   components/GalleryAdminClient.tsx
+   app/api/admin/gallery/route.ts
+   app/api/student/gallery/route.ts
+   app/globals.css
+
+3. Open Admin > Gallery and click "Optimize existing photos" once.
+   This upgrades older Gallery photos with a 640px responsive WEBP preview.
+   The original HD uploads are not changed.
+
+RESPONSIVE IMAGE DELIVERY
+- Original file: untouched, used for Download HD / on-demand HD viewer.
+- 1280px WEBP: large showcase and fullscreen quick preview.
+- 640px WEBP: phones, small gallery tiles, and thumbnail filmstrip.
+- Student showcase uses srcset + sizes when both preview variants exist.
+- Existing photos gracefully fall back to the 1280px preview until optimized.
+
+RESPONSIVE LAYOUT
+- 320–339px: featured photo + single-column supports when two columns would be too tight.
+- 340–767px: featured full-width photo + clean 2-column supports.
+- 768–1023px: featured photo + 2-column editorial support grid.
+- 1024px+: asymmetric institutional bento composition.
+- 1440px+ remains width-controlled and does not stretch indefinitely.
+
+FULL VIEWER
+- 100svh / 100dvh viewport handling.
+- Safe-area support.
+- Mobile top bar: counter + Download + Close.
+- Mobile title/subtitle beneath photo, before thumbnail rail.
+- Tablet/desktop: full metadata header + Download + Fullscreen + Close.
+- Touch targets are ~44px minimum.
+- Coarse touch devices use swipe and thumbnails rather than permanent side arrows.
+- Short landscape phones/tablets switch to photo-left / compact-info-right layout.
+- Main photo always uses its natural ratio with object-fit: contain.
+- Only current + adjacent original HD photos are requested/preloaded.
+
+No unrelated sections are changed.

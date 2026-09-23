@@ -22,6 +22,7 @@ const nav = [
   { href: "/admin/subjects", label: "Subjects", mobileLabel: "Subjects", icon: BookIcon },
   { href: "/admin/assessments", label: "Assessments", mobileLabel: "Exams", icon: FileIcon },
   { href: "/admin/grades", label: "Term Grades", mobileLabel: "Grades", icon: ScoresIcon },
+  { href: "/admin/gallery", label: "Gallery", mobileLabel: "Gallery", icon: FileIcon },
   { href: "/admin/reports", label: "Reports", mobileLabel: "Reports", icon: ChartIcon },
   { href: "/admin/settings", label: "Settings", mobileLabel: "Settings", icon: SettingsIcon },
 ];

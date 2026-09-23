@@ -1,0 +1,38 @@
+MedScores V4.86 — Immersive Photo Viewer
+
+Replace only:
+- components/StudentGalleryShowcase.tsx
+- app/globals.css
+
+No SQL, API, Storage, or Admin Gallery changes are required.
+
+Preserved:
+- V4.85 editorial Gallery Showcase
+- year-level visibility
+- fast WEBP previews
+- original HD loading
+- Save/Download HD original
+- private Supabase image security
+- mobile swipe
+- keyboard navigation
+
+Viewer upgrades:
+- natural original aspect ratio with object-fit: contain
+- no forced wide crop
+- compact metadata/header zone
+- flexible image stage consuming most of the viewport
+- proper left/right desktop navigation with no looping
+- 250–350ms directional image transitions
+- 64–80px-class horizontal thumbnail filmstrip
+- thumbnail loading skeleton + failed-image fallback
+- adjacent HD photo preloading
+- active thumbnail auto-scroll
+- auto-hiding/receding controls after ~2.8s idle
+- Download HD HugeIcons control
+- HugeIcons fullscreen control using the browser Fullscreen API
+- D keyboard shortcut for current original download
+- Esc exits fullscreen before closing when possible
+- smooth viewer close fade
+- mobile-specific photo-first layout
+- background scroll remains frozen while open
+- Next.js development badge hidden while viewer is active

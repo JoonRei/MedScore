@@ -1,0 +1,58 @@
+MedScores V4.87 Responsive Validation
+
+Browser-rendered layout checks were run against the final Gallery CSS using Chromium/Playwright.
+
+Showcase viewport checks:
+320x568
+360x800
+375x812
+390x844
+412x915
+430x932
+480x800
+600x900
+768x1024
+820x1180
+1024x768
+1366x768
+1440x900
+1920x1080
+
+Viewer viewport checks:
+320x568
+360x800
+375x812
+390x844
+412x915
+430x932
+768x1024
+820x1180
+1024x768
+1366x768
+1440x900
+1920x1080
+812x375 landscape
+667x375 landscape
+568x320 landscape
+
+Content cases checked:
+- long event title
+- long subtitle
+- 1 photo
+- many photos
+- portrait main photo
+- landscape main photo
+- very wide main photo
+- loading/failure-ready thumbnail layout
+- minimum visible control target sizing
+- narrow effective widths representative of browser zoom
+
+Automated checks:
+- no horizontal overflow in the tested Showcase sizes
+- no horizontal or vertical document overflow in the fixed Viewer
+- full main photo remained inside the flexible image stage
+- portrait/landscape/wide photos used contain behavior without crop
+- visible Viewer controls met approximately 44px minimum touch sizing
+- support gallery photos did not collapse into unusably tiny tiles at tested widths
+
+The layout is CSS-fluid, so orientation changes preserve the same React gallery state/current photo without closing or reopening the viewer.
