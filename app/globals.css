@@ -33192,3 +33192,191 @@ body:has(.gallery-lightbox-v486) [data-nextjs-dev-tools-button] {
     display: none;
   }
 }
+
+
+/* ======================================================================
+   MedScores V4.87.3 — Viewer close stability + editorial loading state
+   ====================================================================== */
+
+/* Once close begins, prevent a second tap/click from interacting with a fading
+   viewer. The component now uses a stable closingRef so the unmount timer
+   cannot be cancelled by the closing state update. */
+.gallery-lightbox-v487.is-closing {
+  pointer-events: none;
+}
+
+/* Gallery loading now previews the hierarchy of the real content instead of
+   showing three unrelated generic blocks. */
+.student-gallery-loading-v4873 {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: clamp(14px, 2.4vw, 20px);
+}
+
+.gallery-loading-copy-v4873 {
+  width: min(100%, 70ch);
+  display: grid;
+  gap: clamp(7px, 1.15vw, 10px);
+}
+
+.gallery-loading-copy-v4873 > span,
+.gallery-loading-layout-v4873 > span {
+  display: block;
+  background: #eeebf0;
+  animation: gallery-soft-pulse-v4873 1.45s ease-in-out infinite alternate;
+}
+
+.gallery-loading-copy-v4873 .is-meta {
+  width: min(42%, 230px);
+  height: 10px;
+  border-radius: 999px;
+}
+
+.gallery-loading-copy-v4873 .is-title {
+  width: min(72%, 460px);
+  height: clamp(20px, 2.4vw, 28px);
+  border-radius: 8px;
+}
+
+.gallery-loading-copy-v4873 .is-description {
+  width: min(88%, 620px);
+  height: 13px;
+  border-radius: 999px;
+  opacity: .78;
+}
+
+.gallery-loading-layout-v4873 {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(6px, 1.7vw, 10px);
+}
+
+.gallery-loading-layout-v4873 > span {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: clamp(12px, 3vw, 17px);
+}
+
+.gallery-loading-layout-v4873 .is-feature {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 10;
+}
+
+.gallery-loading-layout-v4873 .is-support-a,
+.gallery-loading-layout-v4873 .is-support-b,
+.gallery-loading-layout-v4873 .is-final {
+  aspect-ratio: 4 / 3;
+}
+
+.gallery-loading-layout-v4873 .is-wide {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+
+.gallery-loading-layout-v4873 > span:nth-child(2) { animation-delay: .08s; }
+.gallery-loading-layout-v4873 > span:nth-child(3) { animation-delay: .14s; }
+.gallery-loading-layout-v4873 > span:nth-child(4) { animation-delay: .2s; }
+.gallery-loading-layout-v4873 > span:nth-child(5) { animation-delay: .26s; }
+
+@keyframes gallery-soft-pulse-v4873 {
+  from { opacity: .56; }
+  to { opacity: .92; }
+}
+
+/* The filmstrip loading state is intentionally quiet. It reserves the exact
+   thumbnail space without looking like an unexplained black box. */
+.gallery-lightbox-v487 .gallery-thumb-skeleton-v486 {
+  background: #1d1c20;
+  animation: gallery-thumb-soft-pulse-v4873 1.35s ease-in-out infinite alternate;
+}
+
+.gallery-lightbox-v487 .gallery-thumb-fallback-v486 {
+  background: #1d1c20;
+  color: rgba(255,255,255,.38);
+}
+
+@keyframes gallery-thumb-soft-pulse-v4873 {
+  from { opacity: .52; }
+  to { opacity: .82; }
+}
+
+/* Very narrow phones: do not make loading photos tiny just to preserve two columns. */
+@media (max-width: 339px) {
+  .gallery-loading-layout-v4873 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-loading-layout-v4873 .is-feature,
+  .gallery-loading-layout-v4873 .is-wide,
+  .gallery-loading-layout-v4873 .is-support-a,
+  .gallery-loading-layout-v4873 .is-support-b,
+  .gallery-loading-layout-v4873 .is-final {
+    grid-column: 1;
+    aspect-ratio: 4 / 3;
+  }
+
+  .gallery-loading-layout-v4873 .is-feature {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+/* Tablet keeps the same clean hierarchy with more breathing room. */
+@media (min-width: 768px) {
+  .gallery-loading-layout-v4873 {
+    gap: clamp(8px, 1.4vw, 14px);
+  }
+
+  .gallery-loading-layout-v4873 .is-feature {
+    aspect-ratio: 16 / 8.8;
+  }
+}
+
+/* Laptop / desktop skeleton mirrors the actual asymmetric editorial composition. */
+@media (min-width: 1024px) {
+  .gallery-loading-layout-v4873 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(3, clamp(138px, 12vw, 188px));
+    gap: clamp(8px, .85vw, 12px);
+  }
+
+  .gallery-loading-layout-v4873 .is-feature {
+    grid-column: 1 / span 7;
+    grid-row: 1 / span 2;
+    aspect-ratio: auto;
+  }
+
+  .gallery-loading-layout-v4873 .is-support-a {
+    grid-column: 8 / -1;
+    grid-row: 1;
+    aspect-ratio: auto;
+  }
+
+  .gallery-loading-layout-v4873 .is-support-b {
+    grid-column: 8 / -1;
+    grid-row: 2;
+    aspect-ratio: auto;
+  }
+
+  .gallery-loading-layout-v4873 .is-wide {
+    grid-column: 1 / span 7;
+    grid-row: 3;
+    aspect-ratio: auto;
+  }
+
+  .gallery-loading-layout-v4873 .is-final {
+    grid-column: 8 / -1;
+    grid-row: 3;
+    aspect-ratio: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-loading-copy-v4873 > span,
+  .gallery-loading-layout-v4873 > span,
+  .gallery-lightbox-v487 .gallery-thumb-skeleton-v486 {
+    animation: none !important;
+  }
+}

@@ -141,6 +141,7 @@ function GalleryLightbox({
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closingRef = useRef(false);
   const viewerRef = useRef<HTMLDivElement>(null);
   const photos = post.photos || [];
   const current = photos[index];
@@ -154,11 +155,22 @@ function GalleryLightbox({
   }, []);
 
   const requestClose = useCallback(() => {
-    if (closing) return;
+    if (closingRef.current) return;
+
+    closingRef.current = true;
     setClosing(true);
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    closeTimerRef.current = setTimeout(() => onClose(), 190);
-  }, [closing, onClose]);
+
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      closeTimerRef.current = null;
+      onClose();
+    }, 190);
+  }, [onClose]);
 
   const goPrevious = useCallback(() => {
     if (!canPrevious) return;
@@ -619,10 +631,19 @@ export function StudentGalleryShowcase({
         </div>
 
         {loading ? (
-          <div className="student-gallery-loading-v482 student-gallery-loading-v484 student-gallery-loading-v485" aria-label="Loading gallery">
-            <span />
-            <span />
-            <span />
+          <div className="student-gallery-loading-v4873" aria-label="Loading gallery" aria-busy="true">
+            <div className="gallery-loading-copy-v4873" aria-hidden="true">
+              <span className="is-meta" />
+              <span className="is-title" />
+              <span className="is-description" />
+            </div>
+            <div className="gallery-loading-layout-v4873" aria-hidden="true">
+              <span className="is-feature" />
+              <span className="is-support-a" />
+              <span className="is-support-b" />
+              <span className="is-wide" />
+              <span className="is-final" />
+            </div>
           </div>
         ) : error ? (
           <div className="student-gallery-empty-v482 is-error">
