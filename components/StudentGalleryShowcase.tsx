@@ -136,7 +136,7 @@ function GalleryLightbox({
   const [controlsQuiet, setControlsQuiet] = useState(false);
   const [closing, setClosing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const originalRequestsRef = useRef<Record<string, Promise<string | null>>>({});
+  const originalRequestsRef = useRef<Partial<Record<string, Promise<string | null>>>>({});
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -190,7 +190,9 @@ function GalleryLightbox({
       return String(photo.fullUrl);
     }
     if (originalUrls[photo.id]) return originalUrls[photo.id];
-    if (originalRequestsRef.current[photo.id]) return originalRequestsRef.current[photo.id];
+
+    const pendingRequest = originalRequestsRef.current[photo.id];
+    if (pendingRequest) return pendingRequest;
 
     const request = (async () => {
       try {
